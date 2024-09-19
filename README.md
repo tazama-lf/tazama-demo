@@ -1,6 +1,6 @@
 <img width="400px" height="100px" src="https://tazama.org/logo.svg" alt="tazama logo"> </br>
 
-![typescript][typescript] <img height="28.5px" width="auto" src="./public/next.jpeg"> <img height="28.5px" width="auto" src="./public/node.png">
+![typescript][typescript] <img height="28.5px" width="auto" src="./public/next.jpeg"> <img height="28.5px" width="auto" src="./public/node.png"> <img height="28.5px" width="auto" src="./public/tailwind.png">
 
 # Tazama Demo Application</br>
 >

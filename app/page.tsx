@@ -12,14 +12,16 @@ import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
 import EntityContext from "store/entities/entity.context"
 import { CdtrEntity, Entity } from "store/entities/entity.interface"
 import ProcessorContext from "store/processors/processor.context"
-import { Rule, Typology } from "store/processors/processor.interface"
 import Loader from "./../components/Loader/Loader"
 import { DragDropContext, Draggable, Droppable } from "../node_modules/@hello-pangea/dnd/dist/dnd"
+import RuleResult from "components/RuleResults/RuleResults"
+import TypeResult from "components/TypologyResults/TypologyResults"
+import { iconColour } from "utils/helpers"
 
 const Web = () => {
-  // const [types, setTypes] = useState<any[] | null>(null)
-  const [descriptions, setDescriptions] = useState<any[] | null>(null)
-  const [isHoverRule, setIsHoverRule] = useState<boolean>(false)
+  const entityCtx: any = useContext(EntityContext)
+  const procCtx: any = useContext(ProcessorContext)
+
   const [hoveredRule, setHoveredRule] = useState<any>(null)
   const [hoverRules, setHoverRules] = useState<any[]>([])
   const [selectedRules, setSelectedRules] = useState<any[]>([])
@@ -31,20 +33,16 @@ const Web = () => {
   const [showModal, setModal] = useState(false)
   const [started, setStarted] = useState(false)
   const [showCreditorModal, setShowCreditorModal] = useState(false)
-  const entityCtx: any = useContext(EntityContext)
-  const procCtx: any = useContext(ProcessorContext)
 
   const handleRuleMouseEnter = (type: any) => {
     setHoveredType(null) // fallback if stats is stuck
     setHoveredRule(type)
-    setIsHoverRule(true)
     setHoverTypes([...type.linkedTypologies])
   }
 
   const handleRuleMouseLeave = () => {
     setHoveredRule(null)
     setHoveredType(null) // fallback if stats is stuck
-    setIsHoverRule(false)
     setHoverTypes([])
   }
 
@@ -87,201 +85,6 @@ const Web = () => {
     setSelectedRules([])
   }
 
-  function RuleRow(props: any) {
-    let t = props.rule.t.map(function (type: any) {
-      return type.t
-    })
-
-    let typeRel = ""
-
-    if (hoveredType) {
-      for (let index = 0; index < hoveredType.r.length; index++) {
-        if (hoveredType.r[index].r === props.rule.r) {
-          typeRel = "bg-gray-200"
-        }
-      }
-    }
-
-    return (
-      <li
-        className={`flex rounded-md px-2 hover:bg-gray-200 ${typeRel}`}
-        data-type={t}
-        key={`r-${props.rule.r}`}
-        onMouseEnter={() => handleRuleMouseEnter(props.rule)}
-        onMouseLeave={handleRuleMouseLeave}
-      >
-        <StatusIndicator colour={props.rule.s} rule={props.rule} /> &nbsp;
-        {props.rule.v}
-      </li>
-    )
-  }
-
-  function TypeRow(props: any) {
-    let r = props.rule.r.map(function (type: any) {
-      return type.r
-    })
-
-    let ruleRel = ""
-
-    if (hoveredRule) {
-      for (let index = 0; index < hoveredRule.t.length; index++) {
-        if (hoveredRule.t[index].t === props.rule.t) {
-          ruleRel = "bg-gray-200"
-        }
-      }
-    }
-
-    return (
-      <li
-        className={`flex rounded-md px-2 hover:bg-gray-200 ${ruleRel}`}
-        data-rule={r}
-        key={`t-${props.rule.t}`}
-        onMouseEnter={() => handleTypeMouseEnter(props.rule)}
-        onMouseLeave={handleTypeMouseLeave}
-      >
-        <StatusIndicator colour={props.rule.s} rule={props.rule} /> &nbsp;
-        {props.rule.v}
-      </li>
-    )
-  }
-
-  const getRuleDescriptions = (result: string, rule_id: number) => {
-    const desc: any = procCtx.rules.find((rule: Rule) => rule.id === rule_id)
-    const description = desc.ruleBands.find((item: any) => item.subRuleRef === result)
-    return description?.reason
-  }
-
-  useEffect(() => {}, [selectedRule])
-
-  function RuleResult() {
-    if (hoveredRule === null && selectedRule === null) return null
-
-    return (
-      <div
-        className="cursor-pointer rounded-xl p-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
-        onClick={() => {
-          setSelectedRule(null)
-        }}
-      >
-        <h3 className="text-center uppercase">Rule Results</h3>
-
-        <div className="flex flex-col p-1">
-          <div className="mb-2 flex w-full flex-col items-center justify-center text-center">
-            <p className="align-center m-2 flex w-full justify-center border-2 border-black px-5 py-2 text-center">
-              {hoveredRule ? hoveredRule?.rule : selectedRule && selectedRule.rule}
-            </p>
-            <p className="align-center m-1 flex w-full justify-center border-2 border-black px-5 py-2 text-center text-xs">
-              {hoveredRule ? hoveredRule?.ruleDescription : selectedRule.ruleDescription}
-            </p>
-          </div>
-          <hr className="mb-2 border-black" />
-          <div className="align-center mb-2 grid w-full grid-cols-4 justify-center gap-4 text-center">
-            <div className="flex flex-col gap-1">
-              <p className="align-center col-span-1 flex h-8 w-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
-                {hoveredRule ? hoveredRule.result : selectedRule && selectedRule.result}
-              </p>
-              <p className="align-center col-span-1 flex h-8 w-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
-                {hoveredRule ? hoveredRule.wght : selectedRule && selectedRule.wght}
-              </p>
-            </div>
-            <p className="align-center col-span-3 flex size-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
-              {hoveredRule
-                ? hoveredRule.result
-                  ? getRuleDescriptions(hoveredRule.result, hoveredRule.id)
-                  : ""
-                : selectedRule && selectedRule?.result
-                ? getRuleDescriptions(selectedRule.result, selectedRule.id)
-                : ""}
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  function TypeResult() {
-    if (hoveredType === null && selectedType === null) return null
-    return (
-      <div className="mb-5 cursor-pointer rounded-xl p-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-        <h3 className="text-center uppercase">Typology Results</h3>
-        <div className="mb-2 p-2 text-center">
-          {hoveredType && hoveredType.id ? hoveredType.id : selectedType ? selectedType.id : ""}
-          {hoveredType ? ` = ${hoveredType.result}` : selectedType ? ` = ${selectedType.result}` : ""}
-          {/* {hoveredType ? (hoveredType.s === "g" ? "true" : "false") : ""} 600 */}
-        </div>
-        <div className="align-center grid grid-cols-4 justify-center">
-          <div className="col-span-1 flex flex-row justify-center text-center">
-            <div className="p-4">
-              {/* <StatusIndicator colour="y" /> */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="col-span-3 mb-2 flex gap-5 p-2">
-            <p className="align-center col-span-2 flex size-full flex-row justify-center border-2 border-black px-4 py-2 text-center">
-              {hoveredType
-                ? hoveredType.workflow.alertThreshold
-                  ? hoveredType.workflow.alertThreshold
-                  : "None"
-                : selectedType && selectedType.workflow.alertThreshold
-                ? selectedType.workflow.alertThreshold
-                : "None"}
-            </p>
-          </div>
-        </div>
-        <div className="align-center grid grid-cols-4 justify-center">
-          <div className="col-span-1 flex flex-row justify-center text-center">
-            <div className="p-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.05 4.575a1.575 1.575 0 1 0-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 0 1 3.15 0v1.5m-3.15 0 .075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 0 1 3.15 0V15M6.9 7.575a1.575 1.575 0 1 0-3.15 0v8.175a6.75 6.75 0 0 0 6.75 6.75h2.018a5.25 5.25 0 0 0 3.712-1.538l1.732-1.732a5.25 5.25 0 0 0 1.538-3.712l.003-2.024a.668.668 0 0 1 .198-.471 1.575 1.575 0 1 0-2.228-2.228 3.818 3.818 0 0 0-1.12 2.687M6.9 7.575V12m6.27 4.318A4.49 4.49 0 0 1 16.35 15m.002 0h-.002"
-                />
-              </svg>
-              {/* <StatusIndicator colour="r" /> */}
-            </div>
-          </div>
-          <div className="col-span-3 mb-2 flex gap-5 p-2">
-            <p className="align-center col-span-2 flex size-full flex-row justify-center border-2 border-black px-4 py-2 text-center">
-              {hoveredType
-                ? hoveredType.workflow.interdictionThreshold
-                  ? hoveredType.workflow.interdictionThreshold
-                  : "None"
-                : selectedType && selectedType.workflow.interdictionThreshold
-                ? selectedType.workflow.interdictionThreshold
-                : "None"}
-            </p>
-          </div>
-        </div>
-        <div className="mb-2 p-2 text-center">
-          <p className="align-center col-span-2 flex size-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
-            {hoveredType ? hoveredType.typoDescription : selectedType && selectedType.typoDescription}
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState(null)
   const [selectedEntity, setSelectedEntity] = useState<number>(0)
@@ -300,12 +103,6 @@ const Web = () => {
       setLoading(false)
     }
   }, [])
-
-  useEffect(() => {}, [descriptions])
-  useEffect(() => {}, [selectedEntity])
-  useEffect(() => {}, [selectedCreditorEntity])
-  useEffect(() => {}, [entityCtx.entities])
-  useEffect(() => {}, [entityCtx.creditorEntities])
 
   if (loading) return <Loader />
   if (error) return <p>Error: {error}</p>
@@ -357,28 +154,6 @@ const Web = () => {
         entityCtx.selectDebtorEntity(index, 0)
       }
       return
-    }
-  }
-
-  const iconColour = (index: number) => {
-    let fillColour
-
-    switch (index) {
-      case 0: {
-        return (fillColour = "text-blue-500")
-      }
-      case 1: {
-        return (fillColour = "text-green-500")
-      }
-      case 2: {
-        return (fillColour = "text-yellow-400")
-      }
-      case 3: {
-        return (fillColour = "text-orange-500")
-      }
-      default: {
-        return (fillColour = "text-blue-500")
-      }
     }
   }
 
@@ -670,57 +445,13 @@ const Web = () => {
                         onClick={() => {
                           if (selectedRule === null) {
                             handleRuleClick(rule)
-                            // if (selectedType === null) {
-                            //   procCtx.typologies.forEach((t: Typology) => {
-                            //     if (t.title === rule.linkedTypologies[0]) {
-                            //       setSelectedType(t)
-                            //     }
-                            //   })
-                            // } else {
-                            //   setSelectedTypes([])
-                            //   for (const type of rule.linkedTypologies) {
-                            //     const updatedTypes: any[] = []
-                            //     procCtx.typologies.forEach((typo: any, idx: number) => {
-                            //       if (type === typo.title) {
-                            //         if (!selectedTypes.includes(typo.title)) {
-                            //           updatedTypes.push(typo.title)
-                            //           setSelectedType(typo)
-                            //         }
-                            //       }
-                            //     })
-
-                            //     setSelectedTypes([...updatedTypes.reverse()])
-                            //   }
-                            // }
                           } else if (selectedRule === rule) {
-                            //   for (const type of rule.linkedTypologies) {
-                            //     const updatedTypes: any[] = []
-                            //     procCtx.typologies.forEach((typo: Typology, idx: number) => {
-                            //       if (type === typo.title) {
-                            //         if (!selectedTypes.includes(typo.title)) {
-                            //           updatedTypes.push(typo.title)
-                            //           setSelectedType(typo)
-                            //         }
-                            //       }
-                            //     })
-
-                            //     setSelectedTypes([...updatedTypes])
-                            //   }
-                            // } else {
-                            // handleRuleClickClose()
                             handleRuleClickClose()
                           }
 
                           if (selectedRules.length > 0) {
-                            // if (selectedRules.includes(rule.title)) {
-                            //   let idx = selectedRules.indexOf(rule.title)
-                            //   selectedRules.splice(idx, 1)
-                            // } else {
                             handleRuleClickClose()
                             handleRuleClick(rule)
-                            // }
-                            // if (selectedTypes.length > 0) {
-                            // }
                           }
                         }}
                       >
@@ -737,7 +468,14 @@ const Web = () => {
                   handleRuleMouseLeave()
                 }}
               >
-                <RuleResult />
+                <RuleResult
+                  setSelectedRule={setSelectedRule}
+                  setSelectedTypes={setSelectedTypes}
+                  hoveredRule={hoveredRule}
+                  selectedRule={selectedRule}
+                  hoveredTypes={hoveredType}
+                  selectedTypes={selectedTypes}
+                />
               </div>
             </div>
           </div>
@@ -765,13 +503,6 @@ const Web = () => {
                         onMouseLeave={() => handleTypeMouseLeave()}
                         onClick={() => {
                           handleTypeClick(type)
-                          // if (selectedType === null) {
-                          //   handleTypeClick(type)
-                          // } else if (selectedType === type) {
-                          //   handleTypeClickClose()
-                          // } else {
-                          //   handleTypeClick(type)
-                          // }
                         }}
                       >
                         <StatusIndicator colour={type.color} /> &nbsp;
@@ -786,7 +517,7 @@ const Web = () => {
                   handleTypeClickClose()
                 }}
               >
-                <TypeResult />
+                <TypeResult hoveredType={hoveredType} selectedType={selectedType} />
               </div>
             </div>
           </div>
