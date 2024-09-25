@@ -358,7 +358,8 @@ flowchart TD
 
   ```text
   Automation Scripts used by tag.sh and revertTag.sh shell scripts for Automating Versioning and Build Tags (Docker & Application)
-  The tag.sh script also builds and pushes the docker image to docker hub. The revertTag.sh script will revert the version of the docker tag and application version to the previous build.
+  The tag.sh script also builds and pushes the docker image to docker hub. 
+  The revertTag.sh script will revert the version of the docker tag and application version to the previous build.
   ```
 
 - Store Folder:
