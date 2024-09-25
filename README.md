@@ -34,9 +34,11 @@ What you need:
     - [Tag, Build and Push to Docker Hub](#tag-build-and-push-to-docker-hub)
     - [Reverting version changes if the build fails](#reverting-version-changes-if-the-build-fails)
     - [Create Docker Image for Dev Testing](#create-docker-image-for-dev-testing)
-  - [Application Structure \& Dependencies Documentation](#application-structure--dependencies-documentation)
+  - [Application Structure \& Documentation Links](#application-structure--documentation-links)
+    - [Overview](#overview)
+    - [Chart](#chart)
     - [Folder Structure](#folder-structure)
-    - [Documentation Links](#documentation-links)
+    - [Package Documentation Links](#package-documentation-links)
   - [License](#license)
   - [Contributors](#contributors)
 
@@ -288,7 +290,15 @@ If the build fails run the following script to revert changes made to the `docke
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
 
-## Application Structure & Dependencies Documentation
+## Application Structure & Documentation Links
+
+### Overview
+
+The Tazama Demo application is developed using NextJS 14 running a custom backend nodejs server. The Custom server allows the integration with NATS which communicates to the frontend with the use of SocketIO to stream data to the FE SocketIO-client.
+
+The application manages state by using Context, Actions, Reducers and Providers for more global state but certain components also make use of React useState. Configuration data is persisted with localState as well as PACS008, PACS002, debtors and creditors data.
+
+### Chart
 
 ```mermaid
 flowchart TD
@@ -319,7 +329,7 @@ flowchart TD
   ```text
   Custom Server - Contains WebSocket and NATS Connections
   Package Management - Package.json
-  Application Settings
+  Application Settings and configurations
   ```
 
 - App Folder:
@@ -334,14 +344,21 @@ flowchart TD
 - Components Folder:
 
   ```text
-  ### Local Storage - Mention it somewhere
-  Debtor & Creditor list others components
+  Debtor & Creditor Profile Components
+  Debtor & Creditor Devices Components
+  Modals
+  Rule Results Component
+  Typology Results Component
+  Status Indicator Component
+  Time Component
+  Loader Component
   ```
 
 - Scripts Folder:
 
   ```text
   Automation Scripts used by tag.sh and revertTag.sh shell scripts for Automating Versioning and Build Tags (Docker & Application)
+  The tag.sh script also builds and pushes the docker image to docker hub. The revertTag.sh script will revert the version of the docker tag and application version to the previous build.
   ```
 
 - Store Folder:
@@ -349,7 +366,8 @@ flowchart TD
   ```text
   Application State Management.
   React Context is used for global state management
-  
+  Entities - Entities State and Local Storage Management
+  Processor - Rule & Typology State Management
   ```
 
 - Utils Folder:
@@ -365,13 +383,17 @@ flowchart TD
   All images used by the app.
   ```
 
-### Documentation Links
+<a><div align="right">[Top](#table-of-contents)</div></a>
+
+### Package Documentation Links
 
 - NATS - [NATS Documentation](https://docs.nats.io/?_gl=1*1k5gaq9*_ga*NjExNzA3MDcyLjE3MjAwNzQ5ODQ.*_ga_6242VH03CH*MTcyNzI1MjkyMy4yMy4wLjE3MjcyNTI5MjMuMC4wLjA.) **Backend*
 - SocketIO - [Socket IO](https://socket.io/docs/v4) **Backend*
 - SocketIO Client - [Socket IO Client](https://socket.io/docs/v4/client-initialization/) **Frontend*
 - Next.js 14 - [Next.js](https://nextjs.org/docs) **Frontend*
 - Frms-coe-lib - [frms-coe-lib](https://github.com/orgs/frmscoe/packages/npm/package/frms-coe-lib)
+
+<a><div align="right">[Top](#table-of-contents)</div></a>
 
 ## License
 
