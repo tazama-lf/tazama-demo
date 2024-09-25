@@ -22,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <body>
             <div className="flex rounded-t-lg bg-gradient-to-b from-gray-100 to-gray-200 px-10 py-5 shadow-lg">
               <Link href={"/"}>
+                {/* -------- ADD SVG HERE -------- */}
                 <Image src="https://tazama.org/logo.svg" width={200} height={41} alt="Tazama" priority={true} />
               </Link>
 
