@@ -1,9 +1,9 @@
 <img width="400px" height="100px" src="https://tazama.org/logo.svg" alt="tazama logo"> </br>
 
-![typescript][typescript] <img height="28.5px" width="auto" src="./public/next.jpeg"> <img height="28.5px" width="auto" src="./public/node.png"> <img height="28.5px" width="auto" src="./public/tailwind.png">
+![typescript][typescript] <img height="28px" width="auto" src="./public/next.jpeg"> <img height="28px" width="auto" src="./public/node.png"> <img height="28px" width="auto" src="./public/tailwind.png">
 
 # Tazama Demo Application</br>
->
+
 > [!NOTE]
 > **[`Tazama`](https://tazama.org/index.html)** Open Source Real-Time Transaction Monitoring Software for Fraud and Money Laundering Detection
 
@@ -34,6 +34,7 @@ What you need:
     - [Tag, Build and Push to Docker Hub](#tag-build-and-push-to-docker-hub)
     - [Reverting version changes if the build fails](#reverting-version-changes-if-the-build-fails)
     - [Create Docker Image for Dev Testing](#create-docker-image-for-dev-testing)
+  - [Application Structure](#application-structure)
   - [License](#license)
   - [Contributors](#contributors)
 
@@ -284,6 +285,30 @@ If the build fails run the following script to revert changes made to the `docke
     > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v1.0.16*
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
+
+## Application Structure
+
+```mermaid
+flowchart TD
+%% Nodes
+    A("TAZAMA DEMO")
+    B("APP")
+    C("COMPONENTS")
+    D("SCRIPTS")
+    E("STORE")
+    F("UTILS")
+    G("PUBLIC")
+    %% H("ROUTES & LAYOUT")
+    %% I("APPLICATION COMPONENTS")
+
+%% Edge connections between nodes
+   A--"Layouts, Routing & API"-->B
+   A--"All App Components"-->C
+   A--"Automation Scripts"-->D
+   A--"State Management (React Context)"-->E
+   A--"Utils, DB Connection & Rule Functions"-->F
+   A--"Images"-->G
+```
 
 ## License
 
