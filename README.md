@@ -35,6 +35,7 @@ What you need:
     - [Reverting version changes if the build fails](#reverting-version-changes-if-the-build-fails)
     - [Create Docker Image for Dev Testing](#create-docker-image-for-dev-testing)
   - [Application Structure](#application-structure)
+    - [Folder Structure](#folder-structure)
   - [License](#license)
   - [Contributors](#contributors)
 
@@ -309,6 +310,51 @@ flowchart TD
    A--"Utils, DB Connection & Rule Functions"-->F
    A--"Images"-->G
 ```
+
+### Folder Structure
+
+- Tazama Demo - Base Folder:
+  
+  ```text
+  Custom Server - Contains WebSocket and NATS Connections
+  Package Management - Package.json
+  Application Settings
+  ```
+
+- App Folder:
+
+  ```text
+  Application Layout
+  Main Page
+  Settings Page
+  Handles navigation
+  ```
+
+- Components Folder:
+
+  ```text
+  All Components
+  ```
+
+- Scripts Folder:
+
+  ```text
+  Automation Scripts used by tag.sh and revertTag.sh shell scripts for Automating Versioning and Build Tags (Docker & Application)
+  ```
+
+- Store Folder:
+
+  ```text
+  Application State Management.
+  React Context is used for global state management
+  ```
+
+- Utils Folder:
+
+  ```text
+  Any Utilities for custom formatting, Looking up descriptions etc.
+  
+  ```
 
 ## License
 
