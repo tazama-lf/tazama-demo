@@ -34,8 +34,9 @@ What you need:
     - [Tag, Build and Push to Docker Hub](#tag-build-and-push-to-docker-hub)
     - [Reverting version changes if the build fails](#reverting-version-changes-if-the-build-fails)
     - [Create Docker Image for Dev Testing](#create-docker-image-for-dev-testing)
-  - [Application Structure](#application-structure)
+  - [Application Structure \& Dependencies Documentation](#application-structure--dependencies-documentation)
     - [Folder Structure](#folder-structure)
+    - [Documentation Links](#documentation-links)
   - [License](#license)
   - [Contributors](#contributors)
 
@@ -287,7 +288,7 @@ If the build fails run the following script to revert changes made to the `docke
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
 
-## Application Structure
+## Application Structure & Dependencies Documentation
 
 ```mermaid
 flowchart TD
@@ -333,7 +334,8 @@ flowchart TD
 - Components Folder:
 
   ```text
-  All Components
+  ### Local Storage - Mention it somewhere
+  Debtor & Creditor list others components
   ```
 
 - Scripts Folder:
@@ -347,14 +349,29 @@ flowchart TD
   ```text
   Application State Management.
   React Context is used for global state management
+  
   ```
 
 - Utils Folder:
 
   ```text
   Any Utilities for custom formatting, Looking up descriptions etc.
-  
+  Database connection and Queries.
   ```
+
+- Public Folder:
+
+  ```text
+  All images used by the app.
+  ```
+
+### Documentation Links
+
+- NATS - [NATS Documentation](https://docs.nats.io/?_gl=1*1k5gaq9*_ga*NjExNzA3MDcyLjE3MjAwNzQ5ODQ.*_ga_6242VH03CH*MTcyNzI1MjkyMy4yMy4wLjE3MjcyNTI5MjMuMC4wLjA.) **Backend*
+- SocketIO - [Socket IO](https://socket.io/docs/v4) **Backend*
+- SocketIO Client - [Socket IO Client](https://socket.io/docs/v4/client-initialization/) **Frontend*
+- Next.js 14 - [Next.js](https://nextjs.org/docs) **Frontend*
+- Frms-coe-lib - [frms-coe-lib](https://github.com/orgs/frmscoe/packages/npm/package/frms-coe-lib)
 
 ## License
 
