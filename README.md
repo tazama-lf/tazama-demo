@@ -50,12 +50,23 @@ To get started by running the demo locally, follow these steps:
 
 1. Fork & clone repository:
 
+**Don't forget to ⭐ star and fork it first :)*
+
+`ssh method`
+
 ```bash
-## Don't forget to ⭐ star and fork it first :)
 git clone git@github.com:tazama-lf/tazama-demo.git
 ```
 
-2. Setup
+or
+
+`https method`
+
+```bash
+git clone https://github.com/tazama-lf/tazama-demo.git
+```
+
+1. Setup
 
 ```bash
 add your GH_TOKEN to the .npmrc file ${GH_TOKEN}
