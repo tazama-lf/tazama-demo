@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: Apache-2.0
+
+src/
+tsconfig.json
+src/*.ts
+*.tsx
+.eslintrc.js
+.eslintignore
+jest.config.ts
+setup.jest.js
+coverage
+dist/
+.github
+.prettierrc.json
+__tests__/
+.husky/
+.vscode
+.prettierignore

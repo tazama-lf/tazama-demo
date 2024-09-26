@@ -1,0 +1,14 @@
+services:
+  app:
+    container_name: Demo-App
+    image: demo-app
+    build:
+      context: ./
+      target: production
+      dockerfile: Dockerfile
+    volumes:
+        - .:/app
+        - /app/node_modules
+        - /app/.next
+    ports:
+      - "3000:3000"
