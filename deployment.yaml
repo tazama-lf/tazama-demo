@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: Apache-2.0
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-ui-rel-1-0-0
+  namespace: development
+  labels:
+    app: demo-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-ui
+  template:
+    metadata:
+      name: demo-ui-rel-1-0-0
+      labels:
+        app: demo-ui
+      annotations:
+        prometheus.io.scrape: 'false'
+    spec:
+      containers:
+        - name: demo-ui-rel-1-0-0
+          image: example.io/demo-ui-rel-1-0-0:1.0.0
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources: {}
+          imagePullPolicy: Always
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+        - name: frmpullsecret
+      schedulerName: default-scheduler
+      enableServiceLinks: false
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
