@@ -5,6 +5,9 @@ import { DebtorAccount, DebtorEntity } from "store/entities/entity.interface"
 import "react-datepicker/dist/react-datepicker.css"
 import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
 import { parseDate } from "react-datepicker/dist/date_utils"
+import { generateString } from "utils/helpers"
+import ConditionsList from "./ConditionsList"
+import { Conditions } from "store/processors/processor.interface"
 
 interface Props {
   color?: string
@@ -14,24 +17,23 @@ interface Props {
   setModal: (value: boolean) => void
   modalTitle?: string
 }
-const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-function generateString(length: number) {
-  let result = " "
-  const charactersLength = characters.length
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength))
-  }
 
-  return result
-}
-const mock_con = [
+const mock_con: Conditions[] = [
   {
     condTp: "Override",
     condRsn: "Phishing of Account takeover",
     evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-    prsptv: "Both",
+    prsptv: "both",
     incptnDtTm: "2025-01-01 12:00:00",
     xprtnDtTm: "2025-02-26 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
   },
   {
     condTp: "overridable block",
@@ -40,6 +42,14 @@ const mock_con = [
     prsptv: "Entity",
     incptnDtTm: "2025-01-01 12:00:00",
     xprtnDtTm: null,
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
   },
   {
     condTp: "Non-overridable block",
@@ -48,6 +58,14 @@ const mock_con = [
     prsptv: "Entity",
     incptnDtTm: "2025-01-01 12:00:00",
     xprtnDtTm: null,
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
   },
   {
     condTp: "Override",
@@ -55,7 +73,15 @@ const mock_con = [
     evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
     prsptv: "Entity",
     incptnDtTm: "2025-01-01 12:00:00",
-    xprtnDtTm: "2025-02-25 15:15:00",
+    xprtnDtTm: "2025-02-25 16:12:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
   },
   {
     condTp: "Non-overridable block",
@@ -64,6 +90,14 @@ const mock_con = [
     prsptv: "Entity",
     incptnDtTm: "2024-01-01 12:00:00",
     xprtnDtTm: "2025-01-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
   },
   {
     condTp: "Non-overridable block",
@@ -72,6 +106,14 @@ const mock_con = [
     prsptv: "Account",
     incptnDtTm: "2025-01-01 12:00:00",
     xprtnDtTm: "2025-03-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
   },
   {
     condTp: "overridable block",
@@ -80,6 +122,78 @@ const mock_con = [
     prsptv: "Account",
     incptnDtTm: "2025-01-01 12:00:00",
     xprtnDtTm: "2025-01-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2024-01-01 12:00:00",
+    xprtnDtTm: "2025-01-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Account",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-03-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Account",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-01-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2024-01-01 12:00:00",
+    xprtnDtTm: "2025-01-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
   },
 ]
 
@@ -203,169 +317,99 @@ const DebtorModal = ({ ...props }: Props) => {
     setActiveSection(section)
   }
 
-  const set_event_type = (data: string[]) => {
-    const response = data.map((item) => {
-      let res: string = ""
-      if (res.length === 0) {
-        res += item
-        res += " "
-      } else {
-        res += ` ${item}`
-      }
-      return res
-    })
-    return response
-  }
-  const Seperator = () => {
-    return <div className="m-1 flex max-w-[5px] border-r-2 border-neutral-400"></div>
-  }
+  // const conditions = mock_con.map((con) => {
+  //   let chDt = convertToDate(con.xprtnDtTm)
 
-  const conditions = mock_con.map((con) => {
-    const fullDate = new Date()
-    // const current_time = fullDate.split("T")[1]?.split(".")[0]
-    // const current_date = fullDate.split("T")[0]
-    // let full_date = undefined
-    let chDt = convertToDate(con.xprtnDtTm)
+  //   let colour: any = "n"
+  //   if (chDt !== undefined) {
+  //     if (con.condTp === "Non-overridable block") {
+  //       let now = new Date().getTime()
+  //       if (chDt >= now) {
+  //         colour = "r"
+  //       } else {
+  //         colour = "n"
+  //       }
+  //     } else if (con.condTp === "overridable block") {
+  //       let now = new Date().getTime()
+  //       if (chDt >= now) {
+  //         colour = "r"
+  //       } else {
+  //         colour = "n"
+  //       }
+  //     } else if (con.condTp === "Override") {
+  //       let now = new Date().getTime()
+  //       if (chDt >= now) {
+  //         colour = "g"
+  //       } else {
+  //         colour = "n"
+  //       }
+  //     }
+  //   } else {
+  //     colour = "r"
+  //   }
 
-    // if (con.xprtnDtTm !== undefined && con.xprtnDtTm !== null) {
-    //   let time = con.xprtnDtTm?.split(" ")[1]
-    //   let dt = con.xprtnDtTm?.split(" ")[0]
-    //   let year = dt?.split("-")[0]
-    //   let month = dt?.split("-")[1]
-    //   let day = dt?.split("-")[2]
+  //   return (
+  //     <div
+  //       key={generateString(5)}
+  //       className="my-[1px] flex h-[45px] w-full max-w-[1160px] rounded-md bg-neutral-300 text-[14px] drop-shadow-md"
+  //     >
+  //       <div className="flex w-1/4 w-[160px] content-center items-center gap-1  pl-1">
+  //         <ConditionIndicator colour={colour} />
+  //         <p>{con.condTp}</p>
+  //       </div>
+  //       <Seperator />
+  //       <p className="flex w-[285px] items-center  pl-1">{con.condRsn}</p>
+  //       <Seperator />
+  //       {/* <div className="my-1 flex max-w-[5px] border-r-2 border-neutral-400"></div> */}
+  //       <p className="flex w-[180px] items-center  pl-1">{set_event_type(con.evtTp)}</p>
+  //       <Seperator />
+  //       <p className="flex w-[120px] items-center pl-1">{con.prsptv}</p>
+  //       <Seperator />
+  //       <p className="flex w-[150px] items-center pl-1">{con.incptnDtTm}</p>
+  //       <Seperator />
+  //       {con.xprtnDtTm !== null ? (
+  //         <p className="flex w-[150px] items-center  pl-1">{con.xprtnDtTm}</p>
+  //       ) : (
+  //         <div className="z-99 mt-[7px]">
+  //           <input
+  //             type="datetime-local"
+  //             name="datetime"
+  //             id="datetime"
+  //             min={new Date().toISOString().toString()}
+  //             className="max-w-[150px] rounded-md p-1"
+  //           />
+  //         </div>
+  //       )}
 
-    //   let hrs: any = time?.split(":")[0]
-    //   let min: any = time?.split(":")[1]
-    //   let sec: any = time?.split(":")[2]
-
-    //   if (
-    //     hrs !== undefined &&
-    //     min !== undefined &&
-    //     sec !== undefined &&
-    //     year !== undefined &&
-    //     month !== undefined &&
-    //     day !== undefined
-    //   ) {
-    //     chDt = new Date(parseInt(year), parseInt(month), parseInt(day), hrs, min, sec)
-    //   }
-    // }
-
-    let colour: any = "n"
-    if (chDt !== undefined) {
-      if (con.condTp === "Non-overridable block") {
-        let now = new Date().getTime()
-        if (chDt >= now) {
-          colour = "r"
-        } else {
-          colour = "n"
-        }
-      } else if (con.condTp === "overridable block") {
-        let now = new Date().getTime()
-        if (chDt >= now) {
-          colour = "r"
-        } else {
-          colour = "n"
-        }
-      } else if (con.condTp === "Override") {
-        let now = new Date().getTime()
-        if (chDt >= now) {
-          colour = "g"
-        } else {
-          colour = "n"
-        }
-      }
-    } else {
-      colour = "r"
-    }
-
-    // if (chDt !== undefined) {
-    //   if (con.condTp === "Non-overridable block") {
-    //     if (chDt.toISOString() >= fullDate) {
-    //       colour = "n"
-    //     } else if (con.xprtnDtTm === null) {
-    //       colour = "r"
-    //     } else {
-    //       colour = "n"
-    //     }
-    //   } else if (con.condTp === "overridable block") {
-    //     if (chDt.toISOString() < fullDate) {
-    //       colour = "n"
-    //     } else if (con.xprtnDtTm === null) {
-    //       colour = "r"
-    //     }
-    //   } else if (con.condTp === "Override") {
-    //     if (chDt.toISOString() > fullDate) {
-    //       colour = "n"
-    //     } else if (con.xprtnDtTm === null) {
-    //       colour = "g"
-    //     } else {
-    //       colour = "g"
-    //     }
-    //   } else {
-    //     colour = "n"
-    //   }
-    // }
-
-    return (
-      <div
-        key={generateString(5)}
-        className="my-[1px] flex h-[45px] w-full max-w-[1160px] rounded-md bg-neutral-300 text-[14px] drop-shadow-md"
-      >
-        <div className="flex w-1/4 w-[160px] content-center items-center gap-1  pl-1">
-          <ConditionIndicator colour={colour} />
-          <p>{con.condTp}</p>
-        </div>
-        <Seperator />
-        <p className="flex w-[285px] items-center  pl-1">{con.condRsn}</p>
-        <Seperator />
-        {/* <div className="my-1 flex max-w-[5px] border-r-2 border-neutral-400"></div> */}
-        <p className="flex w-[180px] items-center  pl-1">{set_event_type(con.evtTp)}</p>
-        <Seperator />
-        <p className="flex w-[120px] items-center pl-1">{con.prsptv}</p>
-        <Seperator />
-        <p className="flex w-[150px] items-center pl-1">{con.incptnDtTm}</p>
-        <Seperator />
-        {con.xprtnDtTm !== null ? (
-          <p className="flex w-[150px] items-center  pl-1">{con.xprtnDtTm}</p>
-        ) : (
-          <div className="z-99 mt-[7px]">
-            <DatePicker
-              className="z-100 w-[150px] rounded-lg bg-gray-200 p-2 pr-5 shadow-inner"
-              dateFormat="yyyy/MM/dd"
-              showIcon
-            />
-          </div>
-        )}
-
-        <Seperator />
-        <div className="ml-3 flex w-[40px] content-center items-center">
-          {con.xprtnDtTm === null ? (
-            <button
-              className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
-              onClick={() => alert("Clicked: " + con.prsptv)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="size-4"
-                width="10px"
-                height="10px"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          ) : (
-            <div className="align-center flex min-w-[29.5px] justify-center gap-2 rounded-full px-[10px] py-1 text-center drop-shadow-lg"></div>
-          )}
-        </div>
-      </div>
-    )
-  })
+  //       <Seperator />
+  //       <div className="ml-3 flex w-[40px] content-center items-center">
+  //         {con.xprtnDtTm === null ? (
+  //           <button
+  //             className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
+  //             onClick={() => alert("Clicked: " + con.prsptv)}
+  //           >
+  //             <svg
+  //               xmlns="http://www.w3.org/2000/svg"
+  //               viewBox="0 0 24 24"
+  //               fill="currentColor"
+  //               className="size-4"
+  //               width="10px"
+  //               height="10px"
+  //             >
+  //               <path
+  //                 fillRule="evenodd"
+  //                 d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+  //                 clipRule="evenodd"
+  //               />
+  //             </svg>
+  //           </button>
+  //         ) : (
+  //           <div className="align-center flex min-w-[29.5px] justify-center gap-2 rounded-full px-[10px] py-1 text-center drop-shadow-lg"></div>
+  //         )}
+  //       </div>
+  //     </div>
+  //   )
+  // })
 
   return (
     <div
@@ -380,7 +424,7 @@ const DebtorModal = ({ ...props }: Props) => {
       ></div>
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div className="flex min-h-full items-end justify-center p-4 sm:items-center sm:p-0">
-          <div className="relative h-[790px] min-w-[470px] max-w-[900px] overflow-hidden rounded-lg bg-gray-200 p-5">
+          <div className="relative flex h-[790px] min-w-[490px] max-w-[900px] flex-col justify-between overflow-hidden rounded-lg bg-gray-200 p-5">
             <div className="flex flex-col justify-between">
               <h2>{props.modalTitle}</h2>
               <button
@@ -397,7 +441,7 @@ const DebtorModal = ({ ...props }: Props) => {
               </button>
             </div>
 
-            <div className="my-4 flex justify-around">
+            <div className="mb-4 flex justify-around">
               <button
                 className={`rounded-lg px-4 py-2 ${
                   activeSection === "Entity"
@@ -419,9 +463,13 @@ const DebtorModal = ({ ...props }: Props) => {
                 Account(s)
               </button>
             </div>
-            <div className="shadow-outer absolute right-5 top-[18%] flex rounded-md">
+            <div
+              className={`${
+                activeSection === "Entity" ? "top-[20%]" : "top-[15%]"
+              } "shadow-outer absolute right-5 flex rounded-md drop-shadow-md`}
+            >
               <button
-                className="align-center flex justify-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-2 text-center"
+                className="flex w-full items-center gap-3 rounded-lg bg-gradient-to-r from-gray-100 to-gray-300 py-2 pl-2 text-center shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)] drop-shadow-md"
                 onClick={() => {
                   setShowConditions(!showConditions)
                 }}
@@ -473,7 +521,7 @@ const DebtorModal = ({ ...props }: Props) => {
                     ></path>
                   </g>
                 </svg>
-                <div className={`z-1 relative rotate-180 ${showConditions === true ? "rotate-180" : "rotate-0"}`}>
+                <div className={`z-1 relative ${showConditions === true ? "rotate-180" : "rotate-0"}`}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" id="right-arrow">
                     <path fill="#00000000" d="M0 0h24v24H0V0z"></path>
                     <path d="M11.71 15.29l2.59-2.59c.39-.39.39-1.02 0-1.41L11.71 8.7c-.63-.62-1.71-.18-1.71.71v5.17c0 .9 1.08 1.34 1.71.71z"></path>
@@ -872,67 +920,63 @@ const DebtorModal = ({ ...props }: Props) => {
           </div>
           {/* NEW COMPONENT */}
           {showConditions && (
-            <div className="relative h-[790px] w-[1200px] overflow-hidden  rounded-lg bg-gray-200 p-5">
-              <div className="grid h-[30px] max-w-[1100px] grid-cols-2 content-between">
-                <button
-                  className="absolute right-5 max-w-[40px] rounded-full bg-gradient-to-r from-gray-200 to-gray-100 p-1 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
-                  onClick={handleClose}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
-                    <path
-                      fillRule="evenodd"
-                      d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </div>
+            <ConditionsList handleClose={handleClose} conditions_data={mock_con} />
+            // <div className="relative h-[790px] w-[1200px] overflow-hidden  rounded-lg bg-gray-200 p-5">
+            //   <div className="grid h-[30px] max-w-[1100px] grid-cols-2 content-between">
+            //     <button
+            //       className="absolute right-5 max-w-[40px] rounded-full bg-gradient-to-r from-gray-200 to-gray-100 p-1 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
+            //       onClick={handleClose}
+            //     >
+            //       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+            //         <path
+            //           fillRule="evenodd"
+            //           d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+            //           clipRule="evenodd"
+            //         />
+            //       </svg>
+            //     </button>
+            //   </div>
 
-              <div className="grid max-w-[1100px] grid-cols-2 content-between items-center pt-5">
-                <p className="ml-2 flex grow p-1 pt-1 text-xl font-medium">Conditions</p>
-                <div className="p-1 pr-5 text-right text-lg text-xl">
-                  <button
-                    className="relative max-w-[40px] rotate-45 rounded-full bg-gradient-to-r from-gray-200 to-gray-100 p-1 p-2 text-right shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
-                    onClick={() => alert("Add Clicked")}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5">
-                      <path
-                        fillRule="evenodd"
-                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+            //   <div className="grid max-w-[1100px] grid-cols-2 content-between items-center pt-5">
+            //     <p className="ml-2 flex grow p-1 pt-1 text-xl font-medium">Conditions</p>
+            //   </div>
 
-              <div className="mt-5 flex h-[600px] flex-col overflow-auto rounded-lg bg-neutral-300">
-                <table className=" w-full table-auto border-collapse">
-                  <thead className="w-full bg-neutral-400 text-left">
-                    <th className="w-[147.5px] py-1 pl-3">Type</th>
-                    <th className="w-[262.5px] py-1 pl-3">Reason</th>
-                    <th className="w-[170px] py-1 pl-3">Events</th>
-                    <th className="w-[112.5px] py-1 pl-3">Perspective</th>
-                    <th className="w-[142.5px] py-1 pl-3">Start</th>
-                    <th className="w-[142.5px] py-1 pl-3">End</th>
-                    <th className="w-[56px] py-1 pl-3"> </th>
-                  </thead>
-                </table>
-                <div className="flex w-[1160px] flex-col overflow-y-auto p-[1px]">{conditions}</div>
-                {/* <table className=" w-full table-auto border-collapse overflow-y-auto border border-gray-500 ">
-                  <thead className="w-full bg-neutral-300 text-left">
-                    <th className="border border-gray-300 py-1 pl-1 text-center">Type</th>
-                    <th className="border border-gray-300 py-1 pl-1 text-center">Reason</th>
-                    <th className="border border-gray-300 py-1 pl-1 text-center">Events</th>
-                    <th className="border border-gray-300 py-1 pl-1 text-center">Perspective</th>
-                    <th className="border border-gray-300 py-1 pl-1 text-center">Start</th>
-                    <th className="border border-gray-300 py-1 pl-1 text-center">End</th>
-                    <th className="border border-gray-300 py-1 pl-1 text-center"></th>
-                  </thead>
-                  <tbody className="min-h-[500px]">{conditions}</tbody>
-                </table> */}
-              </div>
-            </div>
+            //   <div className="mt-5 flex h-[560px] flex-col overflow-auto rounded-lg bg-neutral-300">
+            //     <table className=" w-full table-auto border-collapse">
+            //       <thead className="w-full bg-neutral-400 text-left">
+            //         <th className="w-[147.5px] py-1 pl-3">Type</th>
+            //         <th className="w-[262.5px] py-1 pl-3">Reason</th>
+            //         <th className="w-[170px] py-1 pl-3">Events</th>
+            //         <th className="w-[112.5px] py-1 pl-3">Perspective</th>
+            //         <th className="w-[142.5px] py-1 pl-3">Start</th>
+            //         <th className="w-[142.5px] py-1 pl-3">End</th>
+            //         <th className="w-[56px] py-1 pl-3"> </th>
+            //       </thead>
+            //     </table>
+            //     <div className="flex w-[1160px] flex-col overflow-y-auto p-[1px]">{conditions}</div>
+            //   </div>
+            //   <div className="align-center flex w-full grow justify-end p-5">
+            //     <button
+            //       type="button"
+            //       className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
+            //       onClick={handleCancel}
+            //     >
+            //       <svg
+            //         xmlns="http://www.w3.org/2000/svg"
+            //         viewBox="0 0 24 24"
+            //         fill="currentColor"
+            //         className="size-6 rotate-45"
+            //       >
+            //         <path
+            //           fillRule="evenodd"
+            //           d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+            //           clipRule="evenodd"
+            //         />
+            //       </svg>
+            //       Create Condition
+            //     </button>
+            //   </div>
+            // </div>
           )}
         </div>
       </div>

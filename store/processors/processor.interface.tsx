@@ -88,3 +88,22 @@ export interface DBConfig {
   databaseName: string
   auth: { username: string; password: string }
 }
+
+interface Ntty {
+  id: string
+  schmeNm: {
+    prtry: string
+  }
+}
+
+export interface Conditions {
+  evtTp: string[]
+  condTp: string
+  prsptv: string
+  incptnDtTm: string
+  xprtnDtTm: string | null
+  condRsn: string
+  ntty?: Ntty
+  forceCret?: boolean
+  usr?: string
+}
