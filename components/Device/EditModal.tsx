@@ -61,7 +61,7 @@ const EditModal = ({ ...props }: Props) => {
   return (
     <div className="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div
-        className="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm transition-opacity"
+        className="bg-opacity/75 fixed inset-0 bg-gray-500 backdrop-blur-sm transition-opacity"
         aria-hidden="true"
       ></div>
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">

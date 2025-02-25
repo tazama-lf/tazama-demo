@@ -1,8 +1,10 @@
 import React, { useContext, useEffect, useState } from "react"
+import DatePicker from "react-datepicker"
 import EntityContext from "store/entities/entity.context"
 import { DebtorAccount, DebtorEntity } from "store/entities/entity.interface"
-import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
+import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
+import { parseDate } from "react-datepicker/dist/date_utils"
 
 interface Props {
   color?: string
@@ -12,6 +14,101 @@ interface Props {
   setModal: (value: boolean) => void
   modalTitle?: string
 }
+const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+function generateString(length: number) {
+  let result = " "
+  const charactersLength = characters.length
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength))
+  }
+
+  return result
+}
+const mock_con = [
+  {
+    condTp: "Override",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Both",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-02-26 12:00:00",
+  },
+  {
+    condTp: "overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: null,
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: null,
+  },
+  {
+    condTp: "Override",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-02-25 15:15:00",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2024-01-01 12:00:00",
+    xprtnDtTm: "2025-01-01 12:00:00",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Account",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-03-01 12:00:00",
+  },
+  {
+    condTp: "overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Account",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-01-01 12:00:00",
+  },
+]
+
+const convertToDate = (dtStr: string | null) => {
+  let chDt = undefined
+  if (dtStr !== null) {
+    let time = dtStr.split(" ")[1]
+    let dt = dtStr.split(" ")[0]
+    let year = dt!.split("-")[0]
+    let month = dt!.split("-")[1]
+    let day = dt!.split("-")[2]
+
+    let hrs: any = time?.split(":")[0]
+    let min: any = time?.split(":")[1]
+    let sec: any = time?.split(":")[2]
+
+    if (
+      hrs !== undefined &&
+      min !== undefined &&
+      sec !== undefined &&
+      year !== undefined &&
+      month !== undefined &&
+      day !== undefined
+    ) {
+      chDt = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hrs, min, sec).getTime()
+    }
+  }
+  return chDt
+}
 
 const DebtorModal = ({ ...props }: Props) => {
   const entityCtx = useContext(EntityContext)
@@ -20,6 +117,7 @@ const DebtorModal = ({ ...props }: Props) => {
   const [customAccounts, setCustomAccounts] = useState<DebtorAccount[]>([])
   const [saved, setSaved] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
+  const [showConditions, setShowConditions] = useState<boolean>(false)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
 
   useEffect(() => {
@@ -105,6 +203,170 @@ const DebtorModal = ({ ...props }: Props) => {
     setActiveSection(section)
   }
 
+  const set_event_type = (data: string[]) => {
+    const response = data.map((item) => {
+      let res: string = ""
+      if (res.length === 0) {
+        res += item
+        res += " "
+      } else {
+        res += ` ${item}`
+      }
+      return res
+    })
+    return response
+  }
+  const Seperator = () => {
+    return <div className="m-1 flex max-w-[5px] border-r-2 border-neutral-400"></div>
+  }
+
+  const conditions = mock_con.map((con) => {
+    const fullDate = new Date()
+    // const current_time = fullDate.split("T")[1]?.split(".")[0]
+    // const current_date = fullDate.split("T")[0]
+    // let full_date = undefined
+    let chDt = convertToDate(con.xprtnDtTm)
+
+    // if (con.xprtnDtTm !== undefined && con.xprtnDtTm !== null) {
+    //   let time = con.xprtnDtTm?.split(" ")[1]
+    //   let dt = con.xprtnDtTm?.split(" ")[0]
+    //   let year = dt?.split("-")[0]
+    //   let month = dt?.split("-")[1]
+    //   let day = dt?.split("-")[2]
+
+    //   let hrs: any = time?.split(":")[0]
+    //   let min: any = time?.split(":")[1]
+    //   let sec: any = time?.split(":")[2]
+
+    //   if (
+    //     hrs !== undefined &&
+    //     min !== undefined &&
+    //     sec !== undefined &&
+    //     year !== undefined &&
+    //     month !== undefined &&
+    //     day !== undefined
+    //   ) {
+    //     chDt = new Date(parseInt(year), parseInt(month), parseInt(day), hrs, min, sec)
+    //   }
+    // }
+
+    let colour: any = "n"
+    if (chDt !== undefined) {
+      if (con.condTp === "Non-overridable block") {
+        let now = new Date().getTime()
+        if (chDt >= now) {
+          colour = "r"
+        } else {
+          colour = "n"
+        }
+      } else if (con.condTp === "overridable block") {
+        let now = new Date().getTime()
+        if (chDt >= now) {
+          colour = "r"
+        } else {
+          colour = "n"
+        }
+      } else if (con.condTp === "Override") {
+        let now = new Date().getTime()
+        if (chDt >= now) {
+          colour = "g"
+        } else {
+          colour = "n"
+        }
+      }
+    } else {
+      colour = "r"
+    }
+
+    // if (chDt !== undefined) {
+    //   if (con.condTp === "Non-overridable block") {
+    //     if (chDt.toISOString() >= fullDate) {
+    //       colour = "n"
+    //     } else if (con.xprtnDtTm === null) {
+    //       colour = "r"
+    //     } else {
+    //       colour = "n"
+    //     }
+    //   } else if (con.condTp === "overridable block") {
+    //     if (chDt.toISOString() < fullDate) {
+    //       colour = "n"
+    //     } else if (con.xprtnDtTm === null) {
+    //       colour = "r"
+    //     }
+    //   } else if (con.condTp === "Override") {
+    //     if (chDt.toISOString() > fullDate) {
+    //       colour = "n"
+    //     } else if (con.xprtnDtTm === null) {
+    //       colour = "g"
+    //     } else {
+    //       colour = "g"
+    //     }
+    //   } else {
+    //     colour = "n"
+    //   }
+    // }
+
+    return (
+      <div
+        key={generateString(5)}
+        className="my-[1px] flex h-[45px] w-full max-w-[1160px] rounded-md bg-neutral-300 text-[14px] drop-shadow-md"
+      >
+        <div className="flex w-1/4 w-[160px] content-center items-center gap-1  pl-1">
+          <ConditionIndicator colour={colour} />
+          <p>{con.condTp}</p>
+        </div>
+        <Seperator />
+        <p className="flex w-[285px] items-center  pl-1">{con.condRsn}</p>
+        <Seperator />
+        {/* <div className="my-1 flex max-w-[5px] border-r-2 border-neutral-400"></div> */}
+        <p className="flex w-[180px] items-center  pl-1">{set_event_type(con.evtTp)}</p>
+        <Seperator />
+        <p className="flex w-[120px] items-center pl-1">{con.prsptv}</p>
+        <Seperator />
+        <p className="flex w-[150px] items-center pl-1">{con.incptnDtTm}</p>
+        <Seperator />
+        {con.xprtnDtTm !== null ? (
+          <p className="flex w-[150px] items-center  pl-1">{con.xprtnDtTm}</p>
+        ) : (
+          <div className="z-99 mt-[7px]">
+            <DatePicker
+              className="z-100 w-[150px] rounded-lg bg-gray-200 p-2 pr-5 shadow-inner"
+              dateFormat="yyyy/MM/dd"
+              showIcon
+            />
+          </div>
+        )}
+
+        <Seperator />
+        <div className="ml-3 flex w-[40px] content-center items-center">
+          {con.xprtnDtTm === null ? (
+            <button
+              className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
+              onClick={() => alert("Clicked: " + con.prsptv)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="size-4"
+                width="10px"
+                height="10px"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          ) : (
+            <div className="align-center flex min-w-[29.5px] justify-center gap-2 rounded-full px-[10px] py-1 text-center drop-shadow-lg"></div>
+          )}
+        </div>
+      </div>
+    )
+  })
+
   return (
     <div
       className={props.showModal ? "relative z-10" : "hidden"}
@@ -118,7 +380,7 @@ const DebtorModal = ({ ...props }: Props) => {
       ></div>
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div className="flex min-h-full items-end justify-center p-4 sm:items-center sm:p-0">
-          <div className="relative min-w-[470px] overflow-hidden rounded-lg bg-gray-200 p-5">
+          <div className="relative h-[790px] min-w-[470px] max-w-[900px] overflow-hidden rounded-lg bg-gray-200 p-5">
             <div className="flex flex-col justify-between">
               <h2>{props.modalTitle}</h2>
               <button
@@ -157,10 +419,71 @@ const DebtorModal = ({ ...props }: Props) => {
                 Account(s)
               </button>
             </div>
-
+            <div className="shadow-outer absolute right-5 top-[18%] flex rounded-md">
+              <button
+                className="align-center flex justify-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-2 text-center"
+                onClick={() => {
+                  setShowConditions(!showConditions)
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" id="connection" className="z-99">
+                  <g stroke="#373748">
+                    <path
+                      fill="#ff5a67"
+                      stroke-width=".833"
+                      d="M398.193 888.434a1.958 1.958 0 1 1-3.915 0 1.958 1.958 0 0 1 3.915 0zm27.251 0a1.958 1.958 0 1 1-3.915 0 1.958 1.958 0 0 1 3.915 0zm-15.583 11.668a1.958 1.958 0 1 0 0 3.915 1.958 1.958 0 0 0 0-3.915zm0-27.252a1.958 1.958 0 1 0 0 3.916 1.958 1.958 0 0 0 0-3.916zm-8.057 7.6a1.958 1.958 0 1 1-2.669-2.865 1.958 1.958 0 0 1 2.67 2.865zm19.003-2.767a1.958 1.958 0 1 0-2.865 2.67 1.958 1.958 0 0 0 2.865-2.67z"
+                      color="#000"
+                      overflow="visible"
+                      style={{ marker: "none" }}
+                      transform="translate(-393.861 -872.434)"
+                    ></path>
+                    <path fill="none" strokeLinecap="round" strokeLinejoin="round" d="M16 4.441v5.45"></path>
+                    <path
+                      fill="#00ff00"
+                      strokeWidth=".833"
+                      d="M421.183 896.571a1.958 1.958 0 1 0-2.865 2.67 1.958 1.958 0 0 0 2.865-2.67zm-19.473 2.767a1.958 1.958 0 1 1-2.669-2.865 1.958 1.958 0 0 1 2.67 2.865z"
+                      color="#000"
+                      overflow="visible"
+                      style={{ marker: "none" }}
+                      transform="translate(-393.861 -872.434)"
+                    ></path>
+                    <path
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16 22.39v5.168M27.558 16l-6.255.088M10.55 16H4.442m19.778 8.123-2.956-2.906m-10.27-9.868-3.14-3.033m.105 15.581 2.555-2.51"
+                    ></path>
+                    <path
+                      fill="#ffb134"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m20.55 11.533 3.528-3.463"
+                    ></path>
+                    <path
+                      fill="#00d1b6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M11.518 19.466v-.373c0-.36.28-.68.6-.84a93.718 93.718 0 0 1 2.805-1.456l2.031-.023c.12.08 1.28.6 2.999 1.56.32.2.44.52.44.92v.236"
+                    ></path>
+                    <path
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.932 12.24a1.53 1.53 0 0 0-1.532 1.534v1.5c0 .85.873 1.533 1.532 1.533s1.533-.684 1.533-1.533v-1.5a1.53 1.53 0 0 0-1.533-1.533zm-1.01 4.557 2.032-.023"
+                    ></path>
+                  </g>
+                </svg>
+                <div className={`z-1 relative rotate-180 ${showConditions === true ? "rotate-180" : "rotate-0"}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" id="right-arrow">
+                    <path fill="#00000000" d="M0 0h24v24H0V0z"></path>
+                    <path d="M11.71 15.29l2.59-2.59c.39-.39.39-1.02 0-1.41L11.71 8.7c-.63-.62-1.71-.18-1.71.71v5.17c0 .9 1.08 1.34 1.71.71z"></path>
+                  </svg>
+                </div>
+              </button>
+            </div>
             {activeSection === "Entity" && (
               <>
-                <div className="flex">
+                <div className="flex max-h-[600px]">
                   <div className="mx-[20px] flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={props.color} className="size-20">
                       <path
@@ -547,6 +870,70 @@ const DebtorModal = ({ ...props }: Props) => {
               )}
             </div>
           </div>
+          {/* NEW COMPONENT */}
+          {showConditions && (
+            <div className="relative h-[790px] w-[1200px] overflow-hidden  rounded-lg bg-gray-200 p-5">
+              <div className="grid h-[30px] max-w-[1100px] grid-cols-2 content-between">
+                <button
+                  className="absolute right-5 max-w-[40px] rounded-full bg-gradient-to-r from-gray-200 to-gray-100 p-1 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
+                  onClick={handleClose}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                    <path
+                      fillRule="evenodd"
+                      d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="grid max-w-[1100px] grid-cols-2 content-between items-center pt-5">
+                <p className="ml-2 flex grow p-1 pt-1 text-xl font-medium">Conditions</p>
+                <div className="p-1 pr-5 text-right text-lg text-xl">
+                  <button
+                    className="relative max-w-[40px] rotate-45 rounded-full bg-gradient-to-r from-gray-200 to-gray-100 p-1 p-2 text-right shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
+                    onClick={() => alert("Add Clicked")}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5">
+                      <path
+                        fillRule="evenodd"
+                        d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-5 flex h-[600px] flex-col overflow-auto rounded-lg bg-neutral-300">
+                <table className=" w-full table-auto border-collapse">
+                  <thead className="w-full bg-neutral-400 text-left">
+                    <th className="w-[147.5px] py-1 pl-3">Type</th>
+                    <th className="w-[262.5px] py-1 pl-3">Reason</th>
+                    <th className="w-[170px] py-1 pl-3">Events</th>
+                    <th className="w-[112.5px] py-1 pl-3">Perspective</th>
+                    <th className="w-[142.5px] py-1 pl-3">Start</th>
+                    <th className="w-[142.5px] py-1 pl-3">End</th>
+                    <th className="w-[56px] py-1 pl-3"> </th>
+                  </thead>
+                </table>
+                <div className="flex w-[1160px] flex-col overflow-y-auto p-[1px]">{conditions}</div>
+                {/* <table className=" w-full table-auto border-collapse overflow-y-auto border border-gray-500 ">
+                  <thead className="w-full bg-neutral-300 text-left">
+                    <th className="border border-gray-300 py-1 pl-1 text-center">Type</th>
+                    <th className="border border-gray-300 py-1 pl-1 text-center">Reason</th>
+                    <th className="border border-gray-300 py-1 pl-1 text-center">Events</th>
+                    <th className="border border-gray-300 py-1 pl-1 text-center">Perspective</th>
+                    <th className="border border-gray-300 py-1 pl-1 text-center">Start</th>
+                    <th className="border border-gray-300 py-1 pl-1 text-center">End</th>
+                    <th className="border border-gray-300 py-1 pl-1 text-center"></th>
+                  </thead>
+                  <tbody className="min-h-[500px]">{conditions}</tbody>
+                </table> */}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
