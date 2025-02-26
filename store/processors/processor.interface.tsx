@@ -107,3 +107,41 @@ export interface Conditions {
   forceCret?: boolean
   usr?: string
 }
+
+interface Acct {
+  id: string
+  schmeNm: {
+    prtry: string
+  }
+  agt: {
+    finInstnId: {
+      clrSysMmbId: {
+        mmbId: string
+      }
+    }
+  }
+}
+
+export interface NewEntityCondition {
+  evtTp: string[]
+  condTp: string
+  prsptv: string
+  incptnDtTm: string
+  xprtnDtTm: string | null
+  condRsn: string
+  ntty?: Ntty
+  forceCret?: boolean
+  usr?: string
+}
+
+export interface NewAccountCondition {
+  evtTp: string[]
+  condTp: string
+  prsptv: string
+  incptnDtTm: string
+  xprtnDtTm: string | null
+  condRsn: string
+  acct?: Acct
+  forceCret?: boolean
+  usr?: string
+}

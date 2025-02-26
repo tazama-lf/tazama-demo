@@ -5,10 +5,11 @@ import { Conditions } from "store/processors/processor.interface"
 
 interface Props {
   handleClose: () => void
+  handleCreate: () => void
   conditions_data: Conditions[]
 }
 
-const ConditionsList = ({ conditions_data, handleClose }: Props) => {
+const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) => {
   const conditions = conditions_data.map((con) => {
     let chDt = convertToDate(con.xprtnDtTm)
     const Seperator = () => {
@@ -150,7 +151,7 @@ const ConditionsList = ({ conditions_data, handleClose }: Props) => {
         <button
           type="button"
           className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
-          onClick={handleCancel}
+          onClick={handleCreate}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6 rotate-45">
             <path
