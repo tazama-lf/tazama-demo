@@ -46,7 +46,7 @@ const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
   }
 
   return (
-    <div className="relative flex h-[790px] w-[1200px] flex-col rounded-lg bg-gray-200 p-5">
+    <div className="relative flex h-[790px] max-w-[1200px] flex-col items-center rounded-lg bg-gray-200 p-5">
       <div className="grid h-[30px] max-w-[1100px] grid-cols-2 content-between">
         <button
           className="absolute right-5 max-w-[40px] rounded-full bg-gradient-to-r from-gray-200 to-gray-100 p-1 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
@@ -70,7 +70,6 @@ const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
       </div>
 
       <div className="mt-5 flex h-[560px] flex-col rounded-lg">
-        {/* Add code here */}
         <p>Condition Type:</p>
         <DropdownList
           options={[
@@ -87,85 +86,7 @@ const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
             { id: 4, option: "pain.013.001.09", selected: false },
           ]}
         />
-        {/* <div className="relative top-10 flex max-w-[350px] flex-col items-start pb-2 pt-2">
-          <p>Perspective:</p>
-          <div className="flex grid w-full grid-cols-2">
-            <div className="col-span-1 flex cursor-pointer gap-1" onClick={() => {}}>
-              <input
-                type="checkbox"
-                id="debtor_perspective"
-                className="disabled:border-steel-400 disabled:bg-steel-400 checked:inset-shadow-md inset-shadow-md peer relative mt-1 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-sm border-2 border-black bg-gray-100 drop-shadow-md checked:rounded-sm checked:border-0 checked:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-100 focus:ring-offset-0"
-                // checked={processCtx.entityAllChecked}
-                onChange={() => {}}
-              />
-              <svg
-                className="pointer-events-none absolute mt-1 hidden h-5 w-5 stroke-zinc-500 outline-none"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <label className="w-[40px] cursor-pointer" htmlFor="all-check">
-                Debtor
-              </label>
-            </div>
-            <div className="relative col-span-1 flex cursor-pointer gap-1" onClick={() => {}}>
-              <input
-                type="checkbox"
-                id="creditor_perspective"
-                className="disabled:border-steel-400 disabled:bg-steel-400 checked:inset-shadow-md inset-shadow-md peer relative mt-1 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-sm border-2 border-black bg-gray-100 drop-shadow-md checked:rounded-sm checked:border-0 checked:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-100 focus:ring-offset-0"
-                // checked={processCtx.entityAllChecked}
-                onChange={() => {}}
-              />
-              <svg
-                className="pointer-events-none absolute mt-1 hidden h-5 w-5 stroke-zinc-500 outline-none"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <label className="w-[40px] cursor-pointer" htmlFor="all-check">
-                Creditor
-              </label>
-            </div>
-          </div>
-          <div className="relative mt-5 flex h-[100px] w-[700px] flex-col gap-2">
-            <div className="grid w-full grid-cols-2 gap-4">
-              <label className="w-full cursor-pointer" htmlFor="all-check">
-                Start Date:
-              </label>
-              <label className="w-full cursor-pointer" htmlFor="all-check">
-                End Date:
-              </label>
-            </div>
-            <div className="grid w-full grid-cols-2 gap-4">
-              <input
-                type="datetime-local"
-                name="datetime"
-                id="datetime"
-                min={new Date().toISOString().toString()}
-                className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
-              />
-              <input
-                type="datetime-local"
-                name="datetime"
-                id="datetime"
-                min={new Date().toISOString().toString()}
-                className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
-              />
-            </div>
-          </div>
-        </div> */}
+
         <PerspectiveCheckBoxes />
         <div className="relative mt-5 flex w-[700px] flex-col">
           <label className="w-full cursor-pointer" htmlFor="all-check">

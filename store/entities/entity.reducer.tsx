@@ -1,4 +1,10 @@
 import { ACTIONS } from "./entity.actions"
+import {
+  creditorInitialState,
+  debtorInitialState,
+  pacs002InitialState,
+  pacs008InitialState,
+} from "./entity.initialState"
 
 const EntityReducer = (state: any, action: any) => {
   switch (action.type) {
@@ -467,22 +473,32 @@ const EntityReducer = (state: any, action: any) => {
         setUiConfigLoading: false,
       }
 
-      case ACTIONS.UPDATE_STATUS_LOADING:
-        return {
-          ...state,
-          pacs002Loading: true,
-        }
-      case ACTIONS.UPDATE_STATUS_SUCCESS:
-        return {
-          ...state,
-          pacs002Loading: false,
-          pacs002: action.payload,
-        }
-      case ACTIONS.UPDATE_STATUS_FAIL:
-        return {
-          ...state,
-          pacs002Loading: false,
-        }
+    case ACTIONS.UPDATE_STATUS_LOADING:
+      return {
+        ...state,
+        pacs002Loading: true,
+      }
+    case ACTIONS.UPDATE_STATUS_SUCCESS:
+      return {
+        ...state,
+        pacs002Loading: false,
+        pacs002: action.payload,
+      }
+    case ACTIONS.UPDATE_STATUS_FAIL:
+      return {
+        ...state,
+        pacs002Loading: false,
+      }
+    case ACTIONS.CLEAR_UI_DATA:
+      return {
+        ...state,
+        creditorEntities: [],
+        entities: [],
+        selectedDebtorEntity: debtorInitialState,
+        selectedCreditorEntity: creditorInitialState,
+        pacs008: pacs008InitialState,
+        pacs002: pacs002InitialState,
+      }
   }
 }
 

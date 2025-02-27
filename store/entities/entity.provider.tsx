@@ -39,6 +39,7 @@ import {
   RandomSurname,
 } from "./entity.utils"
 import { v4 as uuidv4 } from "uuid"
+import { ACTION } from "next/dist/client/components/app-router-headers"
 
 interface Props {
   children: ReactNode
@@ -893,6 +894,18 @@ const EntityProvider = ({ children }: Props) => {
     }
   }
 
+  const clearUIData = () => {
+    localStorage.setItem("DEBTOR_ENTITIES", "[]")
+    localStorage.setItem("CREDITOR_ENTITIES", "[]")
+
+    localStorage.setItem("SELECTED_DEBTOR", "")
+    localStorage.setItem("SELECTED_CREDITOR", "")
+
+    localStorage.setItem("PACS008", "")
+    localStorage.setItem("PACS002", "")
+    dispatch({ type: ACTIONS.CLEAR_UI_DATA })
+  }
+
   return (
     <EntityContext.Provider
       value={{
@@ -948,6 +961,7 @@ const EntityProvider = ({ children }: Props) => {
         cloneCreditorEntity,
         setUiConfig,
         updateStatus,
+        clearUIData,
       }}
     >
       {children}

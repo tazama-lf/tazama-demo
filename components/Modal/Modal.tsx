@@ -71,122 +71,10 @@ const mock_con: Conditions[] = [
   {
     condTp: "Override",
     condRsn: "Phishing of Account takeover",
-    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    evtTp: ["all"],
     prsptv: "Entity",
     incptnDtTm: "2025-01-01 12:00:00",
-    xprtnDtTm: "2025-02-25 16:12:00",
-    ntty: {
-      id: "+27834456766",
-      schmeNm: {
-        prtry: "MSISDN",
-      },
-    },
-    forceCret: true,
-    usr: "demo UI",
-  },
-  {
-    condTp: "Non-overridable block",
-    condRsn: "Phishing of Account takeover",
-    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-    prsptv: "Entity",
-    incptnDtTm: "2024-01-01 12:00:00",
-    xprtnDtTm: "2025-01-01 12:00:00",
-    ntty: {
-      id: "+27834456766",
-      schmeNm: {
-        prtry: "MSISDN",
-      },
-    },
-    forceCret: true,
-    usr: "demo UI",
-  },
-  {
-    condTp: "Non-overridable block",
-    condRsn: "Phishing of Account takeover",
-    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-    prsptv: "Account",
-    incptnDtTm: "2025-01-01 12:00:00",
-    xprtnDtTm: "2025-03-01 12:00:00",
-    ntty: {
-      id: "+27834456766",
-      schmeNm: {
-        prtry: "MSISDN",
-      },
-    },
-    forceCret: true,
-    usr: "demo UI",
-  },
-  {
-    condTp: "overridable block",
-    condRsn: "Phishing of Account takeover",
-    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-    prsptv: "Account",
-    incptnDtTm: "2025-01-01 12:00:00",
-    xprtnDtTm: "2025-01-01 12:00:00",
-    ntty: {
-      id: "+27834456766",
-      schmeNm: {
-        prtry: "MSISDN",
-      },
-    },
-    forceCret: true,
-    usr: "demo UI",
-  },
-  {
-    condTp: "Non-overridable block",
-    condRsn: "Phishing of Account takeover",
-    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-    prsptv: "Entity",
-    incptnDtTm: "2024-01-01 12:00:00",
-    xprtnDtTm: "2025-01-01 12:00:00",
-    ntty: {
-      id: "+27834456766",
-      schmeNm: {
-        prtry: "MSISDN",
-      },
-    },
-    forceCret: true,
-    usr: "demo UI",
-  },
-  {
-    condTp: "Non-overridable block",
-    condRsn: "Phishing of Account takeover",
-    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-    prsptv: "Account",
-    incptnDtTm: "2025-01-01 12:00:00",
-    xprtnDtTm: "2025-03-01 12:00:00",
-    ntty: {
-      id: "+27834456766",
-      schmeNm: {
-        prtry: "MSISDN",
-      },
-    },
-    forceCret: true,
-    usr: "demo UI",
-  },
-  {
-    condTp: "overridable block",
-    condRsn: "Phishing of Account takeover",
-    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-    prsptv: "Account",
-    incptnDtTm: "2025-01-01 12:00:00",
-    xprtnDtTm: "2025-01-01 12:00:00",
-    ntty: {
-      id: "+27834456766",
-      schmeNm: {
-        prtry: "MSISDN",
-      },
-    },
-    forceCret: true,
-    usr: "demo UI",
-  },
-  {
-    condTp: "Non-overridable block",
-    condRsn: "Phishing of Account takeover",
-    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-    prsptv: "Entity",
-    incptnDtTm: "2024-01-01 12:00:00",
-    xprtnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-03-25 16:12:00",
     ntty: {
       id: "+27834456766",
       schmeNm: {
@@ -312,7 +200,7 @@ const DebtorModal = ({ ...props }: Props) => {
       ></div>
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div className="flex min-h-full items-end justify-center gap-[2px] p-4 sm:items-center sm:p-0">
-          <div className="relative flex h-[790px] min-w-[490px] max-w-[900px] flex-col justify-between overflow-hidden rounded-lg bg-gray-200 p-5">
+          <div className="relative flex h-[790px] min-w-[490px] flex-col justify-between overflow-hidden rounded-lg bg-gray-200 p-5">
             <div className="flex flex-col justify-between">
               <h2>{props.modalTitle}</h2>
               <button
@@ -353,7 +241,7 @@ const DebtorModal = ({ ...props }: Props) => {
             </div>
             <div
               className={`${
-                activeSection === "Entity" ? "top-[20%]" : "top-[15%]"
+                activeSection === "Entity" ? "top-[20%]" : "top-[20%]"
               } "shadow-outer absolute right-5 flex rounded-md drop-shadow-md`}
             >
               <button
@@ -656,10 +544,10 @@ const DebtorModal = ({ ...props }: Props) => {
                 </div>
               </>
             )}
-
             {activeSection === "Accounts" && customAccounts.length > 0 && (
               <>
-                <div className={`grid gap-4 ${accountDetails.length >= 3 ? "grid-cols-2" : "grid-cols-1"}`}>
+                {/* <div className={`grid gap-4 ${accountDetails.length >= 3 ? "grid-cols-2" : "grid-cols-1"}`}> */}
+                <div className={"grid max-h-[450px] grid-cols-1 gap-2 overflow-auto"}>
                   {customAccounts.map((accountDetail, index) => (
                     <div key={index} className="flex flex-col rounded-lg border p-4 shadow-sm">
                       <div className="mb-4 flex items-center">
@@ -806,7 +694,6 @@ const DebtorModal = ({ ...props }: Props) => {
               )}
             </div>
           </div>
-          {/* NEW COMPONENT */}
           {conditionsList.length === 0
             ? showConditions && (
                 <ConditionsCreate handleClose={handleClose} setVisible={() => setCreateConditions(!createConditions)} />

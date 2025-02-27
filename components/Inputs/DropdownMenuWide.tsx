@@ -40,14 +40,16 @@ const DropdownListWide = ({ options }: Props) => {
           </div>
         </button>
         <div
-          className={`absolute top-8 z-30 flex max-h-[300px] w-3/4 flex-col overflow-auto rounded-md bg-gray-100 py-4 drop-shadow-md ${transClass}`}
+          className={`absolute top-9 z-30 flex max-h-[200px] w-3/4 flex-col overflow-auto rounded-md bg-gray-100 py-2 drop-shadow-md ${transClass}`}
         >
           {options.map((option) => (
             <div key={option.id} className="flex grid w-full grid-cols-8 items-center">
-              <div className="col-span-1 pl-3">{option.id === selectedItem?.id && <CheckIcon color="#000" />}</div>
+              <div className="col-span-1 flex w-3/4 justify-end pl-1">
+                {option.id === selectedItem?.id && <CheckIcon color="#000" />}
+              </div>
               <p
                 key={option.id}
-                className="pointer hover:pointer col-span-7 px-1 py-1 hover:bg-zinc-400 hover:text-zinc-500"
+                className="col-span-7 cursor-pointer py-[1px] hover:bg-zinc-400 hover:text-zinc-500"
                 onClick={() => toggle(option.id - 1)}
               >
                 {sentanceCase(option.option)}
