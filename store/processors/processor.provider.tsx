@@ -10,6 +10,7 @@ import { ACTIONS } from "./processor.actions"
 import ProcessorContext from "./processor.context"
 import {
   defaultEDLights,
+  defaultEntityEventType,
   defaultTadProcLights,
   ruleInitialState,
   typologiesInitialState,
@@ -27,6 +28,7 @@ import {
 import ProcessorReducer from "./processor.reducer"
 import { Socket } from "socket.io"
 import getNetworkMapSetup from "./networkMap"
+import EntityContext from "store/entities/entity.context"
 
 dotenv.config()
 
@@ -46,6 +48,8 @@ const ProcessorProvider = ({ children }: Props) => {
     edLights: defaultEDLights,
     tadpLights: defaultTadProcLights,
     tadProcResults: defaultTadProcLights,
+    entityEventType: defaultEntityEventType,
+    entityAllChecked: false,
   }
   const [state, dispatch] = useReducer(ProcessorReducer, initialProcessorState)
 
@@ -390,6 +394,16 @@ const ProcessorProvider = ({ children }: Props) => {
     dispatch({ type: ACTIONS.RESET_ALL_LIGHTS })
   }
 
+  const updateEntityEventType = async (data: string[]) => {
+    console.log("DATA: " + data)
+    dispatch({ type: ACTIONS.UPDATE_ENTITY_EVENT_TYPE, payload: data })
+  }
+
+  const updateEntityAllChecked = async (value: boolean) => {
+    console.log("CHECKED: " + value)
+    dispatch({ type: ACTIONS.UPDATE_ENTITY_ALL_CHECKED, payload: value })
+  }
+
   return (
     <ProcessorContext.Provider
       value={{
@@ -403,6 +417,10 @@ const ProcessorProvider = ({ children }: Props) => {
         tadpLights: state.tadpLights,
         tadProcResults: state.tadprocResults,
         msgId: msgId,
+        entityEventType: state.entityEventType,
+        entityAllChecked: state.entityAllChecked,
+        updateEntityEventType,
+        updateEntityAllChecked,
         createRules,
         createTypologies,
         updateRules,

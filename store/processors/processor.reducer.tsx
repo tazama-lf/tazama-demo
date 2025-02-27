@@ -146,6 +146,18 @@ const ProcessorReducer = (state: any, action: any) => {
         rules: state.rules.map((rule: any) => ({ ...rule, color: "g" })),
       }
 
+    case ACTIONS.UPDATE_ENTITY_EVENT_TYPE:
+      return {
+        ...state,
+        entityEventType: action.payload,
+      }
+
+    case ACTIONS.UPDATE_ENTITY_ALL_CHECKED:
+      return {
+        ...state,
+        entityAllChecked: action.payload,
+      }
+
     case ACTIONS.RESET_ALL_LIGHTS:
       return {
         ...state,

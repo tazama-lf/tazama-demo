@@ -1,5 +1,20 @@
+// export const sentanceCase = (text: string) => {
+//   return text.toLowerCase().replace(/(^|\s)\w/g, (m, p) => m.toUpperCase())
+// }
+
 export const sentanceCase = (text: string) => {
-  return text.toLowerCase().replace(/(^|\s)\w/g, (m, p) => m.toUpperCase())
+  let upper = true
+  let newStr = ""
+  for (let i = 0, l = text.length; i < l; i++) {
+    if (text[i] == " ") {
+      upper = true
+      newStr += " "
+      continue
+    }
+    newStr += upper ? text[i]?.toUpperCase() : text[i]?.toLowerCase()
+    upper = false
+  }
+  return newStr
 }
 
 export const iconColour = (index: number) => {

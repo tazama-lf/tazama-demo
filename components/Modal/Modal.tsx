@@ -20,182 +20,182 @@ interface Props {
 }
 
 const mock_con: Conditions[] = [
-  // {
-  //   condTp: "Override",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "both",
-  //   incptnDtTm: "2025-01-01 12:00:00",
-  //   xprtnDtTm: "2025-02-26 12:00:00",
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
-  // {
-  //   condTp: "overridable block",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "Entity",
-  //   incptnDtTm: "2025-01-01 12:00:00",
-  //   xprtnDtTm: null,
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
-  // {
-  //   condTp: "Non-overridable block",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "Entity",
-  //   incptnDtTm: "2025-01-01 12:00:00",
-  //   xprtnDtTm: null,
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
-  // {
-  //   condTp: "Override",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "Entity",
-  //   incptnDtTm: "2025-01-01 12:00:00",
-  //   xprtnDtTm: "2025-02-25 16:12:00",
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
-  // {
-  //   condTp: "Non-overridable block",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "Entity",
-  //   incptnDtTm: "2024-01-01 12:00:00",
-  //   xprtnDtTm: "2025-01-01 12:00:00",
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
-  // {
-  //   condTp: "Non-overridable block",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "Account",
-  //   incptnDtTm: "2025-01-01 12:00:00",
-  //   xprtnDtTm: "2025-03-01 12:00:00",
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
-  // {
-  //   condTp: "overridable block",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "Account",
-  //   incptnDtTm: "2025-01-01 12:00:00",
-  //   xprtnDtTm: "2025-01-01 12:00:00",
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
-  // {
-  //   condTp: "Non-overridable block",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "Entity",
-  //   incptnDtTm: "2024-01-01 12:00:00",
-  //   xprtnDtTm: "2025-01-01 12:00:00",
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
-  // {
-  //   condTp: "Non-overridable block",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "Account",
-  //   incptnDtTm: "2025-01-01 12:00:00",
-  //   xprtnDtTm: "2025-03-01 12:00:00",
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
-  // {
-  //   condTp: "overridable block",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "Account",
-  //   incptnDtTm: "2025-01-01 12:00:00",
-  //   xprtnDtTm: "2025-01-01 12:00:00",
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
-  // {
-  //   condTp: "Non-overridable block",
-  //   condRsn: "Phishing of Account takeover",
-  //   evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
-  //   prsptv: "Entity",
-  //   incptnDtTm: "2024-01-01 12:00:00",
-  //   xprtnDtTm: "2025-01-01 12:00:00",
-  //   ntty: {
-  //     id: "+27834456766",
-  //     schmeNm: {
-  //       prtry: "MSISDN",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // },
+  {
+    condTp: "Override",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "both",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-02-26 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: null,
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: null,
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "Override",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-02-25 16:12:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2024-01-01 12:00:00",
+    xprtnDtTm: "2025-01-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Account",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-03-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Account",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-01-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2024-01-01 12:00:00",
+    xprtnDtTm: "2025-01-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Account",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-03-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Account",
+    incptnDtTm: "2025-01-01 12:00:00",
+    xprtnDtTm: "2025-01-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
+  {
+    condTp: "Non-overridable block",
+    condRsn: "Phishing of Account takeover",
+    evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
+    prsptv: "Entity",
+    incptnDtTm: "2024-01-01 12:00:00",
+    xprtnDtTm: "2025-01-01 12:00:00",
+    ntty: {
+      id: "+27834456766",
+      schmeNm: {
+        prtry: "MSISDN",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  },
 ]
 
 const DebtorModal = ({ ...props }: Props) => {
@@ -366,7 +366,7 @@ const DebtorModal = ({ ...props }: Props) => {
                   <g stroke="#373748">
                     <path
                       fill="#ff5a67"
-                      stroke-width=".833"
+                      strokeWidth=".833"
                       d="M398.193 888.434a1.958 1.958 0 1 1-3.915 0 1.958 1.958 0 0 1 3.915 0zm27.251 0a1.958 1.958 0 1 1-3.915 0 1.958 1.958 0 0 1 3.915 0zm-15.583 11.668a1.958 1.958 0 1 0 0 3.915 1.958 1.958 0 0 0 0-3.915zm0-27.252a1.958 1.958 0 1 0 0 3.916 1.958 1.958 0 0 0 0-3.916zm-8.057 7.6a1.958 1.958 0 1 1-2.669-2.865 1.958 1.958 0 0 1 2.67 2.865zm19.003-2.767a1.958 1.958 0 1 0-2.865 2.67 1.958 1.958 0 0 0 2.865-2.67z"
                       color="#000"
                       overflow="visible"
@@ -807,87 +807,22 @@ const DebtorModal = ({ ...props }: Props) => {
             </div>
           </div>
           {/* NEW COMPONENT */}
-          {
-            conditionsList.length === 0
-              ? showConditions && (
-                  <ConditionsCreate
-                    handleClose={handleClose}
-                    setVisible={() => setCreateConditions(!createConditions)}
-                  />
-                )
-              : showConditions &&
-                (createConditions ? (
-                  <ConditionsCreate
-                    handleClose={handleClose}
-                    setVisible={() => setCreateConditions(!createConditions)}
-                  />
-                ) : (
-                  <ConditionsList
-                    handleClose={handleClose}
-                    conditions_data={mock_con}
-                    handleCreate={() => {
-                      setCreateConditions(!createConditions)
-                    }}
-                  />
-                ))
-
-            // <div className="relative h-[790px] w-[1200px] overflow-hidden  rounded-lg bg-gray-200 p-5">
-            //   <div className="grid h-[30px] max-w-[1100px] grid-cols-2 content-between">
-            //     <button
-            //       className="absolute right-5 max-w-[40px] rounded-full bg-gradient-to-r from-gray-200 to-gray-100 p-1 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
-            //       onClick={handleClose}
-            //     >
-            //       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
-            //         <path
-            //           fillRule="evenodd"
-            //           d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
-            //           clipRule="evenodd"
-            //         />
-            //       </svg>
-            //     </button>
-            //   </div>
-
-            //   <div className="grid max-w-[1100px] grid-cols-2 content-between items-center pt-5">
-            //     <p className="ml-2 flex grow p-1 pt-1 text-xl font-medium">Conditions</p>
-            //   </div>
-
-            //   <div className="mt-5 flex h-[560px] flex-col overflow-auto rounded-lg bg-neutral-300">
-            //     <table className=" w-full table-auto border-collapse">
-            //       <thead className="w-full bg-neutral-400 text-left">
-            //         <th className="w-[147.5px] py-1 pl-3">Type</th>
-            //         <th className="w-[262.5px] py-1 pl-3">Reason</th>
-            //         <th className="w-[170px] py-1 pl-3">Events</th>
-            //         <th className="w-[112.5px] py-1 pl-3">Perspective</th>
-            //         <th className="w-[142.5px] py-1 pl-3">Start</th>
-            //         <th className="w-[142.5px] py-1 pl-3">End</th>
-            //         <th className="w-[56px] py-1 pl-3"> </th>
-            //       </thead>
-            //     </table>
-            //     <div className="flex w-[1160px] flex-col overflow-y-auto p-[1px]">{conditions}</div>
-            //   </div>
-            //   <div className="align-center flex w-full grow justify-end p-5">
-            //     <button
-            //       type="button"
-            //       className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
-            //       onClick={handleCancel}
-            //     >
-            //       <svg
-            //         xmlns="http://www.w3.org/2000/svg"
-            //         viewBox="0 0 24 24"
-            //         fill="currentColor"
-            //         className="size-6 rotate-45"
-            //       >
-            //         <path
-            //           fillRule="evenodd"
-            //           d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
-            //           clipRule="evenodd"
-            //         />
-            //       </svg>
-            //       Create Condition
-            //     </button>
-            //   </div>
-            // </div>
-          }
+          {conditionsList.length === 0
+            ? showConditions && (
+                <ConditionsCreate handleClose={handleClose} setVisible={() => setCreateConditions(!createConditions)} />
+              )
+            : showConditions &&
+              (createConditions ? (
+                <ConditionsCreate handleClose={handleClose} setVisible={() => setCreateConditions(!createConditions)} />
+              ) : (
+                <ConditionsList
+                  handleClose={handleClose}
+                  conditions_data={mock_con}
+                  handleCreate={() => {
+                    setCreateConditions(!createConditions)
+                  }}
+                />
+              ))}
         </div>
       </div>
     </div>

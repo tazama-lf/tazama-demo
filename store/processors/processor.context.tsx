@@ -1,5 +1,10 @@
 import { createContext } from "react"
-import { defaultEDLights, defaultTadProcLights, ruleInitialState } from "./processor.initialState"
+import {
+  defaultEDLights,
+  defaultEntityEventType,
+  defaultTadProcLights,
+  ruleInitialState,
+} from "./processor.initialState"
 import { EDLightsManager, Rule, TADPROC, Typology } from "./processor.interface"
 
 interface Context {
@@ -13,6 +18,10 @@ interface Context {
   tadpLights: TADPROC
   tadProcResults: TADPROC
   msgId: string | undefined
+  entityEventType: string[]
+  entityAllChecked: boolean
+  updateEntityEventType: (data: string[]) => void
+  updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
   createTypologies: () => void
   updateRules: (rules: Rule[]) => void
@@ -36,6 +45,10 @@ const ProcessorContext = createContext<Context>({
   tadpLights: defaultTadProcLights,
   tadProcResults: defaultTadProcLights,
   msgId: "",
+  entityEventType: defaultEntityEventType,
+  entityAllChecked: false,
+  updateEntityEventType: (data: string[]) => {},
+  updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
   createTypologies: () => {},
   updateRules: (rules: Rule[]) => {},

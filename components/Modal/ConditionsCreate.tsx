@@ -1,8 +1,10 @@
-import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
-import React, { useState, useEffect } from "react"
-import { convertToDate, generateString, set_event_type } from "utils/helpers"
-import { Conditions, NewEntityCondition } from "store/processors/processor.interface"
-import styles from "/styles/Dropdown.module.scss"
+import React, { useState, useContext } from "react"
+import { NewEntityCondition } from "store/processors/processor.interface"
+import DropdownList from "../Inputs/DropdownMenu"
+import DropdownListWide from "components/Inputs/DropdownMenuWide"
+import MultiSelect from "../Inputs/MultiSelectMenu"
+import ProcessorContext from "store/processors/processor.context"
+import PerspectiveCheckBoxes from "components/Inputs/PerspectiveCheckBoxes"
 
 interface Props {
   handleClose: () => void
@@ -27,40 +29,14 @@ const newEntityConditionState: NewEntityCondition = {
   usr: "demo UI",
 }
 
-const MultiselectDropdown = ({ options, selected, toggleOption }) => {
-  return (
-    <div className={styles}>
-      <div className="c-multi-select-dropdown__selected">
-        <div>0 Selected</div>
-        <div className={`z-1 relative`}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" id="right-arrow">
-            <path fill="#00000000" d="M0 0h24v24H0V0z"></path>
-            <path d="M11.71 15.29l2.59-2.59c.39-.39.39-1.02 0-1.41L11.71 8.7c-.63-.62-1.71-.18-1.71.71v5.17c0 .9 1.08 1.34 1.71.71z"></path>
-          </svg>
-        </div>
-      </div>
-      <ul className="c-multi-select-dropdown__options">
-        <li className="c-multi-select-dropdown__option">
-          <input type="checkbox" className="c-multi-select-dropdown__option-checkbox"></input>
-          <span>option</span>
-        </li>
-      </ul>
-    </div>
-  )
-}
-
 const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
+  const processCtx = useContext(ProcessorContext)
   const [newCondition, setNewCondition] = useState<NewEntityCondition>(newEntityConditionState)
-
-  const condTp_data = [
-    { id: 1, title: "Non-overridable-block" },
-    { id: 2, title: "overridable-block" },
-    { id: 3, title: "Override" },
-  ]
 
   const handleCancel = () => {
     // Need to bring some state in to handle this
-    console.log("Cancelled")
+    processCtx.updateEntityEventType([])
+    processCtx.updateEntityAllChecked(false)
     setVisible()
   }
 
@@ -69,16 +45,15 @@ const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
     console.log("Saved")
   }
 
-  const toggleOption = ({ id }) => {
-    console.log("Toggling options: " + id)
-  }
-
   return (
-    <div className="relative h-[790px] w-[1200px] overflow-hidden  rounded-lg bg-gray-200 p-5">
+    <div className="relative flex h-[790px] w-[1200px] flex-col rounded-lg bg-gray-200 p-5">
       <div className="grid h-[30px] max-w-[1100px] grid-cols-2 content-between">
         <button
           className="absolute right-5 max-w-[40px] rounded-full bg-gradient-to-r from-gray-200 to-gray-100 p-1 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
-          onClick={handleClose}
+          onClick={() => {
+            handleCancel()
+            handleClose()
+          }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
             <path
@@ -90,28 +65,135 @@ const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
         </button>
       </div>
 
-      <div className="grid max-w-[1100px] grid-cols-2 content-between items-center pt-5">
+      <div className="flex grid max-w-[1100px] grid-cols-2 content-between items-center pt-5">
         <p className="ml-2 flex grow p-1 pt-1 text-xl font-medium">New Condition</p>
       </div>
 
-      <div className="mt-5 flex h-[560px] flex-col overflow-auto rounded-lg bg-neutral-300">
+      <div className="mt-5 flex h-[560px] flex-col rounded-lg">
         {/* Add code here */}
         <p>Condition Type:</p>
-        <div className="">
-          <MultiselectDropdown options={condTp_data} selected={[]} toggleOption={toggleOption} />
+        <DropdownList
+          options={[
+            { id: 1, option: "non-overridable-block" },
+            { id: 2, option: "overridable-block" },
+            { id: 3, option: "override" },
+          ]}
+        />
+        <MultiSelect
+          options={[
+            { id: 1, option: "pacs.008.001.10", selected: false },
+            { id: 2, option: "pacs.002.001.12", selected: false },
+            { id: 3, option: "pain.001.001.13", selected: false },
+            { id: 4, option: "pain.013.001.09", selected: false },
+          ]}
+        />
+        {/* <div className="relative top-10 flex max-w-[350px] flex-col items-start pb-2 pt-2">
+          <p>Perspective:</p>
+          <div className="flex grid w-full grid-cols-2">
+            <div className="col-span-1 flex cursor-pointer gap-1" onClick={() => {}}>
+              <input
+                type="checkbox"
+                id="debtor_perspective"
+                className="disabled:border-steel-400 disabled:bg-steel-400 checked:inset-shadow-md inset-shadow-md peer relative mt-1 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-sm border-2 border-black bg-gray-100 drop-shadow-md checked:rounded-sm checked:border-0 checked:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-100 focus:ring-offset-0"
+                // checked={processCtx.entityAllChecked}
+                onChange={() => {}}
+              />
+              <svg
+                className="pointer-events-none absolute mt-1 hidden h-5 w-5 stroke-zinc-500 outline-none"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <label className="w-[40px] cursor-pointer" htmlFor="all-check">
+                Debtor
+              </label>
+            </div>
+            <div className="relative col-span-1 flex cursor-pointer gap-1" onClick={() => {}}>
+              <input
+                type="checkbox"
+                id="creditor_perspective"
+                className="disabled:border-steel-400 disabled:bg-steel-400 checked:inset-shadow-md inset-shadow-md peer relative mt-1 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-sm border-2 border-black bg-gray-100 drop-shadow-md checked:rounded-sm checked:border-0 checked:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-100 focus:ring-offset-0"
+                // checked={processCtx.entityAllChecked}
+                onChange={() => {}}
+              />
+              <svg
+                className="pointer-events-none absolute mt-1 hidden h-5 w-5 stroke-zinc-500 outline-none"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <label className="w-[40px] cursor-pointer" htmlFor="all-check">
+                Creditor
+              </label>
+            </div>
+          </div>
+          <div className="relative mt-5 flex h-[100px] w-[700px] flex-col gap-2">
+            <div className="grid w-full grid-cols-2 gap-4">
+              <label className="w-full cursor-pointer" htmlFor="all-check">
+                Start Date:
+              </label>
+              <label className="w-full cursor-pointer" htmlFor="all-check">
+                End Date:
+              </label>
+            </div>
+            <div className="grid w-full grid-cols-2 gap-4">
+              <input
+                type="datetime-local"
+                name="datetime"
+                id="datetime"
+                min={new Date().toISOString().toString()}
+                className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
+              />
+              <input
+                type="datetime-local"
+                name="datetime"
+                id="datetime"
+                min={new Date().toISOString().toString()}
+                className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
+              />
+            </div>
+          </div>
+        </div> */}
+        <PerspectiveCheckBoxes />
+        <div className="relative mt-5 flex w-[700px] flex-col">
+          <label className="w-full cursor-pointer" htmlFor="all-check">
+            Reason:
+          </label>
+
+          <DropdownListWide
+            options={[
+              { id: 1, option: "Suspicion of Money Laundering" },
+              { id: 2, option: "Violation of KYC/AML Requirements" },
+              { id: 3, option: "Suspicion of Terrorist Financing" },
+              { id: 4, option: "Tax Evasion Concerns" },
+              { id: 5, option: "Regulatory Reporting Thresholds" },
+              { id: 6, option: "Unusual Transaction Patterns" },
+              { id: 7, option: "High-Risk Countries" },
+              { id: 8, option: "Multiple Failed Login Attempts" },
+              { id: 9, option: "Fraudulent Activity" },
+              { id: 10, option: "Phishing or Account Takeover" },
+              { id: 11, option: "Suspicious Beneficiaries" },
+              { id: 12, option: "System Errors" },
+              { id: 13, option: "Exceeding Limits" },
+              { id: 14, option: "Legal Holds or Court Orders" },
+              { id: 15, option: "Adverse media reports" },
+              { id: 16, option: "Dormant or Inactive Accounts" },
+              { id: 17, option: "Internal Bank Policies" },
+            ]}
+          />
         </div>
-        {/* <table className=" w-full table-auto border-collapse">
-          <thead className="w-full bg-neutral-400 text-left">
-            <th className="w-[147.5px] py-1 pl-3">Type</th>
-            <th className="w-[262.5px] py-1 pl-3">Reason</th>
-            <th className="w-[170px] py-1 pl-3">Events</th>
-            <th className="w-[112.5px] py-1 pl-3">Perspective</th>
-            <th className="w-[142.5px] py-1 pl-3">Start</th>
-            <th className="w-[142.5px] py-1 pl-3">End</th>
-            <th className="w-[56px] py-1 pl-3"> </th>
-          </thead>
-        </table>
-        <div className="flex w-[1160px] flex-col overflow-y-auto p-[1px]">{conditions}</div> */}
       </div>
       <div className="align-center flex w-full grow justify-end gap-5 p-5">
         <button

@@ -2,6 +2,7 @@ import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
 import React, { useState, useEffect } from "react"
 import { convertToDate, generateString, set_event_type } from "utils/helpers"
 import { Conditions } from "store/processors/processor.interface"
+import { Seperator } from "components/Inputs/Seperator"
 
 interface Props {
   handleClose: () => void
@@ -12,9 +13,6 @@ interface Props {
 const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) => {
   const conditions = conditions_data.map((con) => {
     let chDt = convertToDate(con.xprtnDtTm)
-    const Seperator = () => {
-      return <div className="m-1 flex max-w-[5px] border-r-2 border-neutral-400"></div>
-    }
 
     let colour: any = "n"
     if (chDt !== undefined) {
@@ -136,13 +134,15 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
       <div className="mt-5 flex h-[560px] flex-col overflow-auto rounded-lg bg-neutral-300">
         <table className=" w-full table-auto border-collapse">
           <thead className="w-full bg-neutral-400 text-left">
-            <th className="w-[147.5px] py-1 pl-3">Type</th>
-            <th className="w-[262.5px] py-1 pl-3">Reason</th>
-            <th className="w-[170px] py-1 pl-3">Events</th>
-            <th className="w-[112.5px] py-1 pl-3">Perspective</th>
-            <th className="w-[142.5px] py-1 pl-3">Start</th>
-            <th className="w-[142.5px] py-1 pl-3">End</th>
-            <th className="w-[56px] py-1 pl-3"> </th>
+            <tr>
+              <th className="w-[147.5px] py-1 pl-3">Type</th>
+              <th className="w-[262.5px] py-1 pl-3">Reason</th>
+              <th className="w-[170px] py-1 pl-3">Events</th>
+              <th className="w-[112.5px] py-1 pl-3">Perspective</th>
+              <th className="w-[142.5px] py-1 pl-3">Start</th>
+              <th className="w-[142.5px] py-1 pl-3">End</th>
+              <th className="w-[56px] py-1 pl-3"> </th>
+            </tr>
           </thead>
         </table>
         <div className="flex w-[1160px] flex-col overflow-y-auto p-[1px]">{conditions}</div>
