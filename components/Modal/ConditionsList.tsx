@@ -47,7 +47,7 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
         key={generateString(5)}
         className="my-[1px] flex h-[45px] w-full max-w-[1160px] rounded-md bg-neutral-300 text-[14px] drop-shadow-md"
       >
-        <div className="flex w-1/4 w-[160px] content-center items-center gap-1  pl-1">
+        <div className="flex w-1/4 w-[160px] content-center items-center gap-1 pl-1">
           <ConditionIndicator colour={colour} />
           <p>{con.condTp}</p>
         </div>

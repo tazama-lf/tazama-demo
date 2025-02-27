@@ -311,7 +311,7 @@ const DebtorModal = ({ ...props }: Props) => {
         aria-hidden="true"
       ></div>
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-        <div className="flex min-h-full items-end justify-center p-4 sm:items-center sm:p-0">
+        <div className="flex min-h-full items-end justify-center gap-[2px] p-4 sm:items-center sm:p-0">
           <div className="relative flex h-[790px] min-w-[490px] max-w-[900px] flex-col justify-between overflow-hidden rounded-lg bg-gray-200 p-5">
             <div className="flex flex-col justify-between">
               <h2>{props.modalTitle}</h2>
