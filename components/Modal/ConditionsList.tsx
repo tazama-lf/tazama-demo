@@ -43,20 +43,21 @@ const ConditionsList = ({ entity_type, conditions_data, handleClose, handleCreat
         }
       }
     } else if (con.xprtnDtTm === null) {
-      console.log("Undefined")
       //   let tstDate = convertToDate(`${con.incptnDtTm.split("T")[0]} ${con.incptnDtTm.split("T")[1]}`)
       let tstDate = new Date(con.incptnDtTm).getTime()
+
       if (tstDate !== undefined) {
         if (con.condTp === "override") {
           let now = new Date().getTime()
-          if (tstDate <= now) {
+          console.log("Undefined Date: " + tstDate + " " + now)
+          if (tstDate < now) {
             colour = "g"
           } else {
             colour = "n"
           }
         } else if (con.condTp === "non-overridable block") {
           let now = new Date().getTime()
-          if (tstDate <= now) {
+          if (tstDate < now) {
             colour = "r"
           } else {
             colour = "n"
@@ -69,8 +70,6 @@ const ConditionsList = ({ entity_type, conditions_data, handleClose, handleCreat
           } else {
             colour = "n"
           }
-        } else {
-          colour = "r"
         }
       }
     }

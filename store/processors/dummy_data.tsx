@@ -34,7 +34,7 @@ export const mock_con: Conditions[] = [
     usr: "demo UI",
   },
   {
-    condTp: "Non-overridable block",
+    condTp: "non-overridable block",
     condRsn: "Phishing of Account takeover",
     evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
     prsptv: "Creditor",
@@ -89,7 +89,7 @@ export const mock_con: Conditions[] = [
     usr: "demo UI",
   },
   {
-    condTp: "Non-overridable block",
+    condTp: "non-overridable block",
     condRsn: "Phishing of Account takeover",
     evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
     prsptv: "Creditor",
@@ -112,7 +112,7 @@ export const mock_con: Conditions[] = [
     usr: "demo UI",
   },
   {
-    condTp: "Non-overridable block",
+    condTp: "non-overridable block",
     condRsn: "Phishing of Account takeover",
     evtTp: ["Pacs.008.001.10", "Pacs.002.001.12"],
     prsptv: "Creditor",
