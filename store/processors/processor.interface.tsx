@@ -96,18 +96,6 @@ interface Ntty {
   }
 }
 
-export interface Conditions {
-  evtTp: string[]
-  condTp: string
-  prsptv: string
-  incptnDtTm: string
-  xprtnDtTm: string | null
-  condRsn: string
-  ntty?: Ntty
-  forceCret?: boolean
-  usr?: string
-}
-
 interface Acct {
   id: string
   schmeNm: {
@@ -122,19 +110,7 @@ interface Acct {
   }
 }
 
-export interface NewEntityCondition {
-  evtTp: string[]
-  condTp: string
-  prsptv: string
-  incptnDtTm: string
-  xprtnDtTm: string | null
-  condRsn: string
-  ntty?: Ntty
-  forceCret?: boolean
-  usr?: string
-}
-
-export interface NewAccountCondition {
+export interface Conditions {
   evtTp: string[]
   condTp: string
   prsptv: string
@@ -142,6 +118,27 @@ export interface NewAccountCondition {
   xprtnDtTm: string | null
   condRsn: string
   acct?: Acct
+  ntty?: Ntty
   forceCret?: boolean
   usr?: string
+}
+
+export interface NewCondition {
+  evtTp: string[]
+  condTp: string
+  prsptv: string
+  incptnDtTm: string
+  xprtnDtTm: string | null
+  condRsn: string
+  ntty?: Ntty
+  acct?: Acct
+  forceCret?: boolean
+  usr?: string
+}
+
+export interface GetConditionsProps {
+  entityType: string // debtor or creditor
+  type: string // entity or account
+  accountId?: string | undefined
+  entityId?: string | undefined
 }

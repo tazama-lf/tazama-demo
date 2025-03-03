@@ -1,37 +1,22 @@
-import React, { useState, useContext } from "react"
-import { NewEntityCondition } from "store/processors/processor.interface"
+import React, { useState, useEffect, useContext } from "react"
+import { NewCondition } from "store/processors/processor.interface"
 import DropdownList from "../Inputs/DropdownMenu"
 import DropdownListWide from "components/Inputs/DropdownMenuWide"
 import MultiSelect from "../Inputs/MultiSelectMenu"
 import ProcessorContext from "store/processors/processor.context"
 import PerspectiveCheckBoxes from "components/Inputs/PerspectiveCheckBoxes"
+import CancelModel from "components/Inputs/CancelModal"
 
 interface Props {
   handleClose: () => void
   setVisible: () => void
+  newCondition: NewCondition
+  setNewCondition: (data: NewCondition) => void
   // conditions_data: Conditions[]
 }
 
-const newEntityConditionState: NewEntityCondition = {
-  evtTp: [],
-  condTp: "",
-  prsptv: "",
-  incptnDtTm: "",
-  xprtnDtTm: "",
-  condRsn: "",
-  ntty: {
-    id: "+27834456676",
-    schmeNm: {
-      prtry: "MSISDN",
-    },
-  },
-  forceCret: true,
-  usr: "demo UI",
-}
-
-const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
+const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisible }: Props) => {
   const processCtx = useContext(ProcessorContext)
-  const [newCondition, setNewCondition] = useState<NewEntityCondition>(newEntityConditionState)
 
   const handleCancel = () => {
     // Need to bring some state in to handle this
@@ -39,10 +24,14 @@ const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
     processCtx.updateEntityAllChecked(false)
     setVisible()
   }
-
+  // useEffect(() => {
+  //   console.log("New condition: ", newCondition)
+  // }, [newCondition])
   const handleSave = () => {
     // Need to bring some state in to handle this
     console.log("Saved")
+    processCtx.conditionsList.push(newCondition)
+    setVisible()
   }
 
   return (
@@ -65,18 +54,21 @@ const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
         </button>
       </div>
 
-      <div className="flex grid max-w-[1100px] grid-cols-2 content-between items-center pt-5">
-        <p className="ml-2 flex grow p-1 pt-1 text-xl font-medium">New Condition</p>
+      <div className="flex grid w-full content-between items-center pt-5">
+        <p className="ml-1 flex grow p-1 pt-1 text-xl font-medium">New Condition</p>
       </div>
 
       <div className="mt-5 flex h-[560px] flex-col rounded-lg">
         <p>Condition Type:</p>
         <DropdownList
           options={[
-            { id: 1, option: "non-overridable-block" },
-            { id: 2, option: "overridable-block" },
-            { id: 3, option: "override" },
+            { id: 0, option: "Please select condition type...", visible: false },
+            { id: 1, option: "non-overridable-block", visible: true },
+            { id: 2, option: "overridable-block", visible: true },
+            { id: 3, option: "override", visible: true },
           ]}
+          state={newCondition}
+          onChange={(data: NewCondition) => setNewCondition(data)}
         />
         <MultiSelect
           options={[
@@ -85,9 +77,11 @@ const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
             { id: 3, option: "pain.001.001.13", selected: false },
             { id: 4, option: "pain.013.001.09", selected: false },
           ]}
+          state={newCondition}
+          onChange={(data: NewCondition) => setNewCondition(data)}
         />
 
-        <PerspectiveCheckBoxes />
+        <PerspectiveCheckBoxes state={newCondition} onChange={(data: NewCondition) => setNewCondition(data)} />
         <div className="relative mt-5 flex w-[700px] flex-col">
           <label className="w-full cursor-pointer" htmlFor="all-check">
             Reason:
@@ -95,24 +89,27 @@ const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
 
           <DropdownListWide
             options={[
-              { id: 1, option: "Suspicion of Money Laundering" },
-              { id: 2, option: "Violation of KYC/AML Requirements" },
-              { id: 3, option: "Suspicion of Terrorist Financing" },
-              { id: 4, option: "Tax Evasion Concerns" },
-              { id: 5, option: "Regulatory Reporting Thresholds" },
-              { id: 6, option: "Unusual Transaction Patterns" },
-              { id: 7, option: "High-Risk Countries" },
-              { id: 8, option: "Multiple Failed Login Attempts" },
-              { id: 9, option: "Fraudulent Activity" },
-              { id: 10, option: "Phishing or Account Takeover" },
-              { id: 11, option: "Suspicious Beneficiaries" },
-              { id: 12, option: "System Errors" },
-              { id: 13, option: "Exceeding Limits" },
-              { id: 14, option: "Legal Holds or Court Orders" },
-              { id: 15, option: "Adverse media reports" },
-              { id: 16, option: "Dormant or Inactive Accounts" },
-              { id: 17, option: "Internal Bank Policies" },
+              { id: 0, option: "Please select a reason...", visible: false },
+              { id: 1, option: "Suspicion of Money Laundering", visible: true },
+              { id: 2, option: "Violation of KYC/AML Requirements", visible: true },
+              { id: 3, option: "Suspicion of Terrorist Financing", visible: true },
+              { id: 4, option: "Tax Evasion Concerns", visible: true },
+              { id: 5, option: "Regulatory Reporting Thresholds", visible: true },
+              { id: 6, option: "Unusual Transaction Patterns", visible: true },
+              { id: 7, option: "High-Risk Countries", visible: true },
+              { id: 8, option: "Multiple Failed Login Attempts", visible: true },
+              { id: 9, option: "Fraudulent Activity", visible: true },
+              { id: 10, option: "Phishing or Account Takeover", visible: true },
+              { id: 11, option: "Suspicious Beneficiaries", visible: true },
+              { id: 12, option: "System Errors", visible: true },
+              { id: 13, option: "Exceeding Limits", visible: true },
+              { id: 14, option: "Legal Holds or Court Orders", visible: true },
+              { id: 15, option: "Adverse media reports", visible: true },
+              { id: 16, option: "Dormant or Inactive Accounts", visible: true },
+              { id: 17, option: "Internal Bank Policies", visible: true },
             ]}
+            state={newCondition}
+            onChange={(data: NewCondition) => setNewCondition(data)}
           />
         </div>
       </div>
@@ -132,6 +129,9 @@ const ConditionsCreate = ({ handleClose, setVisible }: Props) => {
           Cancel
         </button>
       </div>
+      {/* {showCancel && (
+        <CancelModel show={showCancel} setShow={() => setShowCancel(!showCancel)} handleCancel={handleCancel} />
+      )} */}
     </div>
   )
 }

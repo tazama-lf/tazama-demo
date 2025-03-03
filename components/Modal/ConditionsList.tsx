@@ -1,22 +1,26 @@
 import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
 import React, { useState, useEffect } from "react"
-import { convertToDate, generateString, set_event_type } from "utils/helpers"
+import { convertToDate, displayDate, generateString, set_event_type } from "utils/helpers"
 import { Conditions } from "store/processors/processor.interface"
 import { Seperator } from "components/Inputs/Seperator"
+import { newDate } from "react-datepicker/dist/date_utils"
 
 interface Props {
+  entity_type: string // debtor or creditor
   handleClose: () => void
   handleCreate: () => void
   conditions_data: Conditions[]
 }
 
-const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) => {
+const ConditionsList = ({ entity_type, conditions_data, handleClose, handleCreate }: Props) => {
   const conditions = conditions_data.map((con) => {
-    let chDt = convertToDate(con.xprtnDtTm)
-
     let colour: any = "n"
-    if (chDt !== undefined) {
-      if (con.condTp === "Non-overridable block") {
+    // let chDt = convertToDate(con.xprtnDtTm)
+
+    // console.log("SBT: ", chDt)
+    if (con.xprtnDtTm !== null) {
+      let chDt = new Date(con.xprtnDtTm).getTime()
+      if (con.condTp === "non-overridable block") {
         let now = new Date().getTime()
         if (chDt >= now) {
           colour = "r"
@@ -25,21 +29,50 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
         }
       } else if (con.condTp === "overridable block") {
         let now = new Date().getTime()
-        if (chDt >= now) {
+        if (chDt! >= now) {
           colour = "r"
         } else {
           colour = "n"
         }
-      } else if (con.condTp === "Override") {
+      } else if (con.condTp === "override") {
         let now = new Date().getTime()
-        if (chDt >= now) {
+        if (chDt! >= now) {
           colour = "g"
         } else {
           colour = "n"
         }
       }
-    } else {
-      colour = "r"
+    } else if (con.xprtnDtTm === null) {
+      console.log("Undefined")
+      //   let tstDate = convertToDate(`${con.incptnDtTm.split("T")[0]} ${con.incptnDtTm.split("T")[1]}`)
+      let tstDate = new Date(con.incptnDtTm).getTime()
+      if (tstDate !== undefined) {
+        if (con.condTp === "override") {
+          let now = new Date().getTime()
+          if (tstDate <= now) {
+            colour = "g"
+          } else {
+            colour = "n"
+          }
+        } else if (con.condTp === "non-overridable block") {
+          let now = new Date().getTime()
+          if (tstDate <= now) {
+            colour = "r"
+          } else {
+            colour = "n"
+          }
+        }
+        if (con.condTp === "overridable block") {
+          let now = new Date().getTime()
+          if (tstDate <= now) {
+            colour = "r"
+          } else {
+            colour = "n"
+          }
+        } else {
+          colour = "r"
+        }
+      }
     }
 
     return (
@@ -59,18 +92,21 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
         <Seperator />
         <p className="flex w-[120px] items-center pl-1">{con.prsptv}</p>
         <Seperator />
-        <p className="flex w-[150px] items-center pl-1">{con.incptnDtTm}</p>
+        <p className="flex w-[150px] items-center pl-1">{displayDate(con.incptnDtTm)}</p>
         <Seperator />
         {con.xprtnDtTm !== null ? (
-          <p className="flex w-[150px] items-center  pl-1">{con.xprtnDtTm}</p>
+          <p className="flex w-[150px] items-center  pl-1">{displayDate(con.xprtnDtTm)}</p>
         ) : (
           <div className="z-99 mt-[7px]">
             <input
               type="datetime-local"
               name="datetime"
               id="datetime"
-              min={new Date().toISOString().toString()}
+              min={new Date().getTime().toString().substring(0, 16)}
               className="max-w-[150px] rounded-md p-1"
+              onClick={() => {
+                con.xprtnDtTm = new Date().toISOString()
+              }}
             />
           </div>
         )}
@@ -80,7 +116,9 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
           {con.xprtnDtTm === null ? (
             <button
               className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
-              onClick={() => alert("Clicked: " + con.prsptv)}
+              onClick={() => {
+                con.xprtnDtTm = new Date().toISOString()
+              }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -97,10 +135,12 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
                 />
               </svg>
             </button>
-          ) : convertToDate(con.xprtnDtTm) !== undefined && convertToDate(con.xprtnDtTm)! > new Date().getTime() ? (
+          ) : con.xprtnDtTm !== null && new Date(con.xprtnDtTm).getTime() > new Date().getTime() ? (
             <button
               className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
-              onClick={() => alert("Clicked: " + con.prsptv)}
+              onClick={() => {
+                con.xprtnDtTm = new Date().toISOString()
+              }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

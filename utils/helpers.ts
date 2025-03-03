@@ -39,6 +39,7 @@ export const iconColour = (index: number) => {
 }
 
 export const convertToDate = (dtStr: string | null) => {
+  console.log("STRING: ", dtStr)
   let chDt = undefined
   if (dtStr !== null) {
     let time = dtStr.split(" ")[1]
@@ -89,4 +90,17 @@ export const set_event_type = (data: string[]) => {
     return res
   })
   return response
+}
+
+export const displayDate = (inDate: string) => {
+  let date: any
+  let time: any
+  if (inDate.split("T")[0] !== undefined && inDate.split("T")[1] !== undefined) {
+    date = inDate.split("T")[0]
+    time = inDate.split("T")[1]?.split(".")[0]
+  } else {
+    date = ""
+  }
+
+  return `${date} ${time}`
 }

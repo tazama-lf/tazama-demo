@@ -3,6 +3,7 @@ import { sentanceCase } from "utils/helpers"
 import React, { useEffect, useState, useContext } from "react"
 import ProcessorContext from "store/processors/processor.context"
 import { Seperator } from "./Seperator"
+import { NewCondition } from "store/processors/processor.interface"
 
 interface Item {
   id: number
@@ -12,12 +13,14 @@ interface Item {
 
 interface MultiSelectProps {
   options: Item[]
+  state: NewCondition
+  onChange: (data: NewCondition) => void
   // selected: string[]
   // onChange: (selected: string[]) => void
   // placeholder?: string
 }
 
-const MultiSelect = ({ options }: MultiSelectProps) => {
+const MultiSelect = ({ state, options, onChange }: MultiSelectProps) => {
   const processCtx = useContext(ProcessorContext)
 
   const handleSelect = (option: Item) => {
@@ -26,27 +29,47 @@ const MultiSelect = ({ options }: MultiSelectProps) => {
       console.log("HIT 3")
       processCtx.updateEntityAllChecked(false)
       tmpSelectedItems = []
+      onChange({
+        ...state,
+        evtTp: [],
+      })
     }
 
     if (tmpSelectedItems.indexOf(option.option) !== -1) {
       tmpSelectedItems.splice(processCtx.entityEventType.indexOf(option.option), 1)
       processCtx.updateEntityEventType(tmpSelectedItems)
+      onChange({
+        ...state,
+        evtTp: tmpSelectedItems,
+      })
     } else {
       tmpSelectedItems.push(option.option)
       processCtx.updateEntityEventType(tmpSelectedItems)
+      onChange({
+        ...state,
+        evtTp: tmpSelectedItems,
+      })
     }
   }
 
-  const handleCheck = (data?: string) => {
+  const handleCheck = () => {
     console.log(processCtx.entityAllChecked)
     if (processCtx.entityAllChecked === false) {
       console.log("HIT 1")
       processCtx.updateEntityAllChecked(true)
       processCtx.updateEntityEventType(["all"])
+      onChange({
+        ...state,
+        evtTp: ["all"],
+      })
     } else {
       console.log("HIT 2")
       processCtx.updateEntityAllChecked(false)
       processCtx.updateEntityEventType([])
+      onChange({
+        ...state,
+        evtTp: [],
+      })
     }
   }
 

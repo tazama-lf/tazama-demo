@@ -5,7 +5,8 @@ import {
   defaultTadProcLights,
   ruleInitialState,
 } from "./processor.initialState"
-import { EDLightsManager, Rule, TADPROC, Typology } from "./processor.interface"
+import { Conditions, EDLightsManager, GetConditionsProps, Rule, TADPROC, Typology } from "./processor.interface"
+import { mock_con } from "./dummy_data"
 
 interface Context {
   rulesLoading: boolean
@@ -20,6 +21,7 @@ interface Context {
   msgId: string | undefined
   entityEventType: string[]
   entityAllChecked: boolean
+  conditionsList: Conditions[]
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -32,6 +34,7 @@ interface Context {
   getUIConfig: () => void
   handleTadProc: (msgId: string) => void
   ruleLightsGreen: () => void
+  getConditions: ({ entityType, type, accountId, entityId }: GetConditionsProps) => void
 }
 
 const ProcessorContext = createContext<Context>({
@@ -47,6 +50,7 @@ const ProcessorContext = createContext<Context>({
   msgId: "",
   entityEventType: defaultEntityEventType,
   entityAllChecked: false,
+  conditionsList: [...mock_con],
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
@@ -59,6 +63,7 @@ const ProcessorContext = createContext<Context>({
   getUIConfig: () => {},
   handleTadProc: (msgId: string) => {},
   ruleLightsGreen: () => {},
+  getConditions: async ({ entityType, type, accountId, entityId }: GetConditionsProps) => {},
 })
 
 export default ProcessorContext

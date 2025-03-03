@@ -3,6 +3,11 @@ import EntityContext from "store/entities/entity.context"
 import { CreditorAccount, CreditorEntity } from "store/entities/entity.interface"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
+import { NewCondition } from "store/processors/processor.interface"
+import ProcessorContext from "store/processors/processor.context"
+import ConditionsCreate from "./ConditionsCreate"
+import ConditionsList from "./ConditionsList"
+import { StarIcon } from "@radix-ui/react-icons"
 
 interface Props {
   color?: string
@@ -13,13 +18,58 @@ interface Props {
   modalTitle?: string
 }
 
+const newEntityConditionState: NewCondition = {
+  evtTp: [],
+  condTp: "",
+  prsptv: "",
+  incptnDtTm: "",
+  xprtnDtTm: null,
+  condRsn: "",
+  ntty: {
+    id: "",
+    schmeNm: {
+      prtry: "MSISDN",
+    },
+  },
+  forceCret: true,
+  usr: "demo UI",
+}
+
+const newAccountConditionState: NewCondition = {
+  evtTp: [],
+  condTp: "",
+  prsptv: "",
+  incptnDtTm: "",
+  xprtnDtTm: null,
+  condRsn: "",
+  acct: {
+    id: "",
+    schmeNm: {
+      prtry: "MSISDN",
+    },
+    agt: {
+      finInstnId: {
+        clrSysMmbId: {
+          mmbId: "",
+        },
+      },
+    },
+  },
+  forceCret: true,
+  usr: "demo UI",
+}
+
 const CreditorModal = ({ ...props }: Props) => {
   const entityCtx = useContext(EntityContext)
+  const processCtx = useContext(ProcessorContext)
   const [customEntity, setCustomEntity] = useState<CreditorEntity | undefined>(undefined)
   const [activeSection, setActiveSection] = useState<"Entity" | "Accounts">("Entity")
   const [customAccounts, setCustomAccounts] = useState<CreditorAccount[]>([])
   const [saved, setSaved] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
+  const [showConditions, setShowConditions] = useState<boolean>(false)
+  const [createConditions, setCreateConditions] = useState<boolean>(false)
+  const [newCondition, setNewCondition] = useState<NewCondition>(newEntityConditionState)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
 
   useEffect(() => {
@@ -29,6 +79,55 @@ const CreditorModal = ({ ...props }: Props) => {
       }, 3000)
     }
   }, [saved])
+
+  useEffect(() => {
+    console.log("New condition: ", newCondition)
+  }, [newCondition])
+
+  useEffect(() => {
+    console.log(entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex)
+    console.log()
+    ;(async function () {
+      if (activeSection === "Accounts") {
+        console.log(entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAcct.Id.Othr[0].Id)
+
+        await processCtx.getConditions({
+          entityType: "creditor",
+          type: "account",
+          accountId: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAcct.Id.Othr[0].Id,
+        })
+        newAccountConditionState.acct!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].Id
+        newAccountConditionState.acct!.agt.finInstnId.clrSysMmbId.mmbId =
+          entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAgt.FinInstnId.ClrSysMmbId.MmbId
+        setNewCondition(newAccountConditionState)
+      } else if (activeSection === "Entity") {
+        console.log(entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].Id)
+        await processCtx.getConditions({
+          entityType: "creditor",
+          type: "entity",
+          entityId: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].Id,
+        })
+
+        newEntityConditionState.ntty!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].Id
+        setNewCondition(newEntityConditionState)
+      }
+      console.log(processCtx.conditionsList)
+    })()
+  }, [
+    activeSection,
+    entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex,
+    entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAcct.Id.Othr[0].Id,
+    entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].Id,
+  ])
+
+  useEffect(() => {
+    if (processCtx.conditionsList.length === 0) {
+      setCreateConditions(true)
+    } else {
+      setCreateConditions(false)
+    }
+    console.log(processCtx.conditionsList)
+  }, [processCtx.conditionsList])
 
   function handleClose() {
     if (props.selectedEntity) {
@@ -117,8 +216,8 @@ const CreditorModal = ({ ...props }: Props) => {
         aria-hidden="true"
       ></div>
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-        <div className="flex min-h-full items-end justify-center p-4 sm:items-center sm:p-0">
-          <div className="relative min-w-[470px] overflow-hidden rounded-lg bg-gray-200 p-5">
+        <div className="flex min-h-full items-end justify-center gap-[2px] p-4 sm:items-center sm:p-0">
+          <div className="relative flex h-[790px] min-w-[490px] flex-col justify-between overflow-hidden rounded-lg bg-gray-200 p-5">
             <div className="flex flex-col justify-between">
               <h2>{props.modalTitle}</h2>
               <button
@@ -155,6 +254,72 @@ const CreditorModal = ({ ...props }: Props) => {
                 onClick={() => handleSectionChange("Accounts")}
               >
                 Account(s)
+              </button>
+            </div>
+            <div
+              className={`${
+                activeSection === "Entity" ? "top-[20%]" : "top-[20%]"
+              } "shadow-outer absolute right-5 flex rounded-md drop-shadow-md`}
+            >
+              <button
+                className="flex w-full items-center gap-3 rounded-lg bg-gradient-to-r from-gray-100 to-gray-300 py-2 pl-2 text-center shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)] drop-shadow-md"
+                onClick={() => {
+                  setShowConditions(!showConditions)
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" id="connection" className="z-99">
+                  <g stroke="#373748">
+                    <path
+                      fill="#ff5a67"
+                      strokeWidth=".833"
+                      d="M398.193 888.434a1.958 1.958 0 1 1-3.915 0 1.958 1.958 0 0 1 3.915 0zm27.251 0a1.958 1.958 0 1 1-3.915 0 1.958 1.958 0 0 1 3.915 0zm-15.583 11.668a1.958 1.958 0 1 0 0 3.915 1.958 1.958 0 0 0 0-3.915zm0-27.252a1.958 1.958 0 1 0 0 3.916 1.958 1.958 0 0 0 0-3.916zm-8.057 7.6a1.958 1.958 0 1 1-2.669-2.865 1.958 1.958 0 0 1 2.67 2.865zm19.003-2.767a1.958 1.958 0 1 0-2.865 2.67 1.958 1.958 0 0 0 2.865-2.67z"
+                      color="#000"
+                      overflow="visible"
+                      style={{ marker: "none" }}
+                      transform="translate(-393.861 -872.434)"
+                    ></path>
+                    <path fill="none" strokeLinecap="round" strokeLinejoin="round" d="M16 4.441v5.45"></path>
+                    <path
+                      fill="#00ff00"
+                      strokeWidth=".833"
+                      d="M421.183 896.571a1.958 1.958 0 1 0-2.865 2.67 1.958 1.958 0 0 0 2.865-2.67zm-19.473 2.767a1.958 1.958 0 1 1-2.669-2.865 1.958 1.958 0 0 1 2.67 2.865z"
+                      color="#000"
+                      overflow="visible"
+                      style={{ marker: "none" }}
+                      transform="translate(-393.861 -872.434)"
+                    ></path>
+                    <path
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16 22.39v5.168M27.558 16l-6.255.088M10.55 16H4.442m19.778 8.123-2.956-2.906m-10.27-9.868-3.14-3.033m.105 15.581 2.555-2.51"
+                    ></path>
+                    <path
+                      fill="#ffb134"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m20.55 11.533 3.528-3.463"
+                    ></path>
+                    <path
+                      fill="#00d1b6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M11.518 19.466v-.373c0-.36.28-.68.6-.84a93.718 93.718 0 0 1 2.805-1.456l2.031-.023c.12.08 1.28.6 2.999 1.56.32.2.44.52.44.92v.236"
+                    ></path>
+                    <path
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.932 12.24a1.53 1.53 0 0 0-1.532 1.534v1.5c0 .85.873 1.533 1.532 1.533s1.533-.684 1.533-1.533v-1.5a1.53 1.53 0 0 0-1.533-1.533zm-1.01 4.557 2.032-.023"
+                    ></path>
+                  </g>
+                </svg>
+                <div className={`z-1 relative ${showConditions === true ? "rotate-180" : "rotate-0"}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" id="right-arrow">
+                    <path fill="#00000000" d="M0 0h24v24H0V0z"></path>
+                    <path d="M11.71 15.29l2.59-2.59c.39-.39.39-1.02 0-1.41L11.71 8.7c-.63-.62-1.71-.18-1.71.71v5.17c0 .9 1.08 1.34 1.71.71z"></path>
+                  </svg>
+                </div>
               </button>
             </div>
 
@@ -399,9 +564,26 @@ const CreditorModal = ({ ...props }: Props) => {
 
             {activeSection === "Accounts" && customAccounts.length > 0 && (
               <>
-                <div className={`grid gap-4 ${accountDetails.length >= 3 ? "grid-cols-2" : "grid-cols-1"}`}>
+                {/* <div className={`grid gap-4 ${accountDetails.length >= 3 ? "grid-cols-2" : "grid-cols-1"}`}> */}
+                <div className={"flex grid h-[450px] grid-cols-1 gap-2 overflow-auto"}>
                   {customAccounts.map((accountDetail, index) => (
-                    <div key={index} className="flex flex-col rounded-lg border p-4 shadow-sm">
+                    <div
+                      key={index}
+                      className="shadow-small flex cursor-pointer flex-col rounded-lg border p-4 hover:bg-zinc-300"
+                      onClick={() => {
+                        entityCtx.selectCreditorEntity(
+                          entityCtx.selectedCreditorEntity.creditorSelectedIndex !== undefined
+                            ? entityCtx.selectedCreditorEntity.creditorSelectedIndex
+                            : 0,
+                          index
+                        )
+                      }}
+                    >
+                      {entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex === index && (
+                        <div className="relative">
+                          <StarIcon color={props.color} className="absolute" width={30} height={30} />
+                        </div>
+                      )}
                       <div className="mb-4 flex items-center">
                         <div className="mx-[20px] flex items-center justify-center">
                           <svg
@@ -545,6 +727,33 @@ const CreditorModal = ({ ...props }: Props) => {
               )}
             </div>
           </div>
+          {processCtx.conditionsList.length === 0
+            ? showConditions && (
+                <ConditionsCreate
+                  handleClose={handleClose}
+                  setVisible={() => setCreateConditions(!createConditions)}
+                  newCondition={newCondition}
+                  setNewCondition={setNewCondition}
+                />
+              )
+            : showConditions &&
+              (createConditions ? (
+                <ConditionsCreate
+                  handleClose={handleClose}
+                  setVisible={() => setCreateConditions(!createConditions)}
+                  newCondition={newCondition}
+                  setNewCondition={setNewCondition}
+                />
+              ) : (
+                <ConditionsList
+                  handleClose={handleClose}
+                  conditions_data={processCtx.conditionsList}
+                  handleCreate={() => {
+                    setCreateConditions(!createConditions)
+                  }}
+                  entity_type="creditor"
+                />
+              ))}
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import axios, { AxiosResponse } from "axios"
 import dotenv from "dotenv"
-import React, { ReactNode, useEffect, useReducer, useRef, useState } from "react"
+import React, { ReactNode, useEffect, useReducer, useRef, useState, useContext } from "react"
 import { io } from "socket.io-client"
 import { uiConfigInitialState } from "store/entities/entity.initialState"
 import { getNetworkMap, getTADPROCResult } from "utils/db"
@@ -16,8 +16,10 @@ import {
   typologiesInitialState,
 } from "./processor.initialState"
 import {
+  Conditions,
   DBConfig,
   EDLightsManager,
+  GetConditionsProps,
   Rule,
   RuleBand,
   TADPROC,
@@ -29,6 +31,7 @@ import ProcessorReducer from "./processor.reducer"
 import { Socket } from "socket.io"
 import getNetworkMapSetup from "./networkMap"
 import EntityContext from "store/entities/entity.context"
+import { mock_con } from "./dummy_data"
 
 dotenv.config()
 
@@ -50,13 +53,18 @@ const ProcessorProvider = ({ children }: Props) => {
     tadProcResults: defaultTadProcLights,
     entityEventType: defaultEntityEventType,
     entityAllChecked: false,
+    conditionsList: [],
   }
   const [state, dispatch] = useReducer(ProcessorReducer, initialProcessorState)
+  const nttyCtx = useContext(EntityContext)
 
   const [uiConfig, setUiConfig] = useState<any>(null)
   const [socket, setSocket] = useState<Socket>()
   const [isConnected, setIsConnected] = useState<boolean>(false)
   const [wsAddress, setWsAddress] = useState<string | null>(null)
+  // const [newCondition, setNewConditions] = useState<Conditions>({
+
+  // })
 
   const msgId: any = useRef("")
 
@@ -404,6 +412,38 @@ const ProcessorProvider = ({ children }: Props) => {
     dispatch({ type: ACTIONS.UPDATE_ENTITY_ALL_CHECKED, payload: value })
   }
 
+  const getConditions = async ({ entityType, type, accountId, entityId }: GetConditionsProps) => {
+    dispatch({ type: ACTIONS.GET_CONDITIONS_LOADING })
+    try {
+      // if (entityType === "debtor") {
+      if (type === "account") {
+        if (accountId !== undefined) {
+          let filteredResData: Conditions[] = []
+          mock_con.forEach((item: Conditions) => {
+            if (item.acct?.id === accountId) {
+              filteredResData.push(item)
+            }
+          })
+          dispatch({ type: ACTIONS.GET_CONDITIONS_SUCCESS, payload: filteredResData })
+        }
+      } else if (type === "entity") {
+        if (entityId !== undefined) {
+          let filteredResData: Conditions[] = []
+          mock_con.forEach((item: Conditions) => {
+            if (item.ntty?.id === entityId) {
+              filteredResData.push(item)
+            }
+          })
+          dispatch({ type: ACTIONS.GET_CONDITIONS_SUCCESS, payload: filteredResData })
+        }
+      }
+      // }
+    } catch (error) {
+      dispatch({ type: ACTIONS.GET_CONDITIONS_FAIL, payload: error })
+      console.log("ERROR: ", error)
+    }
+  }
+
   return (
     <ProcessorContext.Provider
       value={{
@@ -419,6 +459,7 @@ const ProcessorProvider = ({ children }: Props) => {
         msgId: msgId,
         entityEventType: state.entityEventType,
         entityAllChecked: state.entityAllChecked,
+        conditionsList: state.conditionsList,
         updateEntityEventType,
         updateEntityAllChecked,
         createRules,
@@ -431,6 +472,7 @@ const ProcessorProvider = ({ children }: Props) => {
         resetAllLights,
         getUIConfig,
         handleTadProc,
+        getConditions,
       }}
     >
       {children}
