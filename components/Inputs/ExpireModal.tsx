@@ -6,10 +6,10 @@ import { useState } from "react"
 interface Props {
   show: boolean
   setShow: (value: boolean) => void
-  handleCancel: () => void
+  handleExpire: () => void
 }
 
-const CancelModel = ({ show, setShow, handleCancel }: Props) => {
+const ExpireModel = ({ show, setShow, handleExpire }: Props) => {
   const [isOpen, setIsOpen] = useState<boolean>(false)
 
   const toggle = () => {
@@ -27,13 +27,22 @@ const CancelModel = ({ show, setShow, handleCancel }: Props) => {
             <div
               className={`inset-shadow-2xl relative flex h-[120px] w-full flex-col overflow-auto rounded-md bg-gray-100 py-2 drop-shadow-md`}
             >
-              <p>Expire Condition?</p>
-              <div className="grid cursor-pointer grid-cols-2 items-center gap-1 overflow-auto hover:bg-zinc-400 hover:text-zinc-500">
-                <div className="col-span-1 flex w-full cursor-pointer bg-red-200" onClick={() => setShow(!show)}>
-                  <button className="w-full">Save</button>
+              <p className="mb-5 ml-5 mt-2">Expire condition now?</p>
+              <div className="flex w-full cursor-pointer justify-center gap-2">
+                <div
+                  className="flex w-[150px] items-center gap-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 shadow-inner drop-shadow-md"
+                  onClick={() => {
+                    handleExpire()
+                    setShow(!show)
+                  }}
+                >
+                  <button className="m-2 w-full">Save</button>
                 </div>
-                <div className="col-span-1 flex w-full cursor-pointer bg-red-200" onClick={handleCancel}>
-                  <button className="w-full">Cancel</button>
+                <div
+                  className="flex w-[150px] items-center gap-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 shadow-inner drop-shadow-md"
+                  onClick={() => setShow(!show)}
+                >
+                  <button className="m-2 w-full">Cancel</button>
                 </div>
               </div>
             </div>
@@ -44,4 +53,4 @@ const CancelModel = ({ show, setShow, handleCancel }: Props) => {
   )
 }
 
-export default CancelModel
+export default ExpireModel

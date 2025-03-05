@@ -1,19 +1,16 @@
-import React, { useContext, useEffect, useState } from "react"
-import ProcessorContext from "store/processors/processor.context"
+import React, { useEffect, useState } from "react"
 import { NewCondition } from "store/processors/processor.interface"
 
 interface Props {
   state: NewCondition
   onChange: (data: NewCondition) => void
+  errors: string[]
 }
 
-const PerspectiveCheckBoxes = ({ state, onChange }: Props) => {
-  const processCtx = useContext(ProcessorContext)
+const PerspectiveCheckBoxes = ({ errors, state, onChange }: Props) => {
   const [selected, setSelected] = useState("")
-  let min_date = new Date().toISOString()
   useEffect(() => {
     console.log(selected)
-    console.log(min_date.substring(0, 16))
   }, [selected])
 
   const handleClick = () => {
@@ -45,8 +42,13 @@ const PerspectiveCheckBoxes = ({ state, onChange }: Props) => {
   }
   return (
     <>
-      <div className="relative top-10 flex max-w-[350px] flex-col items-start gap-3 pb-2 pt-2">
-        <p>Perspective:</p>
+      <div className="relative top-10 flex max-w-[380px] flex-col items-start gap-3 pb-2 pt-2">
+        <p className="flex items-center">
+          Perspective:
+          {errors.includes("prsptv") && (
+            <div className="pl-5 text-sm text-red-500">* Please select a Condition Perspective</div>
+          )}
+        </p>
         <div className="flex grid w-full grid-cols-2">
           <div
             className="col-span-1 flex cursor-pointer gap-1"
@@ -206,57 +208,6 @@ const PerspectiveCheckBoxes = ({ state, onChange }: Props) => {
             <label className="w-[40px] cursor-pointer" htmlFor="all-check">
               Creditor
             </label>
-          </div>
-        </div>
-        <div className="relative mt-5 flex h-[100px] w-[700px] flex-col gap-2">
-          <div className="grid w-full grid-cols-2 gap-4">
-            <label className="w-full cursor-pointer" htmlFor="all-check">
-              Start Date:
-            </label>
-            <label className="w-full cursor-pointer" htmlFor="all-check">
-              End Date:
-            </label>
-          </div>
-          <div className="grid w-full grid-cols-2 gap-4">
-            <input
-              type="datetime-local"
-              name="datetime"
-              id="datetime"
-              min={min_date.substring(0, 16)}
-              onBlur={(e) => {
-                let dateAttempt = new Date(e.target.value)
-                let checkDate = new Date(min_date.substring(0, 16)).getTime()
-                if (dateAttempt.getTime() < checkDate) {
-                  alert(e.target.value)
-                }
-                console.log(e.target.value)
-                onChange({
-                  ...state,
-                  incptnDtTm: dateAttempt.toISOString(),
-                })
-              }}
-              className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
-            />
-            <input
-              type="datetime-local"
-              name="datetime"
-              id="datetime"
-              min={min_date.substring(0, 16)}
-              onBlur={(e) => {
-                let dateAttempt = new Date(e.target.value)
-                let checkDate = new Date(min_date.substring(0, 16)).getTime()
-                if (dateAttempt.getTime() < checkDate) {
-                  alert(e.target.value)
-                }
-                console.log("LOOK: " + dateAttempt.toString())
-                onChange({
-                  ...state,
-                  xprtnDtTm: dateAttempt.toISOString(),
-                })
-              }}
-              //   onChange={(e) => this.}
-              className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
-            />
           </div>
         </div>
       </div>

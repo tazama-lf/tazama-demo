@@ -1,9 +1,9 @@
 import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
-import React, { useState, useEffect } from "react"
-import { convertToDate, displayDate, generateString, set_event_type } from "utils/helpers"
+import React, { useEffect, useState } from "react"
+import { displayDate, generateString, handleAdjustTime, sentanceCase } from "utils/helpers"
 import { Conditions } from "store/processors/processor.interface"
 import { Seperator } from "components/Inputs/Seperator"
-import { newDate } from "react-datepicker/dist/date_utils"
+import ExpireModel from "components/Inputs/ExpireModal"
 
 interface Props {
   entity_type: string // debtor or creditor
@@ -12,60 +12,64 @@ interface Props {
   conditions_data: Conditions[]
 }
 
-const ConditionsList = ({ entity_type, conditions_data, handleClose, handleCreate }: Props) => {
-  const conditions = conditions_data.map((con) => {
-    let colour: any = "n"
-    // let chDt = convertToDate(con.xprtnDtTm)
+const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) => {
+  const [showExpire, setShowExpire] = useState<boolean>(false)
+  const [selectedCondition, setSelectedCondition] = useState<Conditions | undefined>(undefined)
 
-    // console.log("SBT: ", chDt)
+  useEffect(() => {
+    console.log("Condition: " + selectedCondition)
+  }),
+    [selectedCondition]
+
+  const handleExpire = (con: Conditions) => {
+    con.xprtnDtTm = handleAdjustTime(new Date().toISOString())
+  }
+
+  const conditions = conditions_data.map((con: Conditions) => {
+    let colour: any = "n"
+
     if (con.xprtnDtTm !== null) {
+      let now1 = handleAdjustTime(new Date().toISOString())
+      let now = new Date(now1).getTime()
+
       let chDt = new Date(con.xprtnDtTm).getTime()
-      if (con.condTp === "non-overridable block") {
-        let now = new Date().getTime()
-        if (chDt >= now) {
+      if (con.condTp === "non-overridable-block") {
+        if (chDt > now) {
           colour = "r"
         } else {
           colour = "n"
         }
-      } else if (con.condTp === "overridable block") {
-        let now = new Date().getTime()
-        if (chDt! >= now) {
+      } else if (con.condTp === "overridable-block") {
+        if (chDt! > now) {
           colour = "r"
         } else {
           colour = "n"
         }
       } else if (con.condTp === "override") {
-        let now = new Date().getTime()
-        if (chDt! >= now) {
+        if (chDt > now) {
           colour = "g"
         } else {
           colour = "n"
         }
       }
     } else if (con.xprtnDtTm === null) {
-      //   let tstDate = convertToDate(`${con.incptnDtTm.split("T")[0]} ${con.incptnDtTm.split("T")[1]}`)
       let tstDate = new Date(con.incptnDtTm).getTime()
-
+      let now = new Date(handleAdjustTime(new Date().toISOString())).getTime()
       if (tstDate !== undefined) {
         if (con.condTp === "override") {
-          let now = new Date().getTime()
-          console.log("Undefined Date: " + tstDate + " " + now)
           if (tstDate < now) {
             colour = "g"
           } else {
             colour = "n"
           }
-        } else if (con.condTp === "non-overridable block") {
-          let now = new Date().getTime()
+        } else if (con.condTp === "non-overridable-block") {
           if (tstDate < now) {
             colour = "r"
           } else {
             colour = "n"
           }
-        }
-        if (con.condTp === "overridable block") {
-          let now = new Date().getTime()
-          if (tstDate <= now) {
+        } else if (con.condTp === "overridable-block") {
+          if (tstDate < now) {
             colour = "r"
           } else {
             colour = "n"
@@ -81,43 +85,62 @@ const ConditionsList = ({ entity_type, conditions_data, handleClose, handleCreat
       >
         <div className="flex w-1/4 w-[160px] content-center items-center gap-1 pl-1">
           <ConditionIndicator colour={colour} />
-          <p>{con.condTp}</p>
+          <p>{sentanceCase(con.condTp)}</p>
         </div>
         <Seperator />
         <p className="flex w-[285px] items-center  pl-1">{con.condRsn}</p>
         <Seperator />
         {/* <div className="my-1 flex max-w-[5px] border-r-2 border-neutral-400"></div> */}
-        <p className="flex w-[180px] items-center  pl-1">{set_event_type(con.evtTp)}</p>
+        <p className="m-1 flex max-h-[35px] w-[200px] items-center text-[12px]">
+          {con.evtTp.map((item, index) => {
+            if (index !== con.evtTp.length - 1 && index !== 3) {
+              return `${item}, `
+            }
+            return item
+          })}
+        </p>
         <Seperator />
-        <p className="flex w-[120px] items-center pl-1">{con.prsptv}</p>
+        <p className="flex w-[120px] items-center pl-1">{sentanceCase(con.prsptv)}</p>
         <Seperator />
-        <p className="flex w-[150px] items-center pl-1">{displayDate(con.incptnDtTm)}</p>
+        <p className="flex w-[155px] items-center pl-1">{displayDate(con.incptnDtTm)}</p>
         <Seperator />
         {con.xprtnDtTm !== null ? (
-          <p className="flex w-[150px] items-center  pl-1">{displayDate(con.xprtnDtTm)}</p>
+          <p className="flex w-[155px] items-center  pl-1">{displayDate(con.xprtnDtTm)}</p>
         ) : (
-          <div className="z-99 mt-[7px]">
+          <div
+            className="z-99 mt-[7px]"
+            onClick={() => {
+              setSelectedCondition(con)
+              setShowExpire(true)
+            }}
+          >
             <input
               type="datetime-local"
               name="datetime"
               id="datetime"
               min={new Date().getTime().toString().substring(0, 16)}
               className="max-w-[150px] rounded-md p-1"
+              onFocus={() => setShowExpire(true)}
               onClick={() => {
-                con.xprtnDtTm = new Date().toISOString()
+                setSelectedCondition(con)
+                setShowExpire(true)
               }}
             />
           </div>
         )}
 
         <Seperator />
-        <div className="ml-3 flex w-[40px] content-center items-center">
+        <div className="ml-1 flex w-[40px] content-center items-center">
           {con.xprtnDtTm === null ? (
             <button
               className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
               onClick={() => {
-                con.xprtnDtTm = new Date().toISOString()
+                setSelectedCondition(con)
+                setShowExpire(true)
               }}
+              //   onClick={() => {
+              //     con.xprtnDtTm = handleAdjustTime(new Date().toISOString())
+              //   }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -134,12 +157,17 @@ const ConditionsList = ({ entity_type, conditions_data, handleClose, handleCreat
                 />
               </svg>
             </button>
-          ) : con.xprtnDtTm !== null && new Date(con.xprtnDtTm).getTime() > new Date().getTime() ? (
+          ) : con.xprtnDtTm !== null &&
+            new Date(con.xprtnDtTm).getTime() > new Date(handleAdjustTime(new Date().toISOString())).getTime() ? (
             <button
               className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
               onClick={() => {
-                con.xprtnDtTm = new Date().toISOString()
+                setSelectedCondition(con)
+                setShowExpire(true)
               }}
+              //   onClick={() => {
+              //     con.xprtnDtTm = handleAdjustTime(new Date().toISOString())
+              //   }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -163,11 +191,6 @@ const ConditionsList = ({ entity_type, conditions_data, handleClose, handleCreat
       </div>
     )
   })
-
-  const handleCancel = () => {
-    // Need to bring some state in to handle this
-    console.log("Cancelled")
-  }
 
   return (
     <div className="relative h-[790px] w-[1200px] overflow-hidden  rounded-lg bg-gray-200 p-5">
@@ -196,8 +219,8 @@ const ConditionsList = ({ entity_type, conditions_data, handleClose, handleCreat
             <tr>
               <th className="w-[147.5px] py-1 pl-3">Type</th>
               <th className="w-[262.5px] py-1 pl-3">Reason</th>
-              <th className="w-[170px] py-1 pl-3">Events</th>
-              <th className="w-[112.5px] py-1 pl-3">Perspective</th>
+              <th className="w-[200px] py-1 pl-3">Events</th>
+              <th className="w-[117.5px] py-1 pl-3">Perspective</th>
               <th className="w-[142.5px] py-1 pl-3">Start</th>
               <th className="w-[142.5px] py-1 pl-3">End</th>
               <th className="w-[56px] py-1 pl-3"> </th>
@@ -222,6 +245,17 @@ const ConditionsList = ({ entity_type, conditions_data, handleClose, handleCreat
           Create Condition
         </button>
       </div>
+      {showExpire && (
+        <ExpireModel
+          show={showExpire}
+          setShow={() => setShowExpire(!showExpire)}
+          handleExpire={() => {
+            if (selectedCondition !== undefined) {
+              handleExpire(selectedCondition)
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

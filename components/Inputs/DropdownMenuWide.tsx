@@ -34,7 +34,7 @@ const MenuItem = ({ idx, option, selectedItem, toggle }: MenuItemProps) => {
         className="col-span-7 cursor-pointer py-[1px] hover:bg-zinc-400 hover:text-zinc-500"
         onClick={() => toggle(option.id)}
       >
-        {sentanceCase(option.option)}
+        {option.option}
       </p>
     </div>
   )
@@ -66,7 +66,7 @@ const DropdownListWide = ({ state, options, onChange }: Props) => {
           className="flex w-full items-center justify-between gap-2 rounded-md bg-gray-100 p-2 shadow-inner drop-shadow-md"
           onClick={() => toggle()}
         >
-          {sentanceCase(selectedItem!.option)}
+          {selectedItem!.option}
           <div className={`${isOpen && "rotate-180"}`}>
             <ChevronDownIcon color="#000" />
           </div>

@@ -9,7 +9,7 @@ import { generateString } from "utils/helpers"
 import ConditionsList from "./ConditionsList"
 import ConditionsCreate from "./ConditionsCreate"
 import { Conditions, NewCondition } from "store/processors/processor.interface"
-import CancelModel from "components/Inputs/CancelModal"
+import CancelModel from "components/Inputs/ExpireModal"
 import { StarIcon } from "@radix-ui/react-icons"
 import { mock_con } from "store/processors/dummy_data"
 import { strict } from "assert"
@@ -93,23 +93,18 @@ const DebtorModal = ({ ...props }: Props) => {
   }, [newCondition])
 
   useEffect(() => {
-    console.log(entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex)
-    console.log()
     ;(async function () {
       if (activeSection === "Accounts") {
-        console.log(entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].Id)
-        // await getData(mock_con)
         await processCtx.getConditions({
           entityType: "debtor",
           type: "account",
           accountId: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].Id,
         })
-        newAccountConditionState.acct!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id
+        newAccountConditionState.acct!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].Id
         newAccountConditionState.acct!.agt.finInstnId.clrSysMmbId.mmbId =
           entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAgt.FinInstnId.ClrSysMmbId.MmbId
         setNewCondition(newAccountConditionState)
       } else if (activeSection === "Entity") {
-        console.log(entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id)
         await processCtx.getConditions({
           entityType: "debtor",
           type: "entity",
@@ -119,7 +114,6 @@ const DebtorModal = ({ ...props }: Props) => {
         newEntityConditionState.ntty!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id
         setNewCondition(newEntityConditionState)
       }
-      console.log(processCtx.conditionsList)
     })()
   }, [
     activeSection,
@@ -134,7 +128,6 @@ const DebtorModal = ({ ...props }: Props) => {
     } else {
       setCreateConditions(false)
     }
-    console.log(processCtx.conditionsList)
   }, [processCtx.conditionsList])
 
   function handleClose() {

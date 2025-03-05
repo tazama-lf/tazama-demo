@@ -15,18 +15,15 @@ interface MultiSelectProps {
   options: Item[]
   state: NewCondition
   onChange: (data: NewCondition) => void
-  // selected: string[]
-  // onChange: (selected: string[]) => void
-  // placeholder?: string
+  errors: string[]
 }
 
-const MultiSelect = ({ state, options, onChange }: MultiSelectProps) => {
+const MultiSelect = ({ errors, state, options, onChange }: MultiSelectProps) => {
   const processCtx = useContext(ProcessorContext)
 
   const handleSelect = (option: Item) => {
     let tmpSelectedItems: string[] = processCtx.entityEventType
     if (processCtx.entityAllChecked === true) {
-      console.log("HIT 3")
       processCtx.updateEntityAllChecked(false)
       tmpSelectedItems = []
       onChange({
@@ -53,9 +50,7 @@ const MultiSelect = ({ state, options, onChange }: MultiSelectProps) => {
   }
 
   const handleCheck = () => {
-    console.log(processCtx.entityAllChecked)
     if (processCtx.entityAllChecked === false) {
-      console.log("HIT 1")
       processCtx.updateEntityAllChecked(true)
       processCtx.updateEntityEventType(["all"])
       onChange({
@@ -63,7 +58,6 @@ const MultiSelect = ({ state, options, onChange }: MultiSelectProps) => {
         evtTp: ["all"],
       })
     } else {
-      console.log("HIT 2")
       processCtx.updateEntityAllChecked(false)
       processCtx.updateEntityEventType([])
       onChange({
@@ -74,8 +68,11 @@ const MultiSelect = ({ state, options, onChange }: MultiSelectProps) => {
   }
 
   return (
-    <div className="relative pt-5">
-      <p className="relative top-5">Event Type:</p>
+    <div className="relative pt-0">
+      <p className="mt-5 flex items-center">
+        Event Type:
+        {errors.includes("evtTp") && <p className="pl-5 text-sm text-red-500">* Please select a Event Type</p>}
+      </p>
       <div className="relative grid max-w-[350px] grid-cols-3">
         <div className="relative top-3 col-span-1 flex items-start">
           <div className="mt-5 flex cursor-pointer gap-2" onClick={() => handleCheck()}>
@@ -127,7 +124,6 @@ const MultiSelect = ({ state, options, onChange }: MultiSelectProps) => {
                     >
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
-                    // <CheckIcon key={option.id} height={25} width={25} color="#00000090" />
                   )}
                 </div>
 

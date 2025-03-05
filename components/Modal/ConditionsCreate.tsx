@@ -5,7 +5,9 @@ import DropdownListWide from "components/Inputs/DropdownMenuWide"
 import MultiSelect from "../Inputs/MultiSelectMenu"
 import ProcessorContext from "store/processors/processor.context"
 import PerspectiveCheckBoxes from "components/Inputs/PerspectiveCheckBoxes"
-import CancelModel from "components/Inputs/CancelModal"
+import CancelModel from "components/Inputs/ExpireModal"
+import { ValidateCondition } from "utils/helpers"
+import DateSelector from "components/Inputs/DateSelector"
 
 interface Props {
   handleClose: () => void
@@ -17,6 +19,8 @@ interface Props {
 
 const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisible }: Props) => {
   const processCtx = useContext(ProcessorContext)
+  const [errors, setErrors] = useState<string[]>([])
+  const [showCancel, setShowCancel] = useState<boolean>(false)
 
   const handleCancel = () => {
     // Need to bring some state in to handle this
@@ -24,15 +28,26 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
     processCtx.updateEntityAllChecked(false)
     setVisible()
   }
-  // useEffect(() => {
-  //   console.log("New condition: ", newCondition)
-  // }, [newCondition])
-  const handleSave = () => {
+
+  const handleSave = async () => {
     // Need to bring some state in to handle this
-    console.log("Saved")
-    processCtx.conditionsList.push(newCondition)
-    setVisible()
+    let errorList: string[] = await ValidateCondition(newCondition)
+
+    if (errorList.length > 0) {
+      setErrors(errorList)
+    } else {
+      processCtx.conditionsList.push(newCondition)
+      setVisible()
+    }
   }
+
+  useEffect(() => {
+    console.log("Errors: ", errors)
+  }, [errors])
+
+  useEffect(() => {
+    setErrors([])
+  }, [newCondition])
 
   return (
     <div className="relative flex h-[790px] max-w-[1200px] flex-col items-center rounded-lg bg-gray-200 p-5">
@@ -58,9 +73,16 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
         <p className="ml-1 flex grow p-1 pt-1 text-xl font-medium">New Condition</p>
       </div>
 
-      <div className="mt-5 flex h-[560px] flex-col rounded-lg">
-        <p>Condition Type:</p>
+      <div className="flex h-[560px] flex-col rounded-lg">
+        <p className="mb-5 mt-5 flex items-center">
+          Condition Type:
+          {errors.includes("condTp") && (
+            <div className="ml-5 text-sm text-red-500">* Please select a Condition Type</div>
+          )}
+        </p>
+
         <DropdownList
+          errors={errors}
           options={[
             { id: 0, option: "Please select condition type...", visible: false },
             { id: 1, option: "non-overridable-block", visible: true },
@@ -70,7 +92,9 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
           state={newCondition}
           onChange={(data: NewCondition) => setNewCondition(data)}
         />
+
         <MultiSelect
+          errors={errors}
           options={[
             { id: 1, option: "pacs.008.001.10", selected: false },
             { id: 2, option: "pacs.002.001.12", selected: false },
@@ -78,13 +102,26 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
             { id: 4, option: "pain.013.001.09", selected: false },
           ]}
           state={newCondition}
-          onChange={(data: NewCondition) => setNewCondition(data)}
+          onChange={(data: NewCondition) => {
+            setErrors([])
+            setNewCondition(data)
+          }}
         />
 
-        <PerspectiveCheckBoxes state={newCondition} onChange={(data: NewCondition) => setNewCondition(data)} />
+        <PerspectiveCheckBoxes
+          state={newCondition}
+          errors={errors}
+          onChange={(data: NewCondition) => {
+            setNewCondition(data)
+          }}
+        />
+
+        <DateSelector state={newCondition} errors={errors} onChange={(data: NewCondition) => setNewCondition(data)} />
+
         <div className="relative mt-5 flex w-[700px] flex-col">
-          <label className="w-full cursor-pointer" htmlFor="all-check">
+          <label className="flex w-full cursor-pointer items-center pb-5" htmlFor="all-check">
             Reason:
+            {errors.includes("condRsn") && <div className="pl-5 text-sm text-red-500">* Please select a Reason</div>}
           </label>
 
           <DropdownListWide
@@ -113,25 +150,22 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
           />
         </div>
       </div>
-      <div className="align-center flex w-full grow justify-end gap-5 p-5">
+      <div className="align-center mt-5 flex w-full grow justify-end gap-5 p-5">
         <button
           type="button"
-          className="flex w-[150px] items-center justify-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
+          className="flex max-h-[45px] w-[150px] items-center justify-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
           onClick={handleSave}
         >
           Save
         </button>
         <button
           type="button"
-          className="flex w-[150px] items-center justify-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
+          className="flex max-h-[45px] w-[150px] items-center justify-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
           onClick={handleCancel}
         >
           Cancel
         </button>
       </div>
-      {/* {showCancel && (
-        <CancelModel show={showCancel} setShow={() => setShowCancel(!showCancel)} handleCancel={handleCancel} />
-      )} */}
     </div>
   )
 }

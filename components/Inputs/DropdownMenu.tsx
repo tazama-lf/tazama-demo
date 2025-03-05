@@ -14,6 +14,7 @@ interface Props {
   options: Item[]
   state: NewCondition
   onChange: (data: NewCondition) => void
+  errors: string[]
 }
 
 const DropdownList = ({ state, options, onChange }: Props) => {
@@ -44,7 +45,7 @@ const DropdownList = ({ state, options, onChange }: Props) => {
             toggle()
           }}
         >
-          {sentanceCase(selectedItem!.option)}
+          {selectedItem!.option}
           <div className={`${isOpen && "rotate-180"}`}>
             <ChevronDownIcon color="#000" />
           </div>

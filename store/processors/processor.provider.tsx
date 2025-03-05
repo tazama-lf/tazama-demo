@@ -403,12 +403,10 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const updateEntityEventType = async (data: string[]) => {
-    console.log("DATA: " + data)
     dispatch({ type: ACTIONS.UPDATE_ENTITY_EVENT_TYPE, payload: data })
   }
 
   const updateEntityAllChecked = async (value: boolean) => {
-    console.log("CHECKED: " + value)
     dispatch({ type: ACTIONS.UPDATE_ENTITY_ALL_CHECKED, payload: value })
   }
 

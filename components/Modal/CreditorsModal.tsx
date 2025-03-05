@@ -85,12 +85,8 @@ const CreditorModal = ({ ...props }: Props) => {
   }, [newCondition])
 
   useEffect(() => {
-    console.log(entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex)
-    console.log()
     ;(async function () {
       if (activeSection === "Accounts") {
-        console.log(entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAcct.Id.Othr[0].Id)
-
         await processCtx.getConditions({
           entityType: "creditor",
           type: "account",
@@ -101,7 +97,6 @@ const CreditorModal = ({ ...props }: Props) => {
           entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAgt.FinInstnId.ClrSysMmbId.MmbId
         setNewCondition(newAccountConditionState)
       } else if (activeSection === "Entity") {
-        console.log(entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].Id)
         await processCtx.getConditions({
           entityType: "creditor",
           type: "entity",
@@ -111,7 +106,6 @@ const CreditorModal = ({ ...props }: Props) => {
         newEntityConditionState.ntty!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].Id
         setNewCondition(newEntityConditionState)
       }
-      console.log(processCtx.conditionsList)
     })()
   }, [
     activeSection,
@@ -126,7 +120,6 @@ const CreditorModal = ({ ...props }: Props) => {
     } else {
       setCreateConditions(false)
     }
-    console.log(processCtx.conditionsList)
   }, [processCtx.conditionsList])
 
   function handleClose() {
