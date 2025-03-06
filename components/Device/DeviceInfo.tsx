@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react"
 import EntityContext from "store/entities/entity.context"
 import TransactionModal from "./TransactionModal"
 import EditModal from "./EditModal"
+import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
 
 interface DeviceProps {
   selectedEntity: number
@@ -115,6 +116,9 @@ export function DeviceInfo(props: DeviceProps) {
                 />
               </svg>
               <span className="ml-2 text-white">{entity?.Entity?.Dbtr.Nm || "Name"}</span>
+              <div className="mr-2 flex grow justify-end">
+                <StatusIndicator colour="n" />
+              </div>
             </div>
 
             <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
@@ -122,7 +126,10 @@ export function DeviceInfo(props: DeviceProps) {
               <p>Date of birth: {entity?.Entity?.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt}</p>
             </div>
 
-            <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
+            <div className="relative m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
+              <div className="absolute right-0 top-0 mr-0 flex">
+                <StatusIndicator colour="n" />
+              </div>
               <p className={`font-bold ${fillColour}`}>{entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Nm} </p>
               <p className="truncate">ID: {entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Id?.Othr[0]?.Id}</p>
             </div>
@@ -196,13 +203,19 @@ export function DeviceInfo(props: DeviceProps) {
                 />
               </svg>
               <span className="ml-2 text-white">{creditorEntity?.CreditorEntity.Cdtr.Nm || "Name"}</span>
+              <div className="mr-2 flex grow justify-end">
+                <StatusIndicator colour="n" />
+              </div>
             </div>
 
             <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
               <p className="truncate">ID: {creditorEntity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id} </p>
               <p>Date of birth: {creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt}</p>
             </div>
-            <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
+            <div className="relative m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
+              <div className="absolute right-0 top-0 mr-0 flex">
+                <StatusIndicator colour="n" />
+              </div>
               <p className={`font-bold ${fillColour}`}>
                 {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm}
               </p>

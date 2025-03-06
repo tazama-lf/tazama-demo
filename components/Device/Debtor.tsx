@@ -127,7 +127,8 @@ export function DebtorDevice(props: DebtorProps) {
           props.setLights(newData)
         }
         setTimeout(async () => {
-          await procCtx.ruleLightsGreen()
+          // await procCtx.ruleLightsNeutral()
+          // await procCtx.ruleLightsGreen()
           await postPacs002()
         }, 800)
       }

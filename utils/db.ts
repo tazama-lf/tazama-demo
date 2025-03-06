@@ -113,7 +113,7 @@ export const getTypologyDescriptions = async (config: DBConfig) => {
 export const getTADPROCResult = async (transactionID: string, config: DBConfig) => {
   const db = getTADPROCConnection(config)
   await getCollection("transactions", db)
-
+  console.log("Fetching Results...")
   let result = []
   try {
     const results = await db.query(aql`FOR c IN transactions FILTER c.transactionID == ${transactionID} RETURN c`)
@@ -139,6 +139,7 @@ export const getTADPROCResult = async (transactionID: string, config: DBConfig) 
       // LOOP HERE
       if (tr.length > 0) {
         tr.forEach((typoRes: any) => {
+          console.log(typoRes.cfg + " " + typoRes.result)
           // new result object
           let typoResult: TADPROC_RESULT = {
             cfg: typoRes.cfg,
@@ -169,6 +170,7 @@ export const getTADPROCResult = async (transactionID: string, config: DBConfig) 
               response.color = "r"
             }
           }
+          console.log(typoResult)
           response.results.push(typoResult)
         })
       }

@@ -1,5 +1,10 @@
 import { ACTIONS } from "./processor.actions"
-import { defaultEDLights, defaultTadProcLights } from "./processor.initialState"
+import {
+  defaultEDLights,
+  defaultTadProcLights,
+  ruleInitialState,
+  typologiesInitialState,
+} from "./processor.initialState"
 
 const ProcessorReducer = (state: any, action: any) => {
   switch (action.type) {
@@ -155,6 +160,11 @@ const ProcessorReducer = (state: any, action: any) => {
         ...state,
         // tadProcResults: defaultTadProcLights,
       }
+    case ACTIONS.CLEAR_RESULTS:
+      return {
+        ...state,
+        tadProcResults: defaultTadProcLights,
+      }
     case ACTIONS.SET_TADPROC_RESULTS:
       return {
         ...state,
@@ -166,6 +176,12 @@ const ProcessorReducer = (state: any, action: any) => {
       return {
         ...state,
         rules: state.rules.map((rule: any) => ({ ...rule, color: "g" })),
+      }
+
+    case ACTIONS.TURN_RULE_LIGHTS_NEUTRAL:
+      return {
+        ...state,
+        rules: state.rules.map((rule: any) => ({ ...rule, color: "n" })),
       }
 
     case ACTIONS.UPDATE_ENTITY_EVENT_TYPE:

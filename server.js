@@ -7,7 +7,7 @@ const { Server } = require("socket.io")
 const { createServer } = require("http")
 const { parse } = require("url")
 
-const app = next({ dev: process.env.NODE_ENV !== "production", customServer: true, quiet: true, turbo: true })
+const app = next({ dev: process.env.NODE_ENV !== "production", customServer: true, quiet: false, turbo: true })
 
 let natsUrl = { url: null }
 

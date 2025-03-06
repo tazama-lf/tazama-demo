@@ -156,6 +156,7 @@ const ProcessorProvider = ({ children }: Props) => {
       let results: TADPROC | undefined = undefined
       while (results === undefined) {
         results = await getTADPROCResult(msg, config)
+        console.log("RESULTS: ", results)
       }
       if (results !== undefined) {
         dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: results })
@@ -398,8 +399,28 @@ const ProcessorProvider = ({ children }: Props) => {
     dispatch({ type: ACTIONS.TURN_RULE_LIGHTS_GREEN })
   }
 
+  const ruleLightsNeutral = async () => {
+    dispatch({ type: ACTIONS.TURN_RULE_LIGHTS_NEUTRAL })
+  }
+
   const resetAllLights = async () => {
     dispatch({ type: ACTIONS.RESET_ALL_LIGHTS })
+  }
+
+  const clearResults = async () => {
+    dispatch({ type: ACTIONS.CLEAR_RESULTS })
+    const updatedTypos: any[] = [...state.typologies]
+    const updatedRules: any[] = [...state.rules]
+
+    updatedTypos.map((typo: Typology) => {
+      typo.result = []
+    })
+    updatedRules.map((rule: Rule) => {
+      rule.result = []
+    })
+    dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: updatedTypos })
+    dispatch({ type: ACTIONS.UPDATE_RULES_SUCCESS, payload: updatedRules })
+    resetAllLights()
   }
 
   const updateEntityEventType = async (data: string[]) => {
@@ -467,7 +488,9 @@ const ProcessorProvider = ({ children }: Props) => {
         updateTadpLights,
         updateEDLights,
         ruleLightsGreen,
+        ruleLightsNeutral,
         resetAllLights,
+        clearResults,
         getUIConfig,
         handleTadProc,
         getConditions,

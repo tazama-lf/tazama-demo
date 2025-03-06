@@ -17,10 +17,11 @@ import { DragDropContext, Draggable, Droppable } from "../node_modules/@hello-pa
 import RuleResult from "components/RuleResults/RuleResults"
 import TypeResult from "components/TypologyResults/TypologyResults"
 import { iconColour } from "utils/helpers"
+import { Typology } from "store/processors/processor.interface"
 
 const Web = () => {
-  const entityCtx: any = useContext(EntityContext)
-  const procCtx: any = useContext(ProcessorContext)
+  const entityCtx = useContext(EntityContext)
+  const procCtx = useContext(ProcessorContext)
 
   const [hoveredRule, setHoveredRule] = useState<any>(null)
   const [hoverRules, setHoverRules] = useState<any[]>([])
@@ -59,7 +60,7 @@ const Web = () => {
     setSelectedTypes([])
   }
 
-  const handleTypeMouseEnter = (type: any) => {
+  const handleTypeMouseEnter = (type: Typology) => {
     setHoveredRule(null) // fallback if stats is stuck
     setHoveredType(type)
     setHoverRules([...type.linkedRules])
@@ -71,7 +72,7 @@ const Web = () => {
     setHoverRules([])
   }
 
-  const handleTypeClick = (type: any) => {
+  const handleTypeClick = (type: Typology) => {
     setHoveredType(null) // fallback if stats is stuck
     setSelectedType(type)
     setSelectedRules([...type.linkedRules])
@@ -162,7 +163,11 @@ const Web = () => {
       <div className="z-99 absolute right-[100px] top-5 cursor-pointer">
         <button
           className="content-right-center ml-auto rounded-md bg-gradient-to-b from-gray-100 to-gray-200 p-2 shadow-lg"
-          onClick={() => entityCtx.clearUIData()}
+          onClick={() => {
+            entityCtx.clearUIData()
+            procCtx.resetAllLights()
+            procCtx.clearResults()
+          }}
         >
           Clear All
         </button>
