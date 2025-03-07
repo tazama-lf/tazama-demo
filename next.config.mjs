@@ -13,6 +13,9 @@ const config = withPlugins([[withBundleAnalyzer({ enabled: env.ANALYZE })]], {
     },
   },
   experimental: { instrumentationHook: true },
+  sassOptions: {
+    implementation: "sass-embedded",
+  },
   rewrites() {
     return [
       { source: "/healthz", destination: "/api/health" },

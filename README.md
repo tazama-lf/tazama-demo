@@ -81,7 +81,7 @@ yarn install --frozen-lockfile
 4. Create a new .env file and copy the contents of the `env_sample` file to the newly created .env
 
 ```text
-NODE_ENV=dev
+NODE_ENV=development
 NEXT_PUBLIC_URL="http://localhost:3001"
 PORT="3001"
 NEXT_PUBLIC_TMS_SERVER_URL="http://localhost:5000"
@@ -136,7 +136,7 @@ demo:
   demo.env file:
 # SPDX-License-Identifier: Apache-2.0
 
-NODE_ENV=dev
+NODE_ENV=development
 NEXT_PUBLIC_URL="http://{server_ip_address}:3001"
 PORT="3001"
 NEXT_PUBLIC_TMS_SERVER_URL="http://{server_ip_address}:5000"

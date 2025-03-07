@@ -18,3 +18,5 @@ export const defaultEDLights: EDLightsManager = {
     error: "",
   },
 }
+
+export const defaultEntityEventType: string[] = []

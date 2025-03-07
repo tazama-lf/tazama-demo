@@ -39,6 +39,28 @@ const ProcessorReducer = (state: any, action: any) => {
         typologies: [],
       }
 
+    case ACTIONS.GET_CONDITIONS_LOADING:
+      return {
+        ...state,
+        conditionsList: [],
+        conditionsLoading: true,
+        conditionsError: "",
+      }
+    case ACTIONS.GET_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsList: action.payload,
+        conditionsLoading: false,
+        conditionsError: "",
+      }
+    case ACTIONS.GET_CONDITIONS_FAIL:
+      return {
+        ...state,
+        conditionsList: [],
+        conditionsLoading: false,
+        conditionsError: action.payload,
+      }
+
     case ACTIONS.UPDATE_RULES_LOADING:
       return {
         ...state,
@@ -144,6 +166,18 @@ const ProcessorReducer = (state: any, action: any) => {
       return {
         ...state,
         rules: state.rules.map((rule: any) => ({ ...rule, color: "g" })),
+      }
+
+    case ACTIONS.UPDATE_ENTITY_EVENT_TYPE:
+      return {
+        ...state,
+        entityEventType: action.payload,
+      }
+
+    case ACTIONS.UPDATE_ENTITY_ALL_CHECKED:
+      return {
+        ...state,
+        entityAllChecked: action.payload,
       }
 
     case ACTIONS.RESET_ALL_LIGHTS:

@@ -70,12 +70,13 @@ interface Context {
   buildPacs002: () => void
   setRuleLights: (lights: Array<any>) => void
   reset: () => void
-  resetEntity: ( entityIndex: number) => void,
-  resetCreditorEntity: ( entityIndex: number) => void,
-  cloneEntity: (entity: any, account: any) => void,
-  cloneCreditorEntity: (creditorEntity: any, account: any) => void,
-  setUiConfig: (UiConfig: UIConfiguration) => void,
-  updateStatus: (x: any) => void,
+  resetEntity: (entityIndex: number) => void
+  resetCreditorEntity: (entityIndex: number) => void
+  cloneEntity: (entity: any, account: any) => void
+  cloneCreditorEntity: (creditorEntity: any, account: any) => void
+  setUiConfig: (UiConfig: UIConfiguration) => void
+  updateStatus: (x: any) => void
+  clearUIData: () => void
 }
 
 const EntityContext = createContext<Context>({
@@ -135,6 +136,7 @@ const EntityContext = createContext<Context>({
   cloneCreditorEntity: () => {},
   setUiConfig: () => {},
   updateStatus: () => {},
+  clearUIData: () => {},
 })
 
 export default EntityContext

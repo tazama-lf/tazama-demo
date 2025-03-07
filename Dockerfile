@@ -36,7 +36,7 @@ COPY --from=builder /app/public ./public
 CMD npm start
 
 FROM base AS dev
-ENV NODE_ENV=dev
+ENV NODE_ENV=development
 ENV PORT="3001"
 ENV NEXT_PUBLIC_URL="http://localhost:3001"
 ENV NEXT_PUBLIC_TMS_SERVER_URL="http://localhost:5000"
