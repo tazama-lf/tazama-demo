@@ -13,6 +13,39 @@ interface RuleProps {
 }
 
 const RuleResult = ({ ...props }: RuleProps) => {
+  const EFRuPComponent = () => {
+    return (
+      <div className="align-center mb-2 grid w-full grid-cols-4 justify-center gap-4 text-center">
+        <p className="align-center col-span-4 flex size-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
+          {props.hoveredRule ? props.hoveredRule.result : props.selectedRule && props.selectedRule.result}
+        </p>
+      </div>
+    )
+  }
+
+  const RuleComponent = () => {
+    return (
+      <div className="align-center mb-2 grid w-full grid-cols-4 justify-center gap-4 text-center">
+        <div className="flex flex-col gap-1">
+          <p className="align-center col-span-1 flex h-8 w-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
+            {props.hoveredRule ? props.hoveredRule.result : props.selectedRule && props.selectedRule.result}
+          </p>
+          <p className="align-center col-span-1 flex h-8 w-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
+            {props.hoveredRule ? props.hoveredRule.wght : props.selectedRule && props.selectedRule.wght}
+          </p>
+        </div>
+        <p className="align-center col-span-3 flex size-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
+          {props.hoveredRule
+            ? props.hoveredRule.result
+              ? getRuleDescriptions(props.hoveredRule.result, props.hoveredRule.id)
+              : ""
+            : props.selectedRule && props.selectedRule?.result
+            ? getRuleDescriptions(props.selectedRule.result, props.selectedRule.id)
+            : ""}
+        </p>
+      </div>
+    )
+  }
   if (props.hoveredRule === null && props.selectedRule === null) return null
 
   return (
@@ -34,25 +67,15 @@ const RuleResult = ({ ...props }: RuleProps) => {
           </p>
         </div>
         <hr className="mb-2 border-black" />
-        <div className="align-center mb-2 grid w-full grid-cols-4 justify-center gap-4 text-center">
-          <div className="flex flex-col gap-1">
-            <p className="align-center col-span-1 flex h-8 w-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
-              {props.hoveredRule ? props.hoveredRule.result : props.selectedRule && props.selectedRule.result}
-            </p>
-            <p className="align-center col-span-1 flex h-8 w-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
-              {props.hoveredRule ? props.hoveredRule.wght : props.selectedRule && props.selectedRule.wght}
-            </p>
-          </div>
-          <p className="align-center col-span-3 flex size-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
-            {props.hoveredRule
-              ? props.hoveredRule.result
-                ? getRuleDescriptions(props.hoveredRule.result, props.hoveredRule.id)
-                : ""
-              : props.selectedRule && props.selectedRule?.result
-              ? getRuleDescriptions(props.selectedRule.result, props.selectedRule.id)
-              : ""}
-          </p>
-        </div>
+        {props.hoveredRule ? (
+          props.hoveredRule.rule === "EFRuP@1.0.0" ? (
+            <EFRuPComponent />
+          ) : (
+            <RuleComponent />
+          )
+        ) : (
+          props.selectedRule && (props.selectedRule.rule === "EFRuP@1.0.0" ? <EFRuPComponent /> : <RuleComponent />)
+        )}
       </div>
     </div>
   )

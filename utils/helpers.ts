@@ -3,7 +3,7 @@ import { error } from "./../node_modules/@storybook/builder-webpack5/node_module
 //   return text.toLowerCase().replace(/(^|\s)\w/g, (m, p) => m.toUpperCase())
 // }
 
-import { Conditions } from "store/processors/processor.interface"
+import { Conditions, NewCondition } from "store/processors/processor.interface"
 
 export const sentanceCase = (text: string) => {
   let upper = true
@@ -151,7 +151,7 @@ export const convertCheckDate = (inDate: string) => {
   return `${date}T${time}.000Z`
 }
 
-export const ValidateCondition = async (condition: Conditions) => {
+export const ValidateCondition = async (condition: NewCondition) => {
   const dt = new Date().toUTCString()
   let errors: string[] = []
 

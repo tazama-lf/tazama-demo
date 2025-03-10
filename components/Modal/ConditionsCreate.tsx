@@ -36,7 +36,8 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
     if (errorList.length > 0) {
       setErrors(errorList)
     } else {
-      processCtx.conditionsList.push(newCondition)
+      // processCtx.conditionsList.push(newCondition)
+      await processCtx.createCondition(newCondition)
       setVisible()
     }
   }

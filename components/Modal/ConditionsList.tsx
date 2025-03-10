@@ -1,7 +1,7 @@
 import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
 import React, { useEffect, useState } from "react"
 import { displayDate, generateString, handleAdjustTime, sentanceCase } from "utils/helpers"
-import { Conditions } from "store/processors/processor.interface"
+import { Conditions, ListCondition } from "store/processors/processor.interface"
 import { Seperator } from "components/Inputs/Seperator"
 import ExpireModel from "components/Inputs/ExpireModal"
 
@@ -9,50 +9,75 @@ interface Props {
   entity_type: string // debtor or creditor
   handleClose: () => void
   handleCreate: () => void
-  conditions_data: Conditions[]
+  conditions_data: ListCondition[]
 }
 
 const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) => {
   const [showExpire, setShowExpire] = useState<boolean>(false)
-  const [selectedCondition, setSelectedCondition] = useState<Conditions | undefined>(undefined)
+  const [selectedCondition, setSelectedCondition] = useState<ListCondition | undefined>(undefined)
 
   useEffect(() => {
     console.log("Condition: " + selectedCondition)
   }),
     [selectedCondition]
 
-  const handleExpire = (con: Conditions) => {
+  const handleExpire = (con: ListCondition) => {
     con.xprtnDtTm = handleAdjustTime(new Date().toISOString())
   }
 
-  const conditions = conditions_data.map((con: Conditions) => {
+  const conditions = conditions_data.map((con: ListCondition) => {
     let colour: any = "n"
-
-    if (con.xprtnDtTm !== null) {
-      let now1 = handleAdjustTime(new Date().toISOString())
-      let now = new Date(now1).getTime()
-
-      let chDt = new Date(con.xprtnDtTm).getTime()
-      if (con.condTp === "non-overridable-block") {
-        if (chDt > now) {
-          colour = "r"
-        } else {
-          colour = "n"
-        }
-      } else if (con.condTp === "overridable-block") {
-        if (chDt! > now) {
-          colour = "r"
-        } else {
-          colour = "n"
-        }
-      } else if (con.condTp === "override") {
-        if (chDt > now) {
-          colour = "g"
-        } else {
-          colour = "n"
+    if (con.xprtnDtTm) {
+      if (con.xprtnDtTm !== null) {
+        let now1 = handleAdjustTime(new Date().toISOString())
+        let now = new Date(now1).getTime()
+        let chDt = new Date(con.xprtnDtTm).getTime()
+        if (con.condTp === "non-overridable-block") {
+          if (chDt > now) {
+            colour = "r"
+          } else {
+            colour = "n"
+          }
+        } else if (con.condTp === "overridable-block") {
+          if (chDt! > now) {
+            colour = "r"
+          } else {
+            colour = "n"
+          }
+        } else if (con.condTp === "override") {
+          if (chDt > now) {
+            colour = "g"
+          } else {
+            colour = "n"
+          }
         }
       }
-    } else if (con.xprtnDtTm === null) {
+      // } else if (con.xprtnDtTm === null || con.xprtnDtTm !== undefined) {
+      //   let tstDate = new Date(con.incptnDtTm).getTime()
+      //   let now = new Date(handleAdjustTime(new Date().toISOString())).getTime()
+      //   if (tstDate !== undefined) {
+      //     if (con.condTp === "override") {
+      //       if (tstDate < now) {
+      //         colour = "g"
+      //       } else {
+      //         colour = "n"
+      //       }
+      //     } else if (con.condTp === "non-overridable-block") {
+      //       if (tstDate < now) {
+      //         colour = "r"
+      //       } else {
+      //         colour = "n"
+      //       }
+      //     } else if (con.condTp === "overridable-block") {
+      //       if (tstDate < now) {
+      //         colour = "r"
+      //       } else {
+      //         colour = "n"
+      //       }
+      //     }
+      //   }
+      // }
+    } else {
       let tstDate = new Date(con.incptnDtTm).getTime()
       let now = new Date(handleAdjustTime(new Date().toISOString())).getTime()
       if (tstDate !== undefined) {
@@ -104,7 +129,7 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
         <Seperator />
         <p className="flex w-[155px] items-center pl-1">{displayDate(con.incptnDtTm)}</p>
         <Seperator />
-        {con.xprtnDtTm !== null ? (
+        {con.xprtnDtTm && con.xprtnDtTm !== null ? (
           <p className="flex w-[155px] items-center  pl-1">{displayDate(con.xprtnDtTm)}</p>
         ) : (
           <div
@@ -131,7 +156,7 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
 
         <Seperator />
         <div className="ml-1 flex w-[40px] content-center items-center">
-          {con.xprtnDtTm === null ? (
+          {con.xprtnDtTm === null || con.xprtnDtTm === undefined ? (
             <button
               className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
               onClick={() => {
@@ -157,7 +182,8 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
                 />
               </svg>
             </button>
-          ) : con.xprtnDtTm !== null &&
+          ) : con.xprtnDtTm &&
+            con.xprtnDtTm !== null &&
             new Date(con.xprtnDtTm).getTime() > new Date(handleAdjustTime(new Date().toISOString())).getTime() ? (
             <button
               className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"

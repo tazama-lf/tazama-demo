@@ -279,38 +279,44 @@ export const getNetworkMap = async (config: DBConfig) => {
   finalRules.forEach(async (rule) => {
     const resRule = await ruleData.find((r) => r.id === rule.rule)
     if (result.length > 0) {
-      rule.ruleDescription = resRule.desc
-      if (resRule.config.hasOwnProperty("bands")) {
-        resRule.config.bands.forEach((band: RuleBand) => {
-          let newBand = {
-            subRuleRef: band.subRuleRef,
-            lowerLimit: band.lowerLimit ? band.lowerLimit : null,
-            upperLimit: band.upperLimit ? band.upperLimit : null,
-            reason: band.reason,
-          }
-          rule.ruleBands.push(newBand)
-        })
-      } else if (resRule.config.hasOwnProperty("cases")) {
-        resRule.config.cases.forEach((item: RuleBand) => {
-          let newBand: RuleBand = {
-            subRuleRef: item.subRuleRef,
-            lowerLimit: item.lowerLimit ? item.lowerLimit : null,
-            upperLimit: item.upperLimit ? item.upperLimit : null,
-            reason: item.reason,
-          }
-          rule.ruleBands.push(newBand)
-        })
-      }
-      if (resRule.config.hasOwnProperty("exitConditions")) {
-        resRule.config.exitConditions.forEach((item: RuleBand) => {
-          let newCondition: RuleBand = {
-            subRuleRef: item.subRuleRef,
-            lowerLimit: item.lowerLimit ? item.lowerLimit : null,
-            upperLimit: item.upperLimit ? item.upperLimit : null,
-            reason: item.reason,
-          }
-          rule.ruleBands.push(newCondition)
-        })
+      const resRule1 = await ruleData.find((r) => r.rule === rule.rule)
+      if (rule.title === "EFRuP") {
+        rule.id = "EFRuP@1.0.0"
+        rule.ruleDescription = "Event Flow Rule Processor"
+      } else {
+        rule.ruleDescription = resRule.desc
+        if (resRule.config.hasOwnProperty("bands")) {
+          resRule.config.bands.forEach((band: RuleBand) => {
+            let newBand = {
+              subRuleRef: band.subRuleRef,
+              lowerLimit: band.lowerLimit ? band.lowerLimit : null,
+              upperLimit: band.upperLimit ? band.upperLimit : null,
+              reason: band.reason,
+            }
+            rule.ruleBands.push(newBand)
+          })
+        } else if (resRule.config.hasOwnProperty("cases")) {
+          resRule.config.cases.forEach((item: RuleBand) => {
+            let newBand: RuleBand = {
+              subRuleRef: item.subRuleRef,
+              lowerLimit: item.lowerLimit ? item.lowerLimit : null,
+              upperLimit: item.upperLimit ? item.upperLimit : null,
+              reason: item.reason,
+            }
+            rule.ruleBands.push(newBand)
+          })
+        }
+        if (resRule.config.hasOwnProperty("exitConditions")) {
+          resRule.config.exitConditions.forEach((item: RuleBand) => {
+            let newCondition: RuleBand = {
+              subRuleRef: item.subRuleRef,
+              lowerLimit: item.lowerLimit ? item.lowerLimit : null,
+              upperLimit: item.upperLimit ? item.upperLimit : null,
+              reason: item.reason,
+            }
+            rule.ruleBands.push(newCondition)
+          })
+        }
       }
 
       typologiesRes.forEach(async (typology) => {

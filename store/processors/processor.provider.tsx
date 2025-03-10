@@ -20,6 +20,8 @@ import {
   DBConfig,
   EDLightsManager,
   GetConditionsProps,
+  ListCondition,
+  NewCondition,
   Rule,
   RuleBand,
   TADPROC,
@@ -31,7 +33,6 @@ import ProcessorReducer from "./processor.reducer"
 import { Socket } from "socket.io"
 import getNetworkMapSetup from "./networkMap"
 import EntityContext from "store/entities/entity.context"
-import { mock_con } from "./dummy_data"
 
 dotenv.config()
 
@@ -240,11 +241,25 @@ const ProcessorProvider = ({ children }: Props) => {
   const updateRules = async (msg: any) => {
     try {
       dispatch({ type: ACTIONS.UPDATE_RULES_LOADING })
-      const index: number = await state.rules.findIndex((r: Rule) => r.title === msg.ruleResult.id.split("@")[0])
+      let index: number = 0
       const updatedRules: any[] = [...state.rules]
-
-      updatedRules[index].result = msg.ruleResult.subRuleRef
-      updatedRules[index].color = "g"
+      if (msg.ruleResult.id === "EFRuP@1.0.0") {
+        index = await state.rules.findIndex((r: Rule) => r.title === msg.ruleResult.id)
+        if (msg.ruleResult.subRuleRef === "override") {
+          console.log(msg.ruleResult.subRuleRef)
+          updatedRules[index].color = "g"
+        } else if (msg.ruleResult.subRuleRef === "block") {
+          console.log(msg.ruleResult.subRuleRef)
+          updatedRules[index].color = "r"
+        } else if (msg.ruleResult.subRuleRef === "none") {
+          console.log(msg.ruleResult.subRuleRef)
+          updatedRules[index].color = "n"
+        }
+      } else {
+        index = await state.rules.findIndex((r: Rule) => r.title === msg.ruleResult.id.split("@")[0])
+        updatedRules[index].result = msg.ruleResult.subRuleRef
+        updatedRules[index].color = "g"
+      }
 
       if (msg.ruleResult.subRuleRef === ".err") {
         const idx: number = await updatedRules[index].ruleBands.findIndex(
@@ -358,22 +373,38 @@ const ProcessorProvider = ({ children }: Props) => {
       dispatch({ type: ACTIONS.UPDATE_TADPROC_LOADING })
       await data.results.forEach(async (result) => {
         result.ruleResults.map(async (ruleResult) => {
-          const index: number = await state.rules.findIndex((r: Rule) => r.title === ruleResult.id.split("@")[0])
-          if (index !== -1) {
-            if (ruleResult.wght > 0) {
-              state.rules[index].result = ruleResult.subRuleRef
-
-              state.rules[index].color = "r"
-              state.rules[index].wght = ruleResult.wght
-
-              // if (!resIndex.includes(index)) {
-              //   resIndex.push({ index: index, wght: ruleResult.wght })
-              // }
-            } else {
-              state.rules[index].result = ruleResult.subRuleRef
-
+          if (ruleResult.id === "EFRuP@1.0.0") {
+            const index = await state.rules.findIndex((r: Rule) => r.rule === ruleResult.id)
+            console.log("HIT!!", index)
+            if (ruleResult.subRuleRef === "override") {
+              console.log(ruleResult.subRuleRef)
               state.rules[index].color = "g"
-              state.rules[index].wght = ruleResult.wght
+            } else if (ruleResult.subRuleRef === "block") {
+              console.log(ruleResult.subRuleRef)
+              state.rules[index].color = "r"
+            } else if (ruleResult.subRuleRef === "none") {
+              console.log(ruleResult.subRuleRef)
+              state.rules[index].color = "n"
+            }
+            state.rules[index].result = ruleResult.subRuleRef
+          } else {
+            const index = await state.rules.findIndex((r: Rule) => r.title === ruleResult.id.split("@")[0])
+            if (index !== -1) {
+              if (ruleResult.wght > 0) {
+                state.rules[index].result = ruleResult.subRuleRef
+
+                state.rules[index].color = "r"
+                state.rules[index].wght = ruleResult.wght
+
+                // if (!resIndex.includes(index)) {
+                //   resIndex.push({ index: index, wght: ruleResult.wght })
+                // }
+              } else {
+                state.rules[index].result = ruleResult.subRuleRef
+
+                state.rules[index].color = "g"
+                state.rules[index].wght = ruleResult.wght
+              }
             }
           }
         })
@@ -431,34 +462,128 @@ const ProcessorProvider = ({ children }: Props) => {
     dispatch({ type: ACTIONS.UPDATE_ENTITY_ALL_CHECKED, payload: value })
   }
 
-  const getConditions = async ({ entityType, type, accountId, entityId }: GetConditionsProps) => {
+  const handleEntityConditions = async (resData: any) => {
+    let filteredResData: ListCondition[] = []
+    resData.conditions.map((item: any) => {
+      let perspective: string = ""
+      if (item.prsptvs.length === 1) {
+        item.prsptvs.map((prsptv: any) => {
+          if (prsptv.prsptv === "governed_as_debtor_account_by") {
+            perspective = "debtor"
+          } else if (prsptv.prsptv === "governed_as_creditor_account_by") {
+            perspective = "creditor"
+          }
+        })
+      } else {
+        item.prsptvs.map(() => {
+          perspective = "both"
+        })
+      }
+
+      let new_con: ListCondition = {
+        condId: item.condId,
+        condRsn: item.condRsn,
+        condTp: item.condTp,
+        creDtTm: item.creDtTm,
+        incptnDtTm: item.incptnDtTm,
+        prsptv: perspective,
+        usr: item.usr,
+        xprtnDtTm: item.xprtnDtTm === undefined ? null : item.xprtnDtTm,
+        acct: resData.acct,
+        evtTp: [...item.prsptvs[0].evtTp],
+      }
+      filteredResData.push(new_con)
+    })
+
+    return filteredResData
+  }
+  const handleEntityAccountConditions = async (resData: any) => {
+    let filteredResData: ListCondition[] = []
+    resData.conditions.map((item: any) => {
+      let perspective: string = ""
+      if (item.prsptvs.length === 1) {
+        item.prsptvs.map((prsptv: any) => {
+          if (prsptv.prsptv === "governed_as_debtor_by") {
+            perspective = "debtor"
+          } else if (prsptv.prsptv === "governed_as_creditor_by") {
+            perspective = "creditor"
+          }
+        })
+      } else {
+        item.prsptvs.map(() => {
+          perspective = "both"
+        })
+      }
+
+      let new_con: ListCondition = {
+        condId: item.condId,
+        condRsn: item.condRsn,
+        condTp: item.condTp,
+        creDtTm: item.creDtTm,
+        incptnDtTm: item.incptnDtTm,
+        prsptv: perspective,
+        usr: item.usr,
+        xprtnDtTm: item.xprtnDtTm === undefined ? null : item.xprtnDtTm,
+        ntty: resData.ntty,
+        evtTp: [...item.prsptvs[0].evtTp],
+      }
+      filteredResData.push(new_con)
+    })
+
+    return filteredResData
+  }
+
+  const getConditions = async ({ entityType, type, accountId, entityId, schmeNm, agt }: GetConditionsProps) => {
     dispatch({ type: ACTIONS.GET_CONDITIONS_LOADING })
     try {
-      // if (entityType === "debtor") {
       if (type === "account") {
         if (accountId !== undefined) {
-          let filteredResData: Conditions[] = []
-          mock_con.forEach((item: Conditions) => {
-            if (item.acct?.id === accountId) {
-              filteredResData.push(item)
-            }
-          })
-          dispatch({ type: ACTIONS.GET_CONDITIONS_SUCCESS, payload: filteredResData })
+          const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${accountId}&schmenm=${schmeNm}&agt=${agt}&synccache=all`
+          const res: AxiosResponse = await axios.get(acctURL)
+
+          const response: ListCondition[] = await handleEntityConditions(res.data)
+
+          dispatch({ type: ACTIONS.GET_CONDITIONS_SUCCESS, payload: response })
         }
       } else if (type === "entity") {
         if (entityId !== undefined) {
-          let filteredResData: Conditions[] = []
-          mock_con.forEach((item: Conditions) => {
-            if (item.ntty?.id === entityId) {
-              filteredResData.push(item)
-            }
-          })
-          dispatch({ type: ACTIONS.GET_CONDITIONS_SUCCESS, payload: filteredResData })
+          const nttyURL = `http://localhost:5100/v1/admin/event-flow-control/entity?id=${entityId}&schmenm=${schmeNm}&synccache=all`
+          const res: AxiosResponse = await axios.get(nttyURL)
+          const response: ListCondition[] = await handleEntityAccountConditions(res.data)
+
+          dispatch({ type: ACTIONS.GET_CONDITIONS_SUCCESS, payload: response })
         }
       }
-      // }
     } catch (error) {
       dispatch({ type: ACTIONS.GET_CONDITIONS_FAIL, payload: error })
+      console.log("ERROR: ", error)
+    }
+  }
+
+  const createCondition = async (condition: NewCondition) => {
+    const nttyURL = "http://localhost:5100/v1/admin/event-flow-control/entity"
+    const acctURL = "http://localhost:5100/v1/admin/event-flow-control/account"
+    dispatch({ type: ACTIONS.CREATE_CONDITIONS_LOADING })
+    try {
+      if ("acct" in condition) {
+        const res: AxiosResponse = await axios.post(acctURL, condition)
+
+        if (res.status === 200 || res.status === 201) {
+          console.log("ACCOUNT_RES: ", res.data)
+          const response: ListCondition[] = await handleEntityConditions(res.data.result)
+          dispatch({ type: ACTIONS.CREATE_CONDITIONS_SUCCESS, payload: response })
+        }
+      } else if ("ntty" in condition) {
+        const res: AxiosResponse = await axios.post(nttyURL, condition)
+
+        if (res.status === 200 || res.status === 201) {
+          console.log("ENTITY_RES: ", res.data)
+          const response: ListCondition[] = await handleEntityAccountConditions(res.data.result)
+          dispatch({ type: ACTIONS.CREATE_CONDITIONS_SUCCESS, payload: response })
+        }
+      }
+    } catch (error) {
+      dispatch({ type: ACTIONS.CREATE_CONDITIONS_FAIL, payload: error })
       console.log("ERROR: ", error)
     }
   }
@@ -494,6 +619,7 @@ const ProcessorProvider = ({ children }: Props) => {
         getUIConfig,
         handleTadProc,
         getConditions,
+        createCondition,
       }}
     >
       {children}

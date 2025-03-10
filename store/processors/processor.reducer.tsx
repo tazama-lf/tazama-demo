@@ -66,6 +66,26 @@ const ProcessorReducer = (state: any, action: any) => {
         conditionsError: action.payload,
       }
 
+    case ACTIONS.CREATE_CONDITIONS_LOADING:
+      return {
+        ...state,
+        createConLoading: true,
+        createConError: null,
+      }
+    case ACTIONS.CREATE_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsList: action.payload,
+        createConLoading: false,
+        createConError: null,
+      }
+    case ACTIONS.CREATE_CONDITIONS_FAIL:
+      return {
+        ...state,
+        createConLoading: false,
+        createConError: action.payload,
+      }
+
     case ACTIONS.UPDATE_RULES_LOADING:
       return {
         ...state,

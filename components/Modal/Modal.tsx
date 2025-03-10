@@ -3,16 +3,10 @@ import DatePicker from "react-datepicker"
 import EntityContext from "store/entities/entity.context"
 import { DebtorAccount, DebtorEntity } from "store/entities/entity.interface"
 import "react-datepicker/dist/react-datepicker.css"
-import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
-import { parseDate } from "react-datepicker/dist/date_utils"
-import { generateString } from "utils/helpers"
 import ConditionsList from "./ConditionsList"
 import ConditionsCreate from "./ConditionsCreate"
-import { Conditions, NewCondition } from "store/processors/processor.interface"
-import CancelModel from "components/Inputs/ExpireModal"
+import { NewCondition } from "store/processors/processor.interface"
 import { StarIcon } from "@radix-ui/react-icons"
-import { mock_con } from "store/processors/dummy_data"
-import { strict } from "assert"
 import ProcessorContext from "store/processors/processor.context"
 
 interface Props {
@@ -22,47 +16,6 @@ interface Props {
   showModal: boolean
   setModal: (value: boolean) => void
   modalTitle?: string
-}
-
-const newEntityConditionState: NewCondition = {
-  evtTp: [],
-  condTp: "",
-  prsptv: "",
-  incptnDtTm: "",
-  xprtnDtTm: null,
-  condRsn: "",
-  ntty: {
-    id: "",
-    schmeNm: {
-      prtry: "MSISDN",
-    },
-  },
-  forceCret: true,
-  usr: "demo UI",
-}
-
-const newAccountConditionState: NewCondition = {
-  evtTp: [],
-  condTp: "",
-  prsptv: "",
-  incptnDtTm: "",
-  xprtnDtTm: null,
-  condRsn: "",
-  acct: {
-    id: "",
-    schmeNm: {
-      prtry: "MSISDN",
-    },
-    agt: {
-      finInstnId: {
-        clrSysMmbId: {
-          mmbId: "",
-        },
-      },
-    },
-  },
-  forceCret: true,
-  usr: "demo UI",
 }
 
 const DebtorModal = ({ ...props }: Props) => {
@@ -75,8 +28,6 @@ const DebtorModal = ({ ...props }: Props) => {
   const [editing, setEditing] = useState<boolean>(false)
   const [showConditions, setShowConditions] = useState<boolean>(false)
   const [createConditions, setCreateConditions] = useState<boolean>(false)
-  const [newCondition, setNewCondition] = useState<NewCondition>(newEntityConditionState)
-  // const [conditionsList, setConditionsList] = useState<Conditions[]>([...mock_con])
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [showCancel, setShowCancel] = useState<boolean>(true)
 
@@ -87,6 +38,49 @@ const DebtorModal = ({ ...props }: Props) => {
       }, 3000)
     }
   }, [saved])
+
+  const newEntityConditionState: NewCondition = {
+    evtTp: [],
+    condTp: "",
+    prsptv: "",
+    incptnDtTm: "",
+    // xprtnDtTm: null,
+    condRsn: "",
+    ntty: {
+      id: "",
+      schmeNm: {
+        prtry: "",
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  }
+
+  const newAccountConditionState: NewCondition = {
+    evtTp: [],
+    condTp: "",
+    prsptv: "",
+    incptnDtTm: "",
+    // xprtnDtTm: null,
+    condRsn: "",
+    acct: {
+      id: "",
+      schmeNm: {
+        prtry: "",
+      },
+      agt: {
+        finInstnId: {
+          clrSysMmbId: {
+            mmbId: "",
+          },
+        },
+      },
+    },
+    forceCret: true,
+    usr: "demo UI",
+  }
+
+  const [newCondition, setNewCondition] = useState<NewCondition>(newEntityConditionState)
 
   useEffect(() => {
     console.log("New condition: ", newCondition)
@@ -99,19 +93,28 @@ const DebtorModal = ({ ...props }: Props) => {
           entityType: "debtor",
           type: "account",
           accountId: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].Id,
+          entityId: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id,
+          agt: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAgt.FinInstnId.ClrSysMmbId.MmbId,
+          schmeNm: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].SchmeNm.Prtry,
         })
         newAccountConditionState.acct!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].Id
         newAccountConditionState.acct!.agt.finInstnId.clrSysMmbId.mmbId =
           entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAgt.FinInstnId.ClrSysMmbId.MmbId
+        newAccountConditionState.acct!.schmeNm.prtry =
+          entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].SchmeNm.Prtry
+
         setNewCondition(newAccountConditionState)
       } else if (activeSection === "Entity") {
         await processCtx.getConditions({
           entityType: "debtor",
           type: "entity",
           entityId: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id,
+          schmeNm: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].SchmeNm.Prtry,
         })
 
         newEntityConditionState.ntty!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id
+        newEntityConditionState.ntty!.schmeNm.prtry =
+          entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].SchmeNm.Prtry
         setNewCondition(newEntityConditionState)
       }
     })()

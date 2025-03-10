@@ -5,8 +5,16 @@ import {
   defaultTadProcLights,
   ruleInitialState,
 } from "./processor.initialState"
-import { Conditions, EDLightsManager, GetConditionsProps, Rule, TADPROC, Typology } from "./processor.interface"
-import { mock_con } from "./dummy_data"
+import {
+  Conditions,
+  EDLightsManager,
+  GetConditionsProps,
+  ListCondition,
+  NewCondition,
+  Rule,
+  TADPROC,
+  Typology,
+} from "./processor.interface"
 
 interface Context {
   rulesLoading: boolean
@@ -21,7 +29,7 @@ interface Context {
   msgId: string | undefined
   entityEventType: string[]
   entityAllChecked: boolean
-  conditionsList: Conditions[]
+  conditionsList: ListCondition[]
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -36,7 +44,8 @@ interface Context {
   handleTadProc: (msgId: string) => void
   ruleLightsGreen: () => void
   ruleLightsNeutral: () => void
-  getConditions: ({ entityType, type, accountId, entityId }: GetConditionsProps) => void
+  getConditions: ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => void
+  createCondition: (condition: NewCondition) => void
 }
 
 const ProcessorContext = createContext<Context>({
@@ -52,7 +61,7 @@ const ProcessorContext = createContext<Context>({
   msgId: "",
   entityEventType: defaultEntityEventType,
   entityAllChecked: false,
-  conditionsList: [...mock_con],
+  conditionsList: [],
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
@@ -67,7 +76,8 @@ const ProcessorContext = createContext<Context>({
   handleTadProc: (msgId: string) => {},
   ruleLightsGreen: () => {},
   ruleLightsNeutral: () => {},
-  getConditions: async ({ entityType, type, accountId, entityId }: GetConditionsProps) => {},
+  getConditions: async ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => {},
+  createCondition: async (condition: NewCondition) => {},
 })
 
 export default ProcessorContext

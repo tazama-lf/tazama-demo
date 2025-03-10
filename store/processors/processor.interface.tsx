@@ -115,7 +115,7 @@ export interface Conditions {
   condTp: string
   prsptv: string
   incptnDtTm: string
-  xprtnDtTm: string | null
+  xprtnDtTm: string | null | undefined
   condRsn: string
   acct?: Acct
   ntty?: Ntty
@@ -128,7 +128,7 @@ export interface NewCondition {
   condTp: string
   prsptv: string
   incptnDtTm: string
-  xprtnDtTm: string | null
+  xprtnDtTm?: string | null | undefined
   condRsn: string
   ntty?: Ntty
   acct?: Acct
@@ -141,4 +141,11 @@ export interface GetConditionsProps {
   type: string // entity or account
   accountId?: string | undefined
   entityId?: string | undefined
+  agt?: string | undefined
+  schmeNm?: string | undefined
+}
+
+export interface ListCondition extends Conditions {
+  creDtTm: string
+  condId: string
 }

@@ -86,7 +86,7 @@ const Settings = () => {
           </div>
 
           <div className="col-span-full">
-            <label htmlFor="cms_host">CMS NATS Hosting</label>
+            <label htmlFor="cms_host">NATS Hosting</label>
             <div className="my-2">
               <input
                 id="tms_key"
