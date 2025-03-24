@@ -24,6 +24,7 @@ interface DebtorProps {
   selectedEntity: number
   isDebtor?: boolean
   lights: LightsManager
+  setModalVisible: (option: boolean) => void
   setLights: (data: LightsManager) => void
   resetAllLights: () => void
   resetLights: (data: boolean) => void
@@ -164,7 +165,11 @@ export function DebtorDevice(props: DebtorProps) {
       <div className="absolute inset-x-0 mx-auto break-words" style={{ width: "222px", top: "15px" }}>
         <TimeComponent />
 
-        <DeviceInfo selectedEntity={props.selectedEntity} isDebtor={props.isDebtor} />
+        <DeviceInfo
+          selectedEntity={props.selectedEntity}
+          isDebtor={props.isDebtor}
+          setModalVisible={props.setModalVisible}
+        />
       </div>
 
       {props.isDebtor ? (

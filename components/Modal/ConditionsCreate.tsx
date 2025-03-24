@@ -8,17 +8,21 @@ import PerspectiveCheckBoxes from "components/Inputs/PerspectiveCheckBoxes"
 import CancelModel from "components/Inputs/ExpireModal"
 import { ValidateCondition } from "utils/helpers"
 import DateSelector from "components/Inputs/DateSelector"
+import { newAccountConditionState, newEntityConditionState } from "store/processors/processor.initialState"
+import EntityContext from "store/entities/entity.context"
 
 interface Props {
   handleClose: () => void
   setVisible: () => void
   newCondition: NewCondition
   setNewCondition: (data: NewCondition) => void
+  activeSection: "Entity" | "Accounts"
   // conditions_data: Conditions[]
 }
 
-const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisible }: Props) => {
+const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisible, activeSection }: Props) => {
   const processCtx = useContext(ProcessorContext)
+  const nttyCtx = useContext(EntityContext)
   const [errors, setErrors] = useState<string[]>([])
   const [showCancel, setShowCancel] = useState<boolean>(false)
 
@@ -26,6 +30,12 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
     // Need to bring some state in to handle this
     processCtx.updateEntityEventType([])
     processCtx.updateEntityAllChecked(false)
+
+    if (activeSection === "Entity") {
+      setNewCondition(newEntityConditionState)
+    } else if (activeSection === "Accounts") {
+      setNewCondition(newAccountConditionState)
+    }
     setVisible()
   }
 
@@ -38,6 +48,13 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
     } else {
       // processCtx.conditionsList.push(newCondition)
       await processCtx.createCondition(newCondition)
+      await processCtx.getAllConditions()
+      if (activeSection === "Entity") {
+        setNewCondition(newEntityConditionState)
+      } else if (activeSection === "Accounts") {
+        setNewCondition(newAccountConditionState)
+      }
+
       setVisible()
     }
   }

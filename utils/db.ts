@@ -1,5 +1,6 @@
 import {
   DBConfig,
+  ListCondition,
   Rule,
   RuleBand,
   RuleConfig,
@@ -9,6 +10,7 @@ import {
   Typology,
 } from "store/processors/processor.interface"
 
+// import { Database, aql } from "arangojs"
 const { Database, aql } = require("arangojs")
 require("dotenv").config()
 
@@ -144,15 +146,20 @@ export const getTADPROCResult = async (transactionID: string, config: DBConfig) 
           let typoResult: TADPROC_RESULT = {
             cfg: typoRes.cfg,
             result: typoRes.result,
+            efrup: undefined,
             workflow: {
               alertThreshold: null,
               interdictionThreshold: null,
             },
             ruleResults: [],
           }
+
           // #################################################################################################
           // modify result object
           typoRes.ruleResults.forEach((result: RuleResult) => {
+            if (result.id === "EFRuP@1.0.0") {
+              typoResult.efrup = result.subRuleRef
+            }
             typoResult.ruleResults.push(result)
           })
 
@@ -164,13 +171,17 @@ export const getTADPROCResult = async (transactionID: string, config: DBConfig) 
 
           // Add this somewhere else...
 
+          if (typoResult.efrup !== undefined) {
+            response.efrup = typoResult.efrup
+          }
+
           if (typoResult.workflow.interdictionThreshold !== null) {
             if (typoRes.result >= typoResult.workflow.interdictionThreshold) {
               response.stop = true
               response.color = "r"
             }
           }
-          console.log(typoResult)
+          console.log("TYPORES: ", typoResult)
           response.results.push(typoResult)
         })
       }
@@ -241,7 +252,12 @@ export const getNetworkMap = async (config: DBConfig) => {
             linkedTypologies: [],
             ruleBands: [],
           }
-          rulesRes.push(newRule)
+          if (rule.id.toString() === "EFRuP@1.0.0") {
+            let exists = rulesRes.filter((rule: Rule) => rule.title === "EFRuP")
+            exists.length === 0 && rulesRes.push(newRule)
+          } else {
+            rulesRes.push(newRule)
+          }
 
           rulesRes.map(async (r) => {
             if (r.id === rule.id) {
@@ -255,7 +271,7 @@ export const getNetworkMap = async (config: DBConfig) => {
       })
     })
   }
-  const finalRules = []
+  const finalRules: any[] = []
   for (let i = 0; i < rulesRes.length; i++) {
     let rule = rulesRes[i]
     let found = false
@@ -280,8 +296,10 @@ export const getNetworkMap = async (config: DBConfig) => {
     const resRule = await ruleData.find((r) => r.id === rule.rule)
     if (result.length > 0) {
       const resRule1 = await ruleData.find((r) => r.rule === rule.rule)
+
       if (rule.title === "EFRuP") {
         rule.id = "EFRuP@1.0.0"
+        rule.title = "EFRuP"
         rule.ruleDescription = "Event Flow Rule Processor"
       } else {
         rule.ruleDescription = resRule.desc
@@ -339,6 +357,7 @@ export const getNetworkMap = async (config: DBConfig) => {
   typologiesRes.forEach(async (typology) => {
     const typo = await typoData.find((t) => t.cfg === typology.id)
     // let typo: any[] | undefined = await getTypologyDetails(typology.id, config)
+    // #################################################################################################
     if (typo !== undefined) {
       typology.typoDescription = typo.desc
       typology.workflow.interdictionThreshold = typo.workflow.hasOwnProperty("interdictionThreshold")
@@ -348,12 +367,28 @@ export const getNetworkMap = async (config: DBConfig) => {
         ? typo.workflow.alertThreshold
         : null
     }
+    // #################################################################################################
   })
+
+  let temp = finalRules.filter((item, index) => finalRules.indexOf(item) === index)
   finalRules.sort((a, b) => a.title - b.title)
   typologiesRes.sort((a, b) => a.title - b.title)
 
+  let tfr = [...finalRules]
+
+  let fin: number | undefined = undefined
+  tfr.map((itm, index) => {
+    if (itm.title === "EFRuP") {
+      fin = index
+    }
+  })
+  if (fin !== undefined) {
+    finalRules.splice(fin, 1)
+    finalRules.push(tfr[fin])
+  }
+
   return {
-    rules: finalRules,
+    rules: temp,
     typologies: typologiesRes,
   }
 }

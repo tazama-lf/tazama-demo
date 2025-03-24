@@ -1,9 +1,5 @@
-import { error } from "./../node_modules/@storybook/builder-webpack5/node_modules/babel-loader/node_modules/ajv/lib/vocabularies/applicator/dependencies"
-// export const sentanceCase = (text: string) => {
-//   return text.toLowerCase().replace(/(^|\s)\w/g, (m, p) => m.toUpperCase())
-// }
-
-import { Conditions, NewCondition } from "store/processors/processor.interface"
+import { DebtorAccount, Entity } from "store/entities/entity.interface"
+import { ConditionStructure, NewCondition } from "store/processors/processor.interface"
 
 export const sentanceCase = (text: string) => {
   let upper = true
@@ -148,7 +144,7 @@ export const convertCheckDate = (inDate: string) => {
     date = ""
   }
 
-  return `${date}T${time}.000Z`
+  return `${date}T${time}+0200`
 }
 
 export const ValidateCondition = async (condition: NewCondition) => {
@@ -255,6 +251,63 @@ const formatOffset = (offsetMinutes: number) => {
 // Helper to pad single digits with zero
 const padZero = (num: number) => num.toString().padStart(2, "0")
 
+const getOffsetHours = (date: string) => {
+  let dt = new Date(date)
+  let ndt = new Date(dt).toLocaleString()
+  let nTime = ndt.split(", ")[1]
+
+  let offset = date.split("+")[1]?.substring(0, 2)
+  let offsetHours: any
+  if (offset?.includes("0") && !offset?.includes("10")) {
+    offsetHours = parseInt(offset.substring(1, 2))
+  } else {
+    offsetHours = parseInt(offset!.substring(0, 2))
+  }
+
+  let hours = parseInt(nTime!.substring(0, 2)) + offsetHours
+  return hours
+}
+
+export const viewLocalTime = (date: string) => {
+  if (date.includes("Z")) {
+    let dt = new Date(date).toLocaleString()
+    let nd = dt.split(", ")[0]
+
+    let year = nd?.split("/")[2]
+    let month = nd?.split("/")[1]
+    let day = nd?.split("/")[0]
+
+    let nDate = `${year}-${month}-${day}`
+
+    let nTime = dt.split(", ")[1]
+
+    return `${nDate}T${nTime}.000Z`
+  } else if (date.includes("+")) {
+    let offset = date.split("+")[1]?.slice(0, 1)[0]
+    let offsetHours: number = 0
+    let hours = getOffsetHours(date)
+    let dt = new Date(date).setHours(hours)
+    let ndt = new Date(dt).toLocaleString()
+    let nTime = ndt.split(", ")[1]
+    let nd = ndt.split(", ")[0]
+
+    let year = nd?.split("/")[2]
+    let month = nd?.split("/")[1]
+    let day = nd?.split("/")[0]
+
+    let nDate = `${year}-${month}-${day}`
+
+    // if (offset?.includes("0") && !offset?.includes("10")) {
+    //   offsetHours = parseInt(offset.substring(1, 1))
+    // } else {
+    //   offsetHours = parseInt(offset!.substring(0, 1))
+    // }
+
+    return `${nDate}T${nTime}.000Z`
+    // return `${nDate}T${nTime}+${offset}`
+  }
+}
+
 export const toLocalISOString = (isoString?: string): string => {
   // Use provided ISO string or current time
   const date = isoString ? new Date(isoString) : new Date()
@@ -317,4 +370,65 @@ export const handleAdjustTime = (inputTimestamp: string) => {
 
   timezoneOffset = `${offsetHours >= 0 ? "+" : ""}${offsetHours} hours`
   return adjustedTimestamp
+}
+
+export const toIsoString = (date: any): string => {
+  var tzo = -date.getTimezoneOffset(),
+    dif = tzo >= 0 ? "+" : "-",
+    pad = function (num: number) {
+      return (num < 10 ? "0" : "") + num
+    }
+
+  return (
+    date.getFullYear() +
+    "-" +
+    pad(date.getMonth() + 1) +
+    "-" +
+    pad(date.getDate()) +
+    "T" +
+    pad(date.getHours()) +
+    ":" +
+    pad(date.getMinutes()) +
+    ":" +
+    pad(date.getSeconds()) +
+    dif +
+    pad(Math.floor(Math.abs(tzo) / 60)) +
+    ":" +
+    pad(Math.abs(tzo) % 60)
+  )
+}
+
+export const checkIsActiveAccount = (
+  selectedIndex: number | undefined,
+  conditionsData: ConditionStructure,
+  entity?: Entity | undefined
+) => {
+  console.log("CHECKING", selectedIndex, entity, conditionsData)
+  if (entity) {
+    if (entity.Accounts.length > 0 && entity!.Accounts) {
+      let acc: DebtorAccount | undefined = entity.Accounts[selectedIndex ? selectedIndex : 0]
+      console.log("ACC: ", acc)
+      if (acc !== undefined) {
+        if (conditionsData.activeConditions.includes(acc.DbtrAcct.Id.Othr[0].Id)) {
+          return "b"
+        } else {
+          return "n"
+        }
+      }
+    }
+  } else {
+    return "r"
+  }
+}
+
+export const checkActiveEntity = (conditionsData: ConditionStructure, entity?: Entity | undefined): any => {
+  if (entity) {
+    if (conditionsData.activeConditions.includes(entity.Entity.Dbtr.Id.PrvtId.Othr[0].Id)) {
+      return "b"
+    } else {
+      return "n"
+    }
+  } else {
+    return "n"
+  }
 }

@@ -3,19 +3,25 @@ import EntityContext from "store/entities/entity.context"
 import TransactionModal from "./TransactionModal"
 import EditModal from "./EditModal"
 import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
+import ProcessorContext from "store/processors/processor.context"
+import { DebtorAccount, Entity } from "store/entities/entity.interface"
+import { checkIsActiveAccount } from "utils/helpers"
 
 interface DeviceProps {
   selectedEntity: number
   isDebtor?: boolean
+  setModalVisible: (option: boolean) => void
 }
 
 export function DeviceInfo(props: DeviceProps) {
   const entityCtx = useContext(EntityContext)
+  const processCtx = useContext(ProcessorContext)
 
   const [getPacs008, setGetPacs008] = useState<any>()
   const [isTransaction, setIsTransaction] = useState<boolean>(false)
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false)
   const [isEditModalVisible, setIsEditModalVisible] = useState<boolean>(false)
+
   const [formValues, setFormValues] = useState({
     amount: "",
     description: "",
@@ -39,7 +45,27 @@ export function DeviceInfo(props: DeviceProps) {
 
   useEffect(() => {
     setIsTransaction(false)
+    checkIsActiveAccount(
+      entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
+        ? entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
+        : 0,
+      processCtx.conditionsData,
+      entity
+    )
   }, [props.selectedEntity])
+
+  // useEffect(() => {
+  //   entity?.Accounts.map((item) => {
+  //     processCtx.conditionsData.activeConditions.push(item.DbtrAcct.Id.Othr[0].Id)
+  //   })
+  //   entity?.Accounts.map((item) => {
+  //     if (processCtx.conditionsData.activeConditions) {
+  //       if (processCtx.conditionsData.activeConditions.includes(item.DbtrAcct.Id.Othr[0].Id)) {
+  //         setActiveAccount(true)
+  //       }
+  //     }
+  //   })
+  // }, [entity])
 
   const handleEditClick = () => {
     setFormValues({
@@ -97,7 +123,7 @@ export function DeviceInfo(props: DeviceProps) {
 
   const pacs002Data = entityCtx.pacs002.FIToFIPmtSts
 
-  const handleStatusEdit = () => {
+  const handleStatusEdit = (): any => {
     setStatusValue({ status: pacs002Data.TxInfAndSts.TxSts || "" })
     setIsEditModalVisible(true)
   }
@@ -116,9 +142,24 @@ export function DeviceInfo(props: DeviceProps) {
                 />
               </svg>
               <span className="ml-2 text-white">{entity?.Entity?.Dbtr.Nm || "Name"}</span>
-              <div className="mr-2 flex grow justify-end">
-                <StatusIndicator colour="n" />
-              </div>
+              <button
+                className="mr-2 flex grow justify-end"
+                onClick={() => {
+                  processCtx.setShowConditions(true)
+                  processCtx.update_debtor_active_section("Entity")
+                  props.setModalVisible(true)
+                }}
+              >
+                <StatusIndicator
+                  colour={
+                    "activeConditions" in processCtx.conditionsData &&
+                    processCtx.conditionsData.activeConditions &&
+                    processCtx.conditionsData.activeConditions.includes(entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id)
+                      ? "b"
+                      : "n"
+                  }
+                />
+              </button>
             </div>
 
             <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
@@ -127,9 +168,32 @@ export function DeviceInfo(props: DeviceProps) {
             </div>
 
             <div className="relative m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
-              <div className="absolute right-0 top-0 mr-0 flex">
-                <StatusIndicator colour="n" />
-              </div>
+              <button
+                className="absolute right-0 top-0 mr-0 flex"
+                onClick={() => {
+                  processCtx.setShowConditions(true)
+                  processCtx.update_debtor_active_section("Accounts")
+                  props.setModalVisible(true)
+                }}
+              >
+                <StatusIndicator
+                  // colour={
+                  //   entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex &&
+                  //   "activeConditions" in processCtx.conditionsData &&
+                  //   processCtx.conditionsData.activeConditions &&
+                  //   processCtx.conditionsData.activeConditions.includes(
+                  //     entity.Accounts[entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex].DbtrAcct.Id.Othr[0].Id
+                  //   )
+                  //     ? "b"
+                  //     : "n"
+                  // }
+                  colour={checkIsActiveAccount(
+                    entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex,
+                    processCtx.conditionsData,
+                    entity
+                  )}
+                />
+              </button>
               <p className={`font-bold ${fillColour}`}>{entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Nm} </p>
               <p className="truncate">ID: {entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Id?.Othr[0]?.Id}</p>
             </div>
@@ -259,3 +323,24 @@ export function DeviceInfo(props: DeviceProps) {
     )
   }
 }
+
+// const checkIsActiveAccount = (entity: Entity, selectedIndex: number | undefined) => {
+//   console.log("CHECKING", selectedIndex)
+//   if (entity) {
+//     if (entity.Accounts.length > 0 && entity!.Accounts) {
+//       let acc: DebtorAccount | undefined = entity!.Accounts[selectedIndex!]
+//       console.log("ACC: ", acc)
+//       if (acc !== undefined) {
+//         if (processCtx.conditionsData.activeConditions.includes(acc.DbtrAcct.Id.Othr[0].Id)) {
+//           return "b"
+//         } else {
+//           return "n"
+//         }
+//       } else {
+//         return "r"
+//       }
+//     }
+//   } else {
+//     return "n"
+//   }
+// }

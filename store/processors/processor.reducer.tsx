@@ -1,5 +1,6 @@
 import { ACTIONS } from "./processor.actions"
 import {
+  defaultConditionsData,
   defaultEDLights,
   defaultTadProcLights,
   ruleInitialState,
@@ -48,6 +49,10 @@ const ProcessorReducer = (state: any, action: any) => {
       return {
         ...state,
         conditionsList: [],
+        conditionsData: {
+          conditions: [],
+          activeConditions: [],
+        },
         conditionsLoading: true,
         conditionsError: "",
       }
@@ -55,6 +60,10 @@ const ProcessorReducer = (state: any, action: any) => {
       return {
         ...state,
         conditionsList: action.payload,
+        conditionsData: {
+          conditions: action.payload,
+          activeConditions: [],
+        },
         conditionsLoading: false,
         conditionsError: "",
       }
@@ -62,6 +71,41 @@ const ProcessorReducer = (state: any, action: any) => {
       return {
         ...state,
         conditionsList: [],
+        conditionsData: {
+          conditions: [],
+          activeConditions: [],
+        },
+        conditionsLoading: false,
+        conditionsError: action.payload,
+      }
+
+    case ACTIONS.ADD_GET_CONDITIONS_LOADING:
+      return {
+        ...state,
+        conditionsData: {
+          conditions: [...state.conditionsData.conditions],
+          activeConditions: [...state.conditionsData.activeConditions],
+        },
+        conditionsLoading: true,
+        conditionsError: "",
+      }
+    case ACTIONS.ADD_GET_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsData: {
+          conditions: [...state.conditionsData.conditions],
+          activeConditions: [...action.payload],
+        },
+        conditionsLoading: false,
+        conditionsError: "",
+      }
+    case ACTIONS.ADD_GET_CONDITIONS_FAIL:
+      return {
+        ...state,
+        conditionsData: {
+          conditions: [...state.conditionsData.conditions],
+          activeConditions: [...state.conditionsData.activeConditions],
+        },
         conditionsLoading: false,
         conditionsError: action.payload,
       }
@@ -78,12 +122,31 @@ const ProcessorReducer = (state: any, action: any) => {
         conditionsList: action.payload,
         createConLoading: false,
         createConError: null,
+        entityEventType: [],
       }
     case ACTIONS.CREATE_CONDITIONS_FAIL:
       return {
         ...state,
         createConLoading: false,
         createConError: action.payload,
+        entityEventType: [],
+      }
+
+    case ACTIONS.EXPIRE_CONDITIONS_LOADING:
+      return {
+        ...state,
+        expireConError: undefined,
+      }
+    case ACTIONS.EXPIRE_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsList: action.payload,
+        expireConError: undefined,
+      }
+    case ACTIONS.EXPIRE_CONDITIONS_FAIL:
+      return {
+        ...state,
+        expireConError: action.payload,
       }
 
     case ACTIONS.UPDATE_RULES_LOADING:
@@ -224,6 +287,18 @@ const ProcessorReducer = (state: any, action: any) => {
         typologies: state.typologies.map((typo: any) => ({ ...typo, color: "n" })),
         edLights: defaultEDLights,
         tadProcResults: defaultTadProcLights,
+      }
+
+    case ACTIONS.UPDATE_DEBTOR_ACTIVE_SECTION:
+      return {
+        ...state,
+        debtorActiveSection: action.payload,
+      }
+
+    case ACTIONS.SET_SHOW_CONDITIONS:
+      return {
+        ...state,
+        showConditions: action.payload,
       }
   }
 }

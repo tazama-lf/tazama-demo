@@ -5,9 +5,10 @@ import { DebtorAccount, DebtorEntity } from "store/entities/entity.interface"
 import "react-datepicker/dist/react-datepicker.css"
 import ConditionsList from "./ConditionsList"
 import ConditionsCreate from "./ConditionsCreate"
-import { NewCondition } from "store/processors/processor.interface"
+import { ListCondition, NewCondition } from "store/processors/processor.interface"
 import { StarIcon } from "@radix-ui/react-icons"
 import ProcessorContext from "store/processors/processor.context"
+import { newAccountConditionState, newEntityConditionState } from "store/processors/processor.initialState"
 
 interface Props {
   color?: string
@@ -22,14 +23,43 @@ const DebtorModal = ({ ...props }: Props) => {
   const entityCtx = useContext(EntityContext)
   const processCtx = useContext(ProcessorContext)
   const [customEntity, setCustomEntity] = useState<DebtorEntity | undefined>(undefined)
-  const [activeSection, setActiveSection] = useState<"Entity" | "Accounts">("Entity")
+
   const [customAccounts, setCustomAccounts] = useState<DebtorAccount[]>([])
   const [saved, setSaved] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
-  const [showConditions, setShowConditions] = useState<boolean>(false)
+
   const [createConditions, setCreateConditions] = useState<boolean>(false)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
-  const [showCancel, setShowCancel] = useState<boolean>(true)
+  const [filteredConditions, setFilteredConditions] = useState<ListCondition[]>([])
+
+  useEffect(() => {
+    if (processCtx.debtorActiveSection === "Entity") {
+      let nttyData = processCtx.conditionsData.conditions.filter((con) => {
+        return "ntty" in con
+      })
+      let filteredNttyData = nttyData.filter((con) => {
+        let nttyIndex: number = entityCtx.selectedDebtorEntity.debtorSelectedIndex || 0
+        let nttyId: string | undefined =
+          entityCtx.entities[nttyIndex !== undefined ? nttyIndex : 0]?.Entity.Dbtr.Id.PrvtId.Othr[0].Id
+        return con.ntty!.id.includes(nttyId!)
+      })
+      setFilteredConditions(filteredNttyData)
+    } else if (processCtx.debtorActiveSection === "Accounts") {
+      let acctData = processCtx.conditionsData.conditions.filter((con) => {
+        return "acct" in con
+      })
+      let filteredAcctData = acctData.filter((con) => {
+        let nttyIndex: number = entityCtx.selectedDebtorEntity.debtorSelectedIndex || 0
+        let acctIndex: number = entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex || 0
+        let acctId: string | undefined =
+          entityCtx.entities[nttyIndex !== undefined ? nttyIndex : 0]?.Accounts[acctIndex !== undefined ? acctIndex : 0]
+            ?.DbtrAcct.Id.Othr[0].Id
+        return con.acct!.id.includes(acctId!)
+      })
+      setFilteredConditions(filteredAcctData)
+      console.log("FILTERED: ", filteredAcctData)
+    }
+  }, [processCtx.conditionsData])
 
   useEffect(() => {
     if (saved === true) {
@@ -39,46 +69,46 @@ const DebtorModal = ({ ...props }: Props) => {
     }
   }, [saved])
 
-  const newEntityConditionState: NewCondition = {
-    evtTp: [],
-    condTp: "",
-    prsptv: "",
-    incptnDtTm: "",
-    // xprtnDtTm: null,
-    condRsn: "",
-    ntty: {
-      id: "",
-      schmeNm: {
-        prtry: "",
-      },
-    },
-    forceCret: true,
-    usr: "demo UI",
-  }
+  // const newEntityConditionState: NewCondition = {
+  //   evtTp: [],
+  //   condTp: "",
+  //   prsptv: "",
+  //   // incptnDtTm: "",
+  //   // xprtnDtTm: null,
+  //   condRsn: "",
+  //   ntty: {
+  //     id: "",
+  //     schmeNm: {
+  //       prtry: "",
+  //     },
+  //   },
+  //   forceCret: true,
+  //   usr: "demo UI",
+  // }
 
-  const newAccountConditionState: NewCondition = {
-    evtTp: [],
-    condTp: "",
-    prsptv: "",
-    incptnDtTm: "",
-    // xprtnDtTm: null,
-    condRsn: "",
-    acct: {
-      id: "",
-      schmeNm: {
-        prtry: "",
-      },
-      agt: {
-        finInstnId: {
-          clrSysMmbId: {
-            mmbId: "",
-          },
-        },
-      },
-    },
-    forceCret: true,
-    usr: "demo UI",
-  }
+  // const newAccountConditionState: NewCondition = {
+  //   evtTp: [],
+  //   condTp: "",
+  //   prsptv: "",
+  //   // incptnDtTm: "",
+  //   // xprtnDtTm: null,
+  //   condRsn: "",
+  //   acct: {
+  //     id: "",
+  //     schmeNm: {
+  //       prtry: "",
+  //     },
+  //     agt: {
+  //       finInstnId: {
+  //         clrSysMmbId: {
+  //           mmbId: "",
+  //         },
+  //       },
+  //     },
+  //   },
+  //   forceCret: true,
+  //   usr: "demo UI",
+  // }
 
   const [newCondition, setNewCondition] = useState<NewCondition>(newEntityConditionState)
 
@@ -87,16 +117,13 @@ const DebtorModal = ({ ...props }: Props) => {
   }, [newCondition])
 
   useEffect(() => {
+    console.log("CON-DATA: ", processCtx.conditionsData)
+  }, [processCtx.conditionsData])
+
+  useEffect(() => {
     ;(async function () {
-      if (activeSection === "Accounts") {
-        await processCtx.getConditions({
-          entityType: "debtor",
-          type: "account",
-          accountId: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].Id,
-          entityId: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id,
-          agt: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAgt.FinInstnId.ClrSysMmbId.MmbId,
-          schmeNm: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].SchmeNm.Prtry,
-        })
+      await processCtx.getAllConditions()
+      if (processCtx.debtorActiveSection === "Accounts") {
         newAccountConditionState.acct!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].Id
         newAccountConditionState.acct!.agt.finInstnId.clrSysMmbId.mmbId =
           entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAgt.FinInstnId.ClrSysMmbId.MmbId
@@ -104,14 +131,7 @@ const DebtorModal = ({ ...props }: Props) => {
           entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].SchmeNm.Prtry
 
         setNewCondition(newAccountConditionState)
-      } else if (activeSection === "Entity") {
-        await processCtx.getConditions({
-          entityType: "debtor",
-          type: "entity",
-          entityId: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id,
-          schmeNm: entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].SchmeNm.Prtry,
-        })
-
+      } else if (processCtx.debtorActiveSection === "Entity") {
         newEntityConditionState.ntty!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id
         newEntityConditionState.ntty!.schmeNm.prtry =
           entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].SchmeNm.Prtry
@@ -119,7 +139,7 @@ const DebtorModal = ({ ...props }: Props) => {
       }
     })()
   }, [
-    activeSection,
+    processCtx.debtorActiveSection,
     entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex,
     entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].Id,
     entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id,
@@ -179,11 +199,11 @@ const DebtorModal = ({ ...props }: Props) => {
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {}
     // Entity
-    if (!customEntity?.Dbtr.Nm) newErrors.Nm = "Full Name is required"
-    if (!customEntity?.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt) newErrors.BirthDt = "Birth Date is required"
-    if (!customEntity?.Dbtr.Id.PrvtId.DtAndPlcOfBirth.CityOfBirth) newErrors.CityOfBirth = "City of Birth is required"
+    if (!customEntity?.Dbtr.Nm) newErrors.Nm = "Fullname is required"
+    if (!customEntity?.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt) newErrors.BirthDt = "Birth date is required"
+    if (!customEntity?.Dbtr.Id.PrvtId.DtAndPlcOfBirth.CityOfBirth) newErrors.CityOfBirth = "City of birth is required"
     if (!customEntity?.Dbtr.Id.PrvtId.DtAndPlcOfBirth.CtryOfBirth)
-      newErrors.CtryOfBirth = "Country of Birth is required"
+      newErrors.CtryOfBirth = "Country of birth is required"
     if (!customEntity?.Dbtr.Id.PrvtId.Othr[0].Id) newErrors.Id = "ID number is required"
     if (!customEntity?.Dbtr.CtctDtls.MobNb) {
       newErrors.MobNb = "Mobile number is required"
@@ -205,7 +225,8 @@ const DebtorModal = ({ ...props }: Props) => {
 
   // Swap between Entities and Accounts
   const handleSectionChange = (section: "Entity" | "Accounts") => {
-    setActiveSection(section)
+    // setActiveSection(section)
+    processCtx.update_debtor_active_section(section)
   }
 
   return (
@@ -242,7 +263,7 @@ const DebtorModal = ({ ...props }: Props) => {
               <div className="mb-4 flex justify-around">
                 <button
                   className={`rounded-lg px-4 py-2 ${
-                    activeSection === "Entity"
+                    processCtx.debtorActiveSection === "Entity"
                       ? "m-5 w-full rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 py-2 shadow-inner"
                       : "m-5 w-full rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 py-2 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
                   }`}
@@ -252,7 +273,7 @@ const DebtorModal = ({ ...props }: Props) => {
                 </button>
                 <button
                   className={`rounded-lg px-4 py-2 ${
-                    activeSection === "Accounts"
+                    processCtx.debtorActiveSection === "Accounts"
                       ? "m-5 w-full rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 py-2 shadow-inner"
                       : "m-5 w-full rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 py-2 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
                   }`}
@@ -263,13 +284,13 @@ const DebtorModal = ({ ...props }: Props) => {
               </div>
               <div
                 className={`${
-                  activeSection === "Entity" ? "top-[20%]" : "top-[20%]"
+                  processCtx.debtorActiveSection === "Entity" ? "top-[20%]" : "top-[20%]"
                 } "shadow-outer absolute right-5 flex rounded-md drop-shadow-md`}
               >
                 <button
                   className="flex w-full items-center gap-3 rounded-lg bg-gradient-to-r from-gray-100 to-gray-300 py-2 pl-2 text-center shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)] drop-shadow-md"
                   onClick={() => {
-                    setShowConditions(!showConditions)
+                    processCtx.setShowConditions(!processCtx.showConditions)
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" id="connection" className="z-99">
@@ -319,7 +340,7 @@ const DebtorModal = ({ ...props }: Props) => {
                       ></path>
                     </g>
                   </svg>
-                  <div className={`z-1 relative ${showConditions === true ? "rotate-180" : "rotate-0"}`}>
+                  <div className={`z-1 relative ${processCtx.showConditions === true ? "rotate-180" : "rotate-0"}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" id="right-arrow">
                       <path fill="#00000000" d="M0 0h24v24H0V0z"></path>
                       <path d="M11.71 15.29l2.59-2.59c.39-.39.39-1.02 0-1.41L11.71 8.7c-.63-.62-1.71-.18-1.71.71v5.17c0 .9 1.08 1.34 1.71.71z"></path>
@@ -327,7 +348,7 @@ const DebtorModal = ({ ...props }: Props) => {
                   </div>
                 </button>
               </div>
-              {activeSection === "Entity" && (
+              {processCtx.debtorActiveSection === "Entity" && (
                 <>
                   <div className="flex max-h-[600px]">
                     <div className="mx-[20px] flex items-center justify-center">
@@ -429,7 +450,6 @@ const DebtorModal = ({ ...props }: Props) => {
                             </svg>
                           }
                         />
-
                         {errors.BirthDt && <p className="text-red-500">{errors.BirthDt}</p>}
                       </div>
                       <div>
@@ -571,7 +591,7 @@ const DebtorModal = ({ ...props }: Props) => {
                   </div>
                 </>
               )}
-              {activeSection === "Accounts" && customAccounts.length > 0 && (
+              {processCtx.debtorActiveSection === "Accounts" && customAccounts.length > 0 && (
                 <>
                   {/* <div className={`grid gap-4 ${accountDetails.length >= 3 ? "grid-cols-2" : "grid-cols-1"}`}> */}
                   <div className={"flex grid h-[450px] grid-cols-1 gap-2 overflow-auto"}>
@@ -737,27 +757,32 @@ const DebtorModal = ({ ...props }: Props) => {
                 )}
               </div>
             </div>
-            {processCtx.conditionsList.length === 0
-              ? showConditions && (
+            {processCtx.conditionsData.conditions.length === 0
+              ? processCtx.showConditions && (
                   <ConditionsCreate
                     handleClose={handleClose}
                     setVisible={() => setCreateConditions(!createConditions)}
                     newCondition={newCondition}
                     setNewCondition={setNewCondition}
+                    activeSection={processCtx.debtorActiveSection}
                   />
                 )
-              : showConditions &&
+              : processCtx.showConditions &&
                 (createConditions ? (
                   <ConditionsCreate
                     handleClose={handleClose}
                     setVisible={() => setCreateConditions(!createConditions)}
                     newCondition={newCondition}
                     setNewCondition={setNewCondition}
+                    activeSection={processCtx.debtorActiveSection}
                   />
                 ) : (
                   <ConditionsList
                     handleClose={handleClose}
-                    conditions_data={processCtx.conditionsList}
+                    conditions_data={
+                      // processCtx.conditionsData.conditions
+                      filteredConditions
+                    }
                     handleCreate={() => {
                       setCreateConditions(!createConditions)
                     }}

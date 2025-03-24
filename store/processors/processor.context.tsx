@@ -1,5 +1,6 @@
 import { createContext } from "react"
 import {
+  defaultConditionsData,
   defaultEDLights,
   defaultEntityEventType,
   defaultTadProcLights,
@@ -7,7 +8,9 @@ import {
 } from "./processor.initialState"
 import {
   Conditions,
+  ConditionStructure,
   EDLightsManager,
+  ExpireProps,
   GetConditionsProps,
   ListCondition,
   NewCondition,
@@ -29,7 +32,11 @@ interface Context {
   msgId: string | undefined
   entityEventType: string[]
   entityAllChecked: boolean
+  expireConError: string | undefined
   conditionsList: ListCondition[]
+  conditionsData: ConditionStructure
+  debtorActiveSection: "Entity" | "Accounts"
+  showConditions: boolean
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -46,6 +53,10 @@ interface Context {
   ruleLightsNeutral: () => void
   getConditions: ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => void
   createCondition: (condition: NewCondition) => void
+  expireCondition: ({ type, accountId, entityId, xprtnDtTm, schmeNm, agt }: ExpireProps) => void
+  getAllConditions: () => void
+  update_debtor_active_section: (section: "Entity" | "Accounts") => void
+  setShowConditions: (option: boolean) => void
 }
 
 const ProcessorContext = createContext<Context>({
@@ -62,6 +73,10 @@ const ProcessorContext = createContext<Context>({
   entityEventType: defaultEntityEventType,
   entityAllChecked: false,
   conditionsList: [],
+  expireConError: undefined,
+  conditionsData: defaultConditionsData,
+  debtorActiveSection: "Entity",
+  showConditions: false,
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
@@ -78,6 +93,10 @@ const ProcessorContext = createContext<Context>({
   ruleLightsNeutral: () => {},
   getConditions: async ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => {},
   createCondition: async (condition: NewCondition) => {},
+  expireCondition: async (data: ExpireProps) => {},
+  getAllConditions: () => {},
+  update_debtor_active_section: (section: "Entity" | "Accounts") => {},
+  setShowConditions: (option: boolean) => {},
 })
 
 export default ProcessorContext

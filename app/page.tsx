@@ -17,7 +17,7 @@ import { DragDropContext, Draggable, Droppable } from "../node_modules/@hello-pa
 import RuleResult from "components/RuleResults/RuleResults"
 import TypeResult from "components/TypologyResults/TypologyResults"
 import { iconColour } from "utils/helpers"
-import { Typology } from "store/processors/processor.interface"
+import { ListCondition, Typology } from "store/processors/processor.interface"
 
 const Web = () => {
   const entityCtx = useContext(EntityContext)
@@ -92,6 +92,8 @@ const Web = () => {
   const [selectedCreditorEntity, setSelectedCreditorEntity] = useState<number>(0)
 
   useEffect(() => {
+    procCtx.getAllConditions()
+
     setSelectedEntity(entityCtx.selectedDebtorEntity.debtorSelectedIndex || 0)
   }, [entityCtx.selectedDebtorEntity.debtorSelectedIndex])
 
@@ -281,11 +283,12 @@ const Web = () => {
                     resetLights={procCtx.resetAllLights}
                     setStarted={setStarted}
                     resetAllLights={() => procCtx.resetAllLights()}
+                    setModalVisible={setModal}
                   />
                 </div>
                 <div className="relative col-span-4 flex items-center justify-between px-5">
-                  <ProcessIndicator started={started} stop={procCtx.tadpLights.stop} />
-                  {procCtx.tadpLights.stop && (
+                  <ProcessIndicator started={started} stop={procCtx.tadpLights.stop} efrup={procCtx.tadpLights.efrup} />
+                  {procCtx.tadpLights.efrup === "block" ? (
                     <Image
                       src="/stop.png"
                       width="250"
@@ -300,6 +303,24 @@ const Web = () => {
                       alt="stop"
                       priority={true}
                     />
+                  ) : (
+                    procCtx.tadpLights.stop &&
+                    procCtx.tadpLights.efrup !== "override" && (
+                      <Image
+                        src="/stop.png"
+                        width="250"
+                        height="250"
+                        className="absolute inset-0 m-auto"
+                        style={{
+                          position: "absolute",
+                          zIndex: 1,
+                          // maxWidth: "280px",
+                          minWidth: "280px",
+                        }}
+                        alt="stop"
+                        priority={true}
+                      />
+                    )
                   )}
                 </div>
                 <div className="col-span-4">
@@ -311,6 +332,7 @@ const Web = () => {
                     resetLights={procCtx.resetAllLights}
                     setStarted={setStarted}
                     resetAllLights={() => procCtx.resetAllLights()}
+                    setModalVisible={setModal}
                   />
                 </div>
               </div>
@@ -553,6 +575,21 @@ const Web = () => {
                       </p>
                     </div>
                   ))}
+                {procCtx.tadpLights.efrup !== undefined && (
+                  <div className="absolute bottom-16 flex items-center justify-center text-center">
+                    {procCtx.tadpLights.efrup === "block" ? (
+                      <p className="mb-5 rounded-lg border-[1px] border-red-500 bg-gradient-to-r from-red-100 to-red-200 px-5 py-2 text-center text-xs uppercase text-red-500 shadow-lg">
+                        BLOCKED
+                      </p>
+                    ) : (
+                      procCtx.tadpLights.efrup === "override" && (
+                        <p className="mb-5 flex max-w-[120px] rounded-lg border-[1px] border-green-500 bg-gradient-to-r from-green-100 to-green-200 px-5 py-2 text-center text-xs uppercase text-green-500 shadow-lg">
+                          INTERDICTION OVERRIDDEN
+                        </p>
+                      )
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

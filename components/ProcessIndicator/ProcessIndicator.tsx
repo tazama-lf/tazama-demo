@@ -4,8 +4,9 @@ import { StatusIndicator } from "../StatusIndicator/StatusIndicator"
 interface Props {
   started: boolean
   stop?: boolean
+  efrup?: string
 }
-export function ProcessIndicator({ started, stop }: Props) {
+export function ProcessIndicator({ started, stop, efrup }: Props) {
   const [progress, setProgress] = useState<number | null>(null)
 
   useEffect(() => {
@@ -38,6 +39,18 @@ export function ProcessIndicator({ started, stop }: Props) {
       <StatusIndicator colour={progress === 6 ? "g" : "n"} />
       <StatusIndicator colour={progress === 7 ? "g" : "n"} />
       <StatusIndicator colour={progress === 8 ? "g" : "n"} />
+    </>
+  ) : efrup === "override" ? (
+    <>
+      <StatusIndicator colour={"g"} />
+      <StatusIndicator colour={"g"} />
+      <StatusIndicator colour={"g"} />
+      <StatusIndicator colour={"g"} />
+      <StatusIndicator colour={"g"} />
+      <StatusIndicator colour={"g"} />
+      <StatusIndicator colour={"g"} />
+      <StatusIndicator colour={"g"} />
+      <StatusIndicator colour={"g"} />
     </>
   ) : (
     <>

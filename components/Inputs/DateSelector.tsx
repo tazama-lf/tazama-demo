@@ -1,6 +1,7 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { NewCondition } from "store/processors/processor.interface"
-import { convertCheckDate, handleDateTimeChange } from "utils/helpers"
+import { convertCheckDate, displayDate, handleDateTimeChange, toIsoString, viewLocalTime } from "utils/helpers"
+import moment from "moment"
 
 interface Props {
   state: NewCondition
@@ -40,36 +41,35 @@ const DateSelector = ({ errors, state, onChange }: Props) => {
                 let dateAttempt = new Date(e.target.value)
                 let checkDate = new Date(min_date.substring(0, 16)).getTime()
                 if (dateAttempt.getTime() < checkDate) {
-                  // onChange({
-                  //   ...state,
-                  //   incptnDtTm: handleDateTimeChange(new Date().toISOString()),
-                  // })
+                  onChange({
+                    ...state,
+                    incptnDtTm: dateAttempt.toISOString(),
+                  })
                 }
-
-                onChange({
-                  ...state,
-                  incptnDtTm: convertCheckDate(handleDateTimeChange(e.target.value)),
-                })
               }}
               className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
             />
-            <input
-              type="datetime-local"
-              name="datetime"
-              id="datetime"
-              min={min_date.substring(0, 16)}
-              onBlur={(e) => {
-                let dateAttempt = new Date(e.target.value)
-                let checkDate = new Date(min_date.substring(0, 16)).getTime()
-                if (dateAttempt.getTime() < checkDate) {
-                }
-                onChange({
-                  ...state,
-                  xprtnDtTm: convertCheckDate(handleDateTimeChange(e.target.value)),
-                })
-              }}
-              className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
-            />
+            <div className="flex flex-row gap-1">
+              <input
+                type="datetime-local"
+                name="datetime"
+                id="datetime"
+                min={min_date.substring(0, 16)}
+                value={state["xprtnDtTm"] !== undefined ? displayDate(viewLocalTime(state["xprtnDtTm"]!)!) : undefined}
+                // value={expDate}
+                onBlur={(e) => {
+                  let dateAttempt = new Date(e.target.value)
+                  let checkDate = new Date(min_date.substring(0, 16)).getTime()
+                  if (dateAttempt.getTime() < checkDate) {
+                  }
+                  onChange({
+                    ...state,
+                    xprtnDtTm: dateAttempt.toISOString(),
+                  })
+                }}
+                className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
+              />
+            </div>
           </div>
         </div>
       </div>

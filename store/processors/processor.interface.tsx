@@ -46,12 +46,14 @@ export interface TADPROC_RESULT {
     interdictionThreshold: number | null
   }
   ruleResults: RuleResult[]
+  efrup?: string | undefined
 }
 
 export interface TADPROC {
   status: string
   stop: boolean
   color: "r" | "g" | "y" | "n"
+  efrup?: string | undefined
   results: TADPROC_RESULT[]
 }
 
@@ -127,7 +129,7 @@ export interface NewCondition {
   evtTp: string[]
   condTp: string
   prsptv: string
-  incptnDtTm: string
+  incptnDtTm?: string | null | undefined
   xprtnDtTm?: string | null | undefined
   condRsn: string
   ntty?: Ntty
@@ -148,4 +150,19 @@ export interface GetConditionsProps {
 export interface ListCondition extends Conditions {
   creDtTm: string
   condId: string
+}
+
+export interface ExpireProps {
+  type: string
+  accountId?: string
+  entityId?: string
+  schmeNm: string
+  agt?: string
+  xprtnDtTm?: string | undefined
+  condId: string
+}
+
+export interface ConditionStructure {
+  conditions: ListCondition[]
+  activeConditions: string[]
 }
