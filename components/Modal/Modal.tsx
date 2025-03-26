@@ -121,7 +121,7 @@ const DebtorModal = ({ ...props }: Props) => {
     setCustomEntity(undefined)
     setCustomAccounts([])
     props.setModal(!props.showModal)
-    processCtx.setShowConditions(false)
+    processCtx.setShowDebtorConditions(false)
   }
 
   function handleCancel() {
@@ -249,7 +249,7 @@ const DebtorModal = ({ ...props }: Props) => {
                 <button
                   className="flex w-full items-center gap-3 rounded-lg bg-gradient-to-r from-gray-100 to-gray-300 py-2 pl-2 text-center shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)] drop-shadow-md"
                   onClick={() => {
-                    processCtx.setShowConditions(!processCtx.showConditions)
+                    processCtx.setShowDebtorConditions(!processCtx.showDebtorConditions)
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" id="connection" className="z-99">
@@ -299,7 +299,9 @@ const DebtorModal = ({ ...props }: Props) => {
                       ></path>
                     </g>
                   </svg>
-                  <div className={`z-1 relative ${processCtx.showConditions === true ? "rotate-180" : "rotate-0"}`}>
+                  <div
+                    className={`z-1 relative ${processCtx.showDebtorConditions === true ? "rotate-180" : "rotate-0"}`}
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" id="right-arrow">
                       <path fill="#00000000" d="M0 0h24v24H0V0z"></path>
                       <path d="M11.71 15.29l2.59-2.59c.39-.39.39-1.02 0-1.41L11.71 8.7c-.63-.62-1.71-.18-1.71.71v5.17c0 .9 1.08 1.34 1.71.71z"></path>
@@ -717,7 +719,7 @@ const DebtorModal = ({ ...props }: Props) => {
               </div>
             </div>
             {filteredConditions.length === 0
-              ? processCtx.showConditions && (
+              ? processCtx.showDebtorConditions && (
                   <ConditionsCreate
                     handleClose={handleClose}
                     setVisible={() => setCreateConditions(!createConditions)}
@@ -726,7 +728,7 @@ const DebtorModal = ({ ...props }: Props) => {
                     activeSection={processCtx.debtorActiveSection}
                   />
                 )
-              : processCtx.showConditions &&
+              : processCtx.showDebtorConditions &&
                 (createConditions ? (
                   <ConditionsCreate
                     handleClose={handleClose}

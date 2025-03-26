@@ -338,7 +338,7 @@ const Web = () => {
                     resetLights={processCtx.resetAllLights}
                     setStarted={setStarted}
                     resetAllLights={() => processCtx.resetAllLights()}
-                    setModalVisible={setModal}
+                    setModalVisible={setShowCreditorModal}
                   />
                 </div>
               </div>

@@ -60,7 +60,8 @@ const ProcessorProvider = ({ children }: Props) => {
     expireConError: undefined,
     debtorActiveSection: "Entity",
     creditorActiveSection: "Entity",
-    showConditions: false,
+    showDebtorConditions: false,
+    showCreditorConditions: false,
   }
   const [state, dispatch] = useReducer(ProcessorReducer, initialProcessorState)
   const nttyCtx = useContext(EntityContext)
@@ -934,8 +935,12 @@ const ProcessorProvider = ({ children }: Props) => {
     dispatch({ type: ACTIONS.UPDATE_CREDITOR_ACTIVE_SECTION, payload: selection })
   }
 
-  const setShowConditions = (option: true | false) => {
-    dispatch({ type: ACTIONS.SET_SHOW_CONDITIONS, payload: option })
+  const setShowDebtorConditions = (option: true | false) => {
+    dispatch({ type: ACTIONS.SET_SHOW_DEBTOR_CONDITIONS, payload: option })
+  }
+
+  const setShowCreditorConditions = (option: true | false) => {
+    dispatch({ type: ACTIONS.SET_SHOW_CREDITOR_CONDITIONS, payload: option })
   }
 
   return (
@@ -959,7 +964,8 @@ const ProcessorProvider = ({ children }: Props) => {
         expireConError: state.expireConError,
         debtorActiveSection: state.debtorActiveSection,
         creditorActiveSection: state.creditorActiveSection,
-        showConditions: state.showConditions,
+        showDebtorConditions: state.showDebtorConditions,
+        showCreditorConditions: state.showCreditorConditions,
         updateEntityEventType,
         updateEntityAllChecked,
         createRules,
@@ -981,7 +987,8 @@ const ProcessorProvider = ({ children }: Props) => {
         getAllCreditorConditions,
         update_debtor_active_section,
         update_creditor_active_section,
-        setShowConditions,
+        setShowDebtorConditions,
+        setShowCreditorConditions,
       }}
     >
       {children}

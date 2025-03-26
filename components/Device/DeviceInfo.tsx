@@ -4,8 +4,8 @@ import TransactionModal from "./TransactionModal"
 import EditModal from "./EditModal"
 import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
 import ProcessorContext from "store/processors/processor.context"
-import { DebtorAccount, Entity } from "store/entities/entity.interface"
-import { checkIsActiveDebtorAccount } from "utils/helpers"
+import { CreditorEntity, DebtorAccount, Entity } from "store/entities/entity.interface"
+import { checkIsActiveCreditorAccount, checkIsActiveDebtorAccount } from "utils/helpers"
 
 interface DeviceProps {
   selectedEntity: number
@@ -34,8 +34,10 @@ export function DeviceInfo(props: DeviceProps) {
     status: "",
   })
 
-  const accountIndex = entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
-  const entity = entityCtx.entities[props.selectedEntity]
+  const accountIndex: number | undefined = entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
+  const entity: Entity | undefined = entityCtx.entities[props.selectedEntity]
+  const creditorAccountIndex = entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex
+  const creditorEntity = entityCtx.creditorEntities[props.selectedEntity]
 
   const handleClick = async () => {
     await entityCtx.generateTransaction()
@@ -45,27 +47,24 @@ export function DeviceInfo(props: DeviceProps) {
 
   useEffect(() => {
     setIsTransaction(false)
-    checkIsActiveDebtorAccount(
-      entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
-        ? entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
-        : 0,
-      processCtx.conditionsDataDebtor,
-      entity
-    )
+    if (props.isDebtor) {
+      checkIsActiveDebtorAccount(
+        entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
+          ? entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
+          : 0,
+        processCtx.conditionsDataDebtor,
+        entity
+      )
+    } else {
+      checkIsActiveCreditorAccount(
+        entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex
+          ? entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex
+          : 0,
+        processCtx.conditionsDataCreditor,
+        creditorEntity
+      )
+    }
   }, [props.selectedEntity])
-
-  // useEffect(() => {
-  //   entity?.Accounts.map((item) => {
-  //     processCtx.conditionsData.activeConditions.push(item.DbtrAcct.Id.Othr[0].Id)
-  //   })
-  //   entity?.Accounts.map((item) => {
-  //     if (processCtx.conditionsData.activeConditions) {
-  //       if (processCtx.conditionsData.activeConditions.includes(item.DbtrAcct.Id.Othr[0].Id)) {
-  //         setActiveAccount(true)
-  //       }
-  //     }
-  //   })
-  // }, [entity])
 
   const handleEditClick = () => {
     setFormValues({
@@ -118,9 +117,6 @@ export function DeviceInfo(props: DeviceProps) {
       break
   }
 
-  const creditorAccountIndex = entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex
-  const creditorEntity = entityCtx.creditorEntities[props.selectedEntity]
-
   const pacs002Data = entityCtx.pacs002.FIToFIPmtSts
 
   const handleStatusEdit = (): any => {
@@ -145,7 +141,7 @@ export function DeviceInfo(props: DeviceProps) {
               <button
                 className="mr-2 flex grow justify-end"
                 onClick={() => {
-                  processCtx.setShowConditions(true)
+                  processCtx.setShowDebtorConditions(true)
                   processCtx.update_debtor_active_section("Entity")
                   props.setModalVisible(true)
                 }}
@@ -171,22 +167,12 @@ export function DeviceInfo(props: DeviceProps) {
               <button
                 className="absolute right-0 top-0 mr-0 flex"
                 onClick={() => {
-                  processCtx.setShowConditions(true)
+                  processCtx.setShowDebtorConditions(true)
                   processCtx.update_debtor_active_section("Accounts")
                   props.setModalVisible(true)
                 }}
               >
                 <StatusIndicator
-                  // colour={
-                  //   entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex &&
-                  //   "activeConditions" in processCtx.conditionsData &&
-                  //   processCtx.conditionsData.activeConditions &&
-                  //   processCtx.conditionsData.activeConditions.includes(
-                  //     entity.Accounts[entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex].DbtrAcct.Id.Othr[0].Id
-                  //   )
-                  //     ? "b"
-                  //     : "n"
-                  // }
                   colour={checkIsActiveDebtorAccount(
                     entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex,
                     processCtx.conditionsDataDebtor,
@@ -267,9 +253,27 @@ export function DeviceInfo(props: DeviceProps) {
                 />
               </svg>
               <span className="ml-2 text-white">{creditorEntity?.CreditorEntity.Cdtr.Nm || "Name"}</span>
-              <div className="mr-2 flex grow justify-end">
-                <StatusIndicator colour="n" />
-              </div>
+
+              <button
+                className="mr-2 flex grow justify-end"
+                onClick={() => {
+                  processCtx.setShowCreditorConditions(true)
+                  processCtx.update_creditor_active_section("Entity")
+                  props.setModalVisible(true)
+                }}
+              >
+                <StatusIndicator
+                  colour={
+                    "activeConditions" in processCtx.conditionsDataCreditor &&
+                    processCtx.conditionsDataCreditor.activeConditions &&
+                    processCtx.conditionsDataCreditor.activeConditions.includes(
+                      creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id
+                    )
+                      ? "b"
+                      : "n"
+                  }
+                />
+              </button>
             </div>
 
             <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
@@ -277,9 +281,33 @@ export function DeviceInfo(props: DeviceProps) {
               <p>Date of birth: {creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt}</p>
             </div>
             <div className="relative m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
-              <div className="absolute right-0 top-0 mr-0 flex">
-                <StatusIndicator colour="n" />
-              </div>
+              <button
+                className="absolute right-0 top-0 mr-0 flex"
+                onClick={() => {
+                  processCtx.setShowCreditorConditions(true)
+                  processCtx.update_creditor_active_section("Accounts")
+                  props.setModalVisible(true)
+                }}
+              >
+                <StatusIndicator
+                  // colour={
+                  //   entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex &&
+                  //   "activeConditions" in processCtx.conditionsData &&
+                  //   processCtx.conditionsData.activeConditions &&
+                  //   processCtx.conditionsData.activeConditions.includes(
+                  //     entity.Accounts[entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex].DbtrAcct.Id.Othr[0].Id
+                  //   )
+                  //     ? "b"
+                  //     : "n"
+                  // }
+                  colour={checkIsActiveCreditorAccount(
+                    entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex,
+                    processCtx.conditionsDataCreditor,
+                    creditorEntity
+                  )}
+                />
+              </button>
+
               <p className={`font-bold ${fillColour}`}>
                 {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm}
               </p>

@@ -366,10 +366,15 @@ const ProcessorReducer = (state: any, action: any) => {
         creditorActiveSection: action.payload,
       }
 
-    case ACTIONS.SET_SHOW_CONDITIONS:
+    case ACTIONS.SET_SHOW_DEBTOR_CONDITIONS:
       return {
         ...state,
-        showConditions: action.payload,
+        showDebtorConditions: action.payload,
+      }
+    case ACTIONS.SET_SHOW_CREDITOR_CONDITIONS:
+      return {
+        ...state,
+        showCreditorConditions: action.payload,
       }
   }
 }
