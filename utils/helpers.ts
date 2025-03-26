@@ -1,4 +1,4 @@
-import { DebtorAccount, Entity } from "store/entities/entity.interface"
+import { CdtrEntity, CreditorAccount, DebtorAccount, Entity } from "store/entities/entity.interface"
 import { ConditionStructure, NewCondition } from "store/processors/processor.interface"
 
 export const sentanceCase = (text: string) => {
@@ -398,7 +398,7 @@ export const toIsoString = (date: any): string => {
   )
 }
 
-export const checkIsActiveAccount = (
+export const checkIsActiveDebtorAccount = (
   selectedIndex: number | undefined,
   conditionsData: ConditionStructure,
   entity?: Entity | undefined
@@ -421,9 +421,44 @@ export const checkIsActiveAccount = (
   }
 }
 
-export const checkActiveEntity = (conditionsData: ConditionStructure, entity?: Entity | undefined): any => {
+export const checkActiveDebtorEntity = (conditionsData: ConditionStructure, entity?: Entity | undefined): any => {
   if (entity) {
     if (conditionsData.activeConditions.includes(entity.Entity.Dbtr.Id.PrvtId.Othr[0].Id)) {
+      return "b"
+    } else {
+      return "n"
+    }
+  } else {
+    return "n"
+  }
+}
+
+export const checkIsActiveCreditorAccount = (
+  selectedIndex: number | undefined,
+  conditionsData: ConditionStructure,
+  entity?: CdtrEntity | undefined
+) => {
+  console.log("CHECKING", selectedIndex, entity, conditionsData)
+  if (entity) {
+    if (entity.CreditorAccounts.length > 0 && entity!.CreditorAccounts) {
+      let acc: CreditorAccount | undefined = entity.CreditorAccounts[selectedIndex ? selectedIndex : 0]
+      console.log("ACC: ", acc)
+      if (acc !== undefined) {
+        if (conditionsData.activeConditions.includes(acc.CdtrAcct.Id.Othr[0].Id)) {
+          return "b"
+        } else {
+          return "n"
+        }
+      }
+    }
+  } else {
+    return "r"
+  }
+}
+
+export const checkActiveCreditorEntity = (conditionsData: ConditionStructure, entity?: CdtrEntity | undefined): any => {
+  if (entity) {
+    if (conditionsData.activeConditions.includes(entity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id)) {
       return "b"
     } else {
       return "n"

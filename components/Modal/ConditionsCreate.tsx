@@ -48,7 +48,8 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
     } else {
       // processCtx.conditionsList.push(newCondition)
       await processCtx.createCondition(newCondition)
-      await processCtx.getAllConditions()
+      await processCtx.getAllDebtorConditions()
+      await processCtx.getAllCreditorConditions()
       if (activeSection === "Entity") {
         setNewCondition(newEntityConditionState)
       } else if (activeSection === "Accounts") {

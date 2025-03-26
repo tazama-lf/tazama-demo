@@ -18,6 +18,7 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
   const processCtx = useContext(ProcessorContext)
   const [showExpire, setShowExpire] = useState<boolean>(false)
   const [selectedCondition, setSelectedCondition] = useState<ListCondition | undefined>(undefined)
+  const [expDtTm, setExpDtTm] = useState<string | null>(null)
   // const [filteredConditions, setFilteredConditions] = useState<ListCondition[]>([])
 
   useEffect(() => {
@@ -25,42 +26,16 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
   }),
     [selectedCondition]
 
-  // useEffect(() => {
-  //   if (activeSection === "Entity") {
-  //     let nttyData = processCtx.conditionsData.conditions.filter((con) => {
-  //       return "ntty" in con
-  //     })
-  //     let filteredNttyData = nttyData.filter((con) => {
-  //       let nttyIndex: number = entityCtx.selectedDebtorEntity.debtorSelectedIndex || 0
-  //       let nttyId: string | undefined =
-  //         entityCtx.entities[nttyIndex !== undefined ? nttyIndex : 0]?.Entity.Dbtr.Id.PrvtId.Othr[0].Id
-  //       return con.ntty!.id.includes(nttyId!)
-  //     })
-  //     setFilteredConditions(filteredNttyData)
-  //     console.log("FILTERED: ", filteredNttyData)
-  //   } else if (activeSection === "Accounts") {
-  //     let acctData = processCtx.conditionsData.conditions.filter((con) => {
-  //       return "acct" in con
-  //     })
-  //     let filteredAcctData = acctData.filter((con) => {
-  //       let nttyIndex: number = entityCtx.selectedDebtorEntity.debtorSelectedIndex || 0
-  //       let acctIndex: number = entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex || 0
-  //       let acctId: string | undefined =
-  //         entityCtx.entities[nttyIndex !== undefined ? nttyIndex : 0]?.Accounts[acctIndex !== undefined ? acctIndex : 0]
-  //           ?.DbtrAcct.Id.Othr[0].Id
-  //       return con.acct!.id.includes(acctId!)
-  //     })
-  //     setFilteredConditions(filteredAcctData)
-  //     console.log("FILTERED: ", filteredAcctData)
-  //   }
-  // }, [processCtx.conditionsData])
+  useEffect(() => {
+    console.log("EXP_DT_TM_UE: ", expDtTm)
+  }, [expDtTm])
 
-  const handleExpire = (con: ListCondition) => {
+  const handleExpire = (con: ListCondition, newDate: string) => {
     // ----------------------------------------------------------------> Here <----------------------------------------------------------------
-
-    con.xprtnDtTm = handleAdjustTime(new Date().toISOString())
+    con.xprtnDtTm = newDate
   }
-  const entityCtx = useContext(EntityContext)
+
+  // const entityCtx = useContext(EntityContext)
   const conditions = conditions_data.map((con: ListCondition) => {
     let colour: any = "n"
     if (con.xprtnDtTm) {
@@ -179,7 +154,7 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
             className="z-99 mt-[7px]"
             onClick={() => {
               setSelectedCondition(con)
-              setShowExpire(true)
+              // setShowExpire(true)
             }}
           >
             <input
@@ -188,11 +163,22 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
               id="datetime"
               min={new Date().getTime().toString().substring(0, 16)}
               className="max-w-[150px] rounded-md p-1"
-              onFocus={() => setShowExpire(true)}
-              onClick={() => {
-                setSelectedCondition(con)
+              value={expDtTm !== null ? handleAdjustTime(expDtTm) : undefined}
+              onBlur={(e) => {
+                let min_date = new Date().toISOString()
+                let dateAttempt = new Date(e.target.value)
+                let checkDate = new Date(min_date.substring(0, 16)).getTime()
+                if (dateAttempt.getTime() > checkDate) {
+                  setExpDtTm(dateAttempt.toISOString())
+                }
                 setShowExpire(true)
               }}
+
+              // onFocus={() => setShowExpire(true)}
+              // onClick={() => {
+              //   setSelectedCondition(con)
+              //   setShowExpire(true)
+              // }}
             />
           </div>
         )}
@@ -322,25 +308,48 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
             if (selectedCondition !== undefined) {
               if ("acct" in selectedCondition) {
                 console.log("ACCOUNT EXPIRE HIT", selectedCondition)
-                processCtx.expireCondition({
-                  type: "account",
-                  accountId: selectedCondition.acct!.id,
-                  agt: selectedCondition.acct?.agt.finInstnId.clrSysMmbId.mmbId,
-                  schmeNm: selectedCondition.acct!.schmeNm.prtry,
-                  condId: selectedCondition.condId,
-                })
+                if (expDtTm !== null) {
+                  processCtx.expireCondition({
+                    type: "account",
+                    accountId: selectedCondition.acct!.id,
+                    agt: selectedCondition.acct?.agt.finInstnId.clrSysMmbId.mmbId,
+                    schmeNm: selectedCondition.acct!.schmeNm.prtry,
+                    condId: selectedCondition.condId,
+                    xprtnDtTm: expDtTm,
+                  })
+                  handleExpire(selectedCondition, expDtTm)
+                } else {
+                  processCtx.expireCondition({
+                    type: "account",
+                    accountId: selectedCondition.acct!.id,
+                    agt: selectedCondition.acct?.agt.finInstnId.clrSysMmbId.mmbId,
+                    schmeNm: selectedCondition.acct!.schmeNm.prtry,
+                    condId: selectedCondition.condId,
+                  })
+                }
                 // processCtx.expireCondition({ type: "account", accountId: "1", agt: "MSIDSN"})
               } else if ("ntty" in selectedCondition) {
                 console.log("ENTITY EXPIRE HIT")
-                processCtx.expireCondition({
-                  type: "entity",
-                  entityId: selectedCondition.ntty!.id,
-                  schmeNm: selectedCondition.ntty!.schmeNm.prtry,
-                  condId: selectedCondition.condId,
-                })
+                if (expDtTm !== null) {
+                  processCtx.expireCondition({
+                    type: "entity",
+                    entityId: selectedCondition.ntty!.id,
+                    schmeNm: selectedCondition.ntty!.schmeNm.prtry,
+                    condId: selectedCondition.condId,
+                    xprtnDtTm: expDtTm,
+                  })
+                  handleExpire(selectedCondition, expDtTm)
+                } else {
+                  processCtx.expireCondition({
+                    type: "entity",
+                    entityId: selectedCondition.ntty!.id,
+                    schmeNm: selectedCondition.ntty!.schmeNm.prtry,
+                    condId: selectedCondition.condId,
+                  })
+                }
               }
 
-              handleExpire(selectedCondition)
+              // handleExpire(selectedCondition)
             }
           }}
         />

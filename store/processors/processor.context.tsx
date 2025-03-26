@@ -7,7 +7,6 @@ import {
   ruleInitialState,
 } from "./processor.initialState"
 import {
-  Conditions,
   ConditionStructure,
   EDLightsManager,
   ExpireProps,
@@ -34,8 +33,10 @@ interface Context {
   entityAllChecked: boolean
   expireConError: string | undefined
   conditionsList: ListCondition[]
-  conditionsData: ConditionStructure
+  conditionsDataDebtor: ConditionStructure
+  conditionsDataCreditor: ConditionStructure
   debtorActiveSection: "Entity" | "Accounts"
+  creditorActiveSection: "Entity" | "Accounts"
   showConditions: boolean
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
@@ -54,8 +55,10 @@ interface Context {
   getConditions: ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => void
   createCondition: (condition: NewCondition) => void
   expireCondition: ({ type, accountId, entityId, xprtnDtTm, schmeNm, agt }: ExpireProps) => void
-  getAllConditions: () => void
+  getAllDebtorConditions: () => void
+  getAllCreditorConditions: () => void
   update_debtor_active_section: (section: "Entity" | "Accounts") => void
+  update_creditor_active_section: (section: "Entity" | "Accounts") => void
   setShowConditions: (option: boolean) => void
 }
 
@@ -74,8 +77,10 @@ const ProcessorContext = createContext<Context>({
   entityAllChecked: false,
   conditionsList: [],
   expireConError: undefined,
-  conditionsData: defaultConditionsData,
+  conditionsDataDebtor: defaultConditionsData,
+  conditionsDataCreditor: defaultConditionsData,
   debtorActiveSection: "Entity",
+  creditorActiveSection: "Entity",
   showConditions: false,
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
@@ -94,8 +99,10 @@ const ProcessorContext = createContext<Context>({
   getConditions: async ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => {},
   createCondition: async (condition: NewCondition) => {},
   expireCondition: async (data: ExpireProps) => {},
-  getAllConditions: () => {},
+  getAllDebtorConditions: () => {},
+  getAllCreditorConditions: () => {},
   update_debtor_active_section: (section: "Entity" | "Accounts") => {},
+  update_creditor_active_section: (section: "Entity" | "Accounts") => {},
   setShowConditions: (option: boolean) => {},
 })
 

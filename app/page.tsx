@@ -21,7 +21,7 @@ import { ListCondition, Typology } from "store/processors/processor.interface"
 
 const Web = () => {
   const entityCtx = useContext(EntityContext)
-  const procCtx = useContext(ProcessorContext)
+  const processCtx = useContext(ProcessorContext)
 
   const [hoveredRule, setHoveredRule] = useState<any>(null)
   const [hoverRules, setHoverRules] = useState<any[]>([])
@@ -92,12 +92,14 @@ const Web = () => {
   const [selectedCreditorEntity, setSelectedCreditorEntity] = useState<number>(0)
 
   useEffect(() => {
-    procCtx.getAllConditions()
+    processCtx.getAllDebtorConditions()
 
     setSelectedEntity(entityCtx.selectedDebtorEntity.debtorSelectedIndex || 0)
   }, [entityCtx.selectedDebtorEntity.debtorSelectedIndex])
 
   useEffect(() => {
+    processCtx.getAllCreditorConditions()
+
     setSelectedCreditorEntity(entityCtx.selectedCreditorEntity.creditorSelectedIndex || 0)
   }, [entityCtx.selectedCreditorEntity.creditorSelectedIndex])
 
@@ -167,8 +169,8 @@ const Web = () => {
           className="content-right-center ml-auto rounded-md bg-gradient-to-b from-gray-100 to-gray-200 p-2 shadow-lg"
           onClick={() => {
             entityCtx.clearUIData()
-            procCtx.resetAllLights()
-            procCtx.clearResults()
+            processCtx.resetAllLights()
+            processCtx.clearResults()
           }}
         >
           Clear All
@@ -278,17 +280,21 @@ const Web = () => {
                   <DebtorDevice
                     selectedEntity={selectedEntity}
                     isDebtor={true}
-                    lights={procCtx.edLights}
-                    setLights={procCtx.updateEDLights}
-                    resetLights={procCtx.resetAllLights}
+                    lights={processCtx.edLights}
+                    setLights={processCtx.updateEDLights}
+                    resetLights={processCtx.resetAllLights}
                     setStarted={setStarted}
-                    resetAllLights={() => procCtx.resetAllLights()}
+                    resetAllLights={() => processCtx.resetAllLights()}
                     setModalVisible={setModal}
                   />
                 </div>
                 <div className="relative col-span-4 flex items-center justify-between px-5">
-                  <ProcessIndicator started={started} stop={procCtx.tadpLights.stop} efrup={procCtx.tadpLights.efrup} />
-                  {procCtx.tadpLights.efrup === "block" ? (
+                  <ProcessIndicator
+                    started={started}
+                    stop={processCtx.tadpLights.stop}
+                    efrup={processCtx.tadpLights.efrup}
+                  />
+                  {processCtx.tadpLights.efrup === "block" ? (
                     <Image
                       src="/stop.png"
                       width="250"
@@ -304,8 +310,8 @@ const Web = () => {
                       priority={true}
                     />
                   ) : (
-                    procCtx.tadpLights.stop &&
-                    procCtx.tadpLights.efrup !== "override" && (
+                    processCtx.tadpLights.stop &&
+                    processCtx.tadpLights.efrup !== "override" && (
                       <Image
                         src="/stop.png"
                         width="250"
@@ -327,11 +333,11 @@ const Web = () => {
                   <DebtorDevice
                     selectedEntity={selectedCreditorEntity}
                     isDebtor={false}
-                    lights={procCtx.edLights}
-                    setLights={procCtx.updateEDLights}
-                    resetLights={procCtx.resetAllLights}
+                    lights={processCtx.edLights}
+                    setLights={processCtx.updateEDLights}
+                    resetLights={processCtx.resetAllLights}
                     setStarted={setStarted}
-                    resetAllLights={() => procCtx.resetAllLights()}
+                    resetAllLights={() => processCtx.resetAllLights()}
                     setModalVisible={setModal}
                   />
                 </div>
@@ -444,11 +450,11 @@ const Web = () => {
               </h2>
 
               <div className="relative flex min-h-80 items-center justify-center">
-                <StatusIndicator large={true} colour={procCtx.edLights.ED.color} />
-                {procCtx.edLights.ED.error !== "" && (
+                <StatusIndicator large={true} colour={processCtx.edLights.ED.color} />
+                {processCtx.edLights.ED.error !== "" && (
                   <div className="absolute bottom-16 flex items-center justify-center text-center">
                     <p className="mb-5 w-3/4 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 p-2 text-center text-xs uppercase shadow-lg">
-                      {procCtx.edLights.ED.error}
+                      {processCtx.edLights.ED.error}
                     </p>
                   </div>
                 )}
@@ -463,10 +469,10 @@ const Web = () => {
               <div className="grid grid-cols-12">
                 <div className="col-span-6">
                   <div className="grid grid-cols-3 gap-1 px-5">
-                    {procCtx.rulesLoading ? (
+                    {processCtx.rulesLoading ? (
                       <p className="mb-5 w-80 rounded-t-lg py-5 text-center">Loading</p>
                     ) : (
-                      procCtx.rules?.map((rule: any) => (
+                      processCtx.rules?.map((rule: any) => (
                         <div
                           className={`mb-1  flex cursor-pointer rounded-md px-2 ${
                             hoverRules && hoverRules.includes(rule.title) && "bg-gray-200 shadow"
@@ -524,8 +530,8 @@ const Web = () => {
               <div className="grid grid-cols-12">
                 <div className="col-span-6">
                   <div className="grid grid-cols-3 gap-1 px-5">
-                    {procCtx.typologies &&
-                      procCtx.typologies.map((type: any) => (
+                    {processCtx.typologies &&
+                      processCtx.typologies.map((type: any) => (
                         <div
                           className={`mb-1 flex cursor-pointer rounded-md px-2 ${
                             hoverTypes && hoverTypes.includes(type.title) && "bg-gray-200 shadow"
@@ -565,24 +571,24 @@ const Web = () => {
               </h2>
 
               <div className="relative flex min-h-80 items-center justify-center">
-                <StatusIndicator large={true} colour={procCtx.tadpLights.color} />
+                <StatusIndicator large={true} colour={processCtx.tadpLights.color} />
 
-                {procCtx.tadpLights.color === "y" ||
-                  (procCtx.tadpLights.color === "r" && (
+                {processCtx.tadpLights.color === "y" ||
+                  (processCtx.tadpLights.color === "r" && (
                     <div className="absolute bottom-16 flex items-center justify-center text-center">
                       <p className="mb-5 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 px-5 py-2 text-center text-xs uppercase shadow-lg">
-                        {procCtx.tadpLights.status}
+                        {processCtx.tadpLights.status}
                       </p>
                     </div>
                   ))}
-                {procCtx.tadpLights.efrup !== undefined && (
+                {processCtx.tadpLights.efrup !== undefined && (
                   <div className="absolute bottom-16 flex items-center justify-center text-center">
-                    {procCtx.tadpLights.efrup === "block" ? (
+                    {processCtx.tadpLights.efrup === "block" ? (
                       <p className="mb-5 rounded-lg border-[1px] border-red-500 bg-gradient-to-r from-red-100 to-red-200 px-5 py-2 text-center text-xs uppercase text-red-500 shadow-lg">
                         BLOCKED
                       </p>
                     ) : (
-                      procCtx.tadpLights.efrup === "override" && (
+                      processCtx.tadpLights.efrup === "override" && (
                         <p className="mb-5 flex max-w-[120px] rounded-lg border-[1px] border-green-500 bg-gradient-to-r from-green-100 to-green-200 px-5 py-2 text-center text-xs uppercase text-green-500 shadow-lg">
                           INTERDICTION OVERRIDDEN
                         </p>

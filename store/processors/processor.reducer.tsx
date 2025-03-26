@@ -45,33 +45,33 @@ const ProcessorReducer = (state: any, action: any) => {
         typologies: [],
       }
 
-    case ACTIONS.GET_CONDITIONS_LOADING:
+    case ACTIONS.GET_DEBTOR_CONDITIONS_LOADING:
       return {
         ...state,
         conditionsList: [],
-        conditionsData: {
+        conditionsDataDebtor: {
           conditions: [],
           activeConditions: [],
         },
         conditionsLoading: true,
         conditionsError: "",
       }
-    case ACTIONS.GET_CONDITIONS_SUCCESS:
+    case ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS:
       return {
         ...state,
         conditionsList: action.payload,
-        conditionsData: {
+        conditionsDataDebtor: {
           conditions: action.payload,
           activeConditions: [],
         },
         conditionsLoading: false,
         conditionsError: "",
       }
-    case ACTIONS.GET_CONDITIONS_FAIL:
+    case ACTIONS.GET_DEBTOR_CONDITIONS_FAIL:
       return {
         ...state,
         conditionsList: [],
-        conditionsData: {
+        conditionsDataDebtor: {
           conditions: [],
           activeConditions: [],
         },
@@ -79,37 +79,102 @@ const ProcessorReducer = (state: any, action: any) => {
         conditionsError: action.payload,
       }
 
-    case ACTIONS.ADD_GET_CONDITIONS_LOADING:
+    case ACTIONS.GET_CREDITOR_CONDITIONS_LOADING:
       return {
         ...state,
-        conditionsData: {
-          conditions: [...state.conditionsData.conditions],
-          activeConditions: [...state.conditionsData.activeConditions],
+        conditionsList: [],
+        conditionsDataCreditor: {
+          conditions: [],
+          activeConditions: [],
         },
         conditionsLoading: true,
         conditionsError: "",
       }
-    case ACTIONS.ADD_GET_CONDITIONS_SUCCESS:
+    case ACTIONS.GET_CREDITOR_CONDITIONS_SUCCESS:
       return {
         ...state,
-        conditionsData: {
-          conditions: [...state.conditionsData.conditions],
-          activeConditions: [...action.payload],
+        conditionsList: action.payload,
+        conditionsDataCreditor: {
+          conditions: action.payload,
+          activeConditions: [],
         },
         conditionsLoading: false,
         conditionsError: "",
       }
-    case ACTIONS.ADD_GET_CONDITIONS_FAIL:
+    case ACTIONS.GET_CREDITOR_CONDITIONS_FAIL:
       return {
         ...state,
-        conditionsData: {
-          conditions: [...state.conditionsData.conditions],
-          activeConditions: [...state.conditionsData.activeConditions],
+        conditionsList: [],
+        conditionsDataCreditor: {
+          conditions: [],
+          activeConditions: [],
         },
         conditionsLoading: false,
         conditionsError: action.payload,
       }
 
+    case ACTIONS.ADD_GET_DEBTOR_CONDITIONS_LOADING:
+      return {
+        ...state,
+        conditionsDataDebtor: {
+          conditions: [...state.conditionsDataDebtor.conditions],
+          activeConditions: [...state.conditionsDataDebtor.activeConditions],
+        },
+        conditionsLoading: true,
+        conditionsError: "",
+      }
+    case ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsDataDebtor: {
+          conditions: [...state.conditionsDataDebtor.conditions],
+          activeConditions: [...action.payload],
+        },
+        conditionsLoading: false,
+        conditionsError: "",
+      }
+    case ACTIONS.ADD_GET_DEBTOR_CONDITIONS_FAIL:
+      return {
+        ...state,
+        conditionsDataDebtor: {
+          conditions: [...state.conditionsDataDebtor.conditions],
+          activeConditions: [...state.conditionsDataDebtor.activeConditions],
+        },
+        conditionsLoading: false,
+        conditionsError: action.payload,
+      }
+    // --------------------------------------------------------------------------------
+    case ACTIONS.ADD_GET_CREDITOR_CONDITIONS_LOADING:
+      return {
+        ...state,
+        conditionsDataCreditor: {
+          conditions: [...state.conditionsDataCreditor.conditions],
+          activeConditions: [...state.conditionsDataCreditor.activeConditions],
+        },
+        conditionsLoading: true,
+        conditionsError: "",
+      }
+    case ACTIONS.ADD_GET_CREDITOR_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsDataCreditor: {
+          conditions: [...state.conditionsDataCreditor.conditions],
+          activeConditions: [...action.payload],
+        },
+        conditionsLoading: false,
+        conditionsError: "",
+      }
+    case ACTIONS.ADD_GET_CREDITOR_CONDITIONS_FAIL:
+      return {
+        ...state,
+        conditionsDataCreditor: {
+          conditions: [...state.conditionsDataCreditor.conditions],
+          activeConditions: [...state.conditionsDataCreditor.activeConditions],
+        },
+        conditionsLoading: false,
+        conditionsError: action.payload,
+      }
+    // --------------------------------------------------------------------------------
     case ACTIONS.CREATE_CONDITIONS_LOADING:
       return {
         ...state,
@@ -293,6 +358,12 @@ const ProcessorReducer = (state: any, action: any) => {
       return {
         ...state,
         debtorActiveSection: action.payload,
+      }
+
+    case ACTIONS.UPDATE_CREDITOR_ACTIVE_SECTION:
+      return {
+        ...state,
+        creditorActiveSection: action.payload,
       }
 
     case ACTIONS.SET_SHOW_CONDITIONS:

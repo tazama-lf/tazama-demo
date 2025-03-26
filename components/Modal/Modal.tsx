@@ -34,10 +34,10 @@ const DebtorModal = ({ ...props }: Props) => {
 
   useEffect(() => {
     if (processCtx.debtorActiveSection === "Entity") {
-      let nttyData = processCtx.conditionsData.conditions.filter((con) => {
+      let nttyData = processCtx.conditionsDataDebtor.conditions.filter((con: ListCondition) => {
         return "ntty" in con
       })
-      let filteredNttyData = nttyData.filter((con) => {
+      let filteredNttyData = nttyData.filter((con: ListCondition) => {
         let nttyIndex: number = entityCtx.selectedDebtorEntity.debtorSelectedIndex || 0
         let nttyId: string | undefined =
           entityCtx.entities[nttyIndex !== undefined ? nttyIndex : 0]?.Entity.Dbtr.Id.PrvtId.Othr[0].Id
@@ -45,7 +45,7 @@ const DebtorModal = ({ ...props }: Props) => {
       })
       setFilteredConditions(filteredNttyData)
     } else if (processCtx.debtorActiveSection === "Accounts") {
-      let acctData = processCtx.conditionsData.conditions.filter((con) => {
+      let acctData = processCtx.conditionsDataDebtor.conditions.filter((con) => {
         return "acct" in con
       })
       let filteredAcctData = acctData.filter((con) => {
@@ -59,7 +59,7 @@ const DebtorModal = ({ ...props }: Props) => {
       setFilteredConditions(filteredAcctData)
       console.log("FILTERED: ", filteredAcctData)
     }
-  }, [processCtx.conditionsData])
+  }, [processCtx.conditionsDataDebtor])
 
   useEffect(() => {
     if (saved === true) {
@@ -69,47 +69,6 @@ const DebtorModal = ({ ...props }: Props) => {
     }
   }, [saved])
 
-  // const newEntityConditionState: NewCondition = {
-  //   evtTp: [],
-  //   condTp: "",
-  //   prsptv: "",
-  //   // incptnDtTm: "",
-  //   // xprtnDtTm: null,
-  //   condRsn: "",
-  //   ntty: {
-  //     id: "",
-  //     schmeNm: {
-  //       prtry: "",
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // }
-
-  // const newAccountConditionState: NewCondition = {
-  //   evtTp: [],
-  //   condTp: "",
-  //   prsptv: "",
-  //   // incptnDtTm: "",
-  //   // xprtnDtTm: null,
-  //   condRsn: "",
-  //   acct: {
-  //     id: "",
-  //     schmeNm: {
-  //       prtry: "",
-  //     },
-  //     agt: {
-  //       finInstnId: {
-  //         clrSysMmbId: {
-  //           mmbId: "",
-  //         },
-  //       },
-  //     },
-  //   },
-  //   forceCret: true,
-  //   usr: "demo UI",
-  // }
-
   const [newCondition, setNewCondition] = useState<NewCondition>(newEntityConditionState)
 
   useEffect(() => {
@@ -117,12 +76,12 @@ const DebtorModal = ({ ...props }: Props) => {
   }, [newCondition])
 
   useEffect(() => {
-    console.log("CON-DATA: ", processCtx.conditionsData)
-  }, [processCtx.conditionsData])
+    console.log("CON-DATA_DEBTOR: ", processCtx.conditionsDataDebtor)
+  }, [processCtx.conditionsDataDebtor])
 
   useEffect(() => {
     ;(async function () {
-      await processCtx.getAllConditions()
+      await processCtx.getAllDebtorConditions()
       if (processCtx.debtorActiveSection === "Accounts") {
         newAccountConditionState.acct!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].Id
         newAccountConditionState.acct!.agt.finInstnId.clrSysMmbId.mmbId =
@@ -162,6 +121,7 @@ const DebtorModal = ({ ...props }: Props) => {
     setCustomEntity(undefined)
     setCustomAccounts([])
     props.setModal(!props.showModal)
+    processCtx.setShowConditions(false)
   }
 
   function handleCancel() {
@@ -225,7 +185,6 @@ const DebtorModal = ({ ...props }: Props) => {
 
   // Swap between Entities and Accounts
   const handleSectionChange = (section: "Entity" | "Accounts") => {
-    // setActiveSection(section)
     processCtx.update_debtor_active_section(section)
   }
 
@@ -598,7 +557,7 @@ const DebtorModal = ({ ...props }: Props) => {
                     {customAccounts.map((accountDetail, index) => (
                       <div
                         key={index}
-                        className="shadow-small flex cursor-pointer flex-col rounded-lg border p-4 hover:bg-zinc-300"
+                        className="shadow-small flex max-h-[280px] cursor-pointer flex-col rounded-lg border p-4 hover:bg-zinc-300"
                         onClick={() => {
                           entityCtx.selectDebtorEntity(
                             entityCtx.selectedDebtorEntity.debtorSelectedIndex !== undefined
@@ -757,7 +716,7 @@ const DebtorModal = ({ ...props }: Props) => {
                 )}
               </div>
             </div>
-            {processCtx.conditionsData.conditions.length === 0
+            {filteredConditions.length === 0
               ? processCtx.showConditions && (
                   <ConditionsCreate
                     handleClose={handleClose}
@@ -779,10 +738,7 @@ const DebtorModal = ({ ...props }: Props) => {
                 ) : (
                   <ConditionsList
                     handleClose={handleClose}
-                    conditions_data={
-                      // processCtx.conditionsData.conditions
-                      filteredConditions
-                    }
+                    conditions_data={filteredConditions}
                     handleCreate={() => {
                       setCreateConditions(!createConditions)
                     }}

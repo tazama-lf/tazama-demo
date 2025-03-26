@@ -1,6 +1,5 @@
 import {
   DBConfig,
-  ListCondition,
   Rule,
   RuleBand,
   RuleConfig,

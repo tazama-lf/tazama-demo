@@ -55,9 +55,11 @@ const ProcessorProvider = ({ children }: Props) => {
     entityEventType: defaultEntityEventType,
     entityAllChecked: false,
     conditionsList: [],
-    conditionsData: defaultConditionsData,
+    conditionsDataDebtor: defaultConditionsData,
+    conditionsDataCreditor: defaultConditionsData,
     expireConError: undefined,
     debtorActiveSection: "Entity",
+    creditorActiveSection: "Entity",
     showConditions: false,
   }
   const [state, dispatch] = useReducer(ProcessorReducer, initialProcessorState)
@@ -67,14 +69,12 @@ const ProcessorProvider = ({ children }: Props) => {
   const [socket, setSocket] = useState<Socket>()
   const [isConnected, setIsConnected] = useState<boolean>(false)
   const [wsAddress, setWsAddress] = useState<string | null>(null)
-  // const [newCondition, setNewConditions] = useState<Conditions>({
-
-  // })
 
   const msgId: any = useRef("")
 
   useEffect(() => {
     const test = { ...state.tadProcResults }
+    console.log("--------------- !!!!", test)
     if ("results" in test) {
       if (test.results.length > 0) {
         updateTadpLights(state.tadProcResults)
@@ -554,7 +554,7 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const getConditions = async ({ type, accountId, entityId, schmeNm, agt }: GetConditionsProps) => {
-    dispatch({ type: ACTIONS.GET_CONDITIONS_LOADING })
+    dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_LOADING })
     try {
       if (type === "account") {
         if (accountId !== undefined) {
@@ -571,10 +571,10 @@ const ProcessorProvider = ({ children }: Props) => {
           // })
           // console.log("test: ", test)
 
-          dispatch({ type: ACTIONS.GET_CONDITIONS_SUCCESS, payload: response })
+          dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: response })
           const active = await get_active_list(response)
           console.log("ACTIVE: ", active)
-          dispatch({ type: ACTIONS.ADD_GET_CONDITIONS_SUCCESS, payload: active })
+          dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
 
           // await response.map(async (condition: ListCondition) => {
           //   console.log("Condition ID: ", condition.condId)
@@ -598,10 +598,10 @@ const ProcessorProvider = ({ children }: Props) => {
 
           const response: ListCondition[] = await handleEntityConditions(res.data)
 
-          dispatch({ type: ACTIONS.GET_CONDITIONS_SUCCESS, payload: response })
+          dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: response })
           const active = await get_active_list(response)
           console.log("ACTIVE: ", active)
-          dispatch({ type: ACTIONS.ADD_GET_CONDITIONS_SUCCESS, payload: active })
+          dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
           // response.map((condition: ListCondition) => {
           //   const check = state.conditionsData.conditions.filter((con: ListCondition) => {
           //     con.condId.includes(condition.condId)
@@ -615,7 +615,7 @@ const ProcessorProvider = ({ children }: Props) => {
         }
       }
     } catch (error) {
-      dispatch({ type: ACTIONS.GET_CONDITIONS_FAIL, payload: error })
+      dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_FAIL, payload: error })
       console.log("ERROR: " + error)
     }
   }
@@ -679,7 +679,8 @@ const ProcessorProvider = ({ children }: Props) => {
     agt: string
   }
 
-  const getAllConditions = async () => {
+  const getAllDebtorConditions = async () => {
+    dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_LOADING })
     const entities: NttyGetObject[] = []
     const accounts: AcctGetObject[] = []
 
@@ -726,7 +727,7 @@ const ProcessorProvider = ({ children }: Props) => {
 
     if (accounts.length > 0) {
       accounts.map(async (acct) => {
-        const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}&synccache=all`
+        const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}&syncache=all`
         accountUrls.push(acctURL)
         // const res: AxiosResponse = await axios.get(acctURL)
         // console.log("RES: ", res.data)
@@ -793,17 +794,144 @@ const ProcessorProvider = ({ children }: Props) => {
           }
         }
       })
-    dispatch({ type: ACTIONS.GET_CONDITIONS_SUCCESS, payload: finalResponse })
+    dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: finalResponse })
     const active = await get_active_list(finalResponse)
     console.log("ACTIVE: ", active)
-    dispatch({ type: ACTIONS.ADD_GET_CONDITIONS_SUCCESS, payload: active })
+    dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
     console.log("Parallel Final: ", finalResponse)
 
     return finalResponse
   }
 
-  const update_debtor_active_section = (section: "Entity" | "Accounts") => {
-    dispatch({ type: ACTIONS.UPDATE_DEBTOR_ACTIVE_SECTION, payload: section })
+  const getAllCreditorConditions = async () => {
+    dispatch({ type: ACTIONS.GET_CREDITOR_CONDITIONS_LOADING })
+    const entities: NttyGetObject[] = []
+    const accounts: AcctGetObject[] = []
+
+    const finalResponse: ListCondition[] = []
+
+    nttyCtx.creditorEntities.map((entity) => {
+      let ntty: NttyGetObject = {
+        entityId: entity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id,
+        schmeNm: entity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].SchmeNm.Prtry,
+      }
+      entities.push(ntty)
+
+      entity.CreditorAccounts.map((account) => {
+        let acct: AcctGetObject = {
+          accountId: account.CdtrAcct.Id.Othr[0].Id,
+          schmeNm: account.CdtrAcct.Id.Othr[0].SchmeNm.Prtry,
+          agt: nttyCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAgt.FinInstnId.ClrSysMmbId.MmbId,
+        }
+        accounts.push(acct)
+      })
+    })
+    const entityUrls: string[] = []
+    const accountUrls: string[] = []
+    const entityRes: ListCondition[] = []
+    const accountRes: ListCondition[] = []
+
+    if (entities.length > 0) {
+      entities.map(async (ntty) => {
+        const nttyURL = `http://localhost:5100/v1/admin/event-flow-control/entity?id=${ntty.entityId}&schmenm=${ntty.schmeNm}&synccache=all`
+        entityUrls.push(nttyURL)
+        // const res: AxiosResponse = await axios.get(nttyURL)
+        // console.log("RES: ", res.data)
+        // let entityConditions: ListCondition[] = await handleEntityConditions(res.data)
+        // entityRes.push(...entityConditions)
+      })
+    }
+
+    // const getEntityConditions = (nttyUrl: string) => {
+    //   return new Promise(async (resolve, reject) => {
+    //     const res: AxiosResponse = await axios.get(nttyUrl)
+    //   })
+    // }
+
+    if (accounts.length > 0) {
+      accounts.map(async (acct) => {
+        const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}&syncache=all`
+        accountUrls.push(acctURL)
+        // const res: AxiosResponse = await axios.get(acctURL)
+        // console.log("RES: ", res.data)
+
+        // const accountConditions: ListCondition[] = await handleEntityConditions(res.data)
+
+        // entityRes.push(...accountConditions)
+      })
+    }
+
+    const entityResponses: any[] = await Promise.all(
+      entityUrls.map(async (url) => {
+        try {
+          return await axios.get(url)
+        } catch (error) {
+          return null
+        }
+      })
+    )
+    console.log("Parallel Entitys: ", entityResponses)
+
+    const accountResponses: any[] = await Promise.all(
+      accountUrls.map(async (url) => {
+        try {
+          return await axios.get(url)
+        } catch (error) {
+          return null
+        }
+      })
+    )
+    console.log(
+      "Parallel Accounts: ",
+      accountResponses.filter((el) => el !== null)
+    )
+
+    await entityResponses.map(async (response) => {
+      console.log("TEST-1:", response)
+      if (response !== null) {
+        if (response.statusText !== "No Content") {
+          const nttyConditions: ListCondition[] = await handleEntityConditions(response.data)
+          console.log("nttyConditions: ", nttyConditions)
+          nttyConditions.map((item) => {
+            console.log(item)
+            finalResponse.push(item)
+          })
+          console.log("HERE-1: ", finalResponse)
+        }
+      }
+    })
+
+    await accountResponses
+      .filter((el) => el !== null)
+      .map(async (response) => {
+        console.log("TEST-2:", response)
+        if (response !== null) {
+          if (response.statusText !== "No Content") {
+            const accountConditions: ListCondition[] = await handleEntityAccountConditions(response.data)
+            console.log("accountConditions: ", accountConditions)
+            accountConditions.map((item) => {
+              console.log(item)
+              finalResponse.push(item)
+              console.log("HERE-2: ", finalResponse)
+            })
+          }
+        }
+      })
+    dispatch({ type: ACTIONS.GET_CREDITOR_CONDITIONS_SUCCESS, payload: finalResponse })
+    const active = await get_active_list(finalResponse)
+    console.log("ACTIVE: ", active)
+    dispatch({ type: ACTIONS.ADD_GET_CREDITOR_CONDITIONS_SUCCESS, payload: active })
+    console.log("Parallel Final: ", finalResponse)
+
+    return finalResponse
+  }
+
+  const update_debtor_active_section = (selection: "Entity" | "Accounts") => {
+    dispatch({ type: ACTIONS.UPDATE_DEBTOR_ACTIVE_SECTION, payload: selection })
+  }
+
+  const update_creditor_active_section = (selection: "Entity" | "Accounts") => {
+    dispatch({ type: ACTIONS.UPDATE_CREDITOR_ACTIVE_SECTION, payload: selection })
   }
 
   const setShowConditions = (option: true | false) => {
@@ -826,9 +954,11 @@ const ProcessorProvider = ({ children }: Props) => {
         entityEventType: state.entityEventType,
         entityAllChecked: state.entityAllChecked,
         conditionsList: state.conditionsList,
-        conditionsData: state.conditionsData,
+        conditionsDataDebtor: state.conditionsDataDebtor,
+        conditionsDataCreditor: state.conditionsDataCreditor,
         expireConError: state.expireConError,
         debtorActiveSection: state.debtorActiveSection,
+        creditorActiveSection: state.creditorActiveSection,
         showConditions: state.showConditions,
         updateEntityEventType,
         updateEntityAllChecked,
@@ -847,8 +977,10 @@ const ProcessorProvider = ({ children }: Props) => {
         getConditions,
         createCondition,
         expireCondition,
-        getAllConditions,
+        getAllDebtorConditions,
+        getAllCreditorConditions,
         update_debtor_active_section,
+        update_creditor_active_section,
         setShowConditions,
       }}
     >

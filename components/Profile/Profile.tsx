@@ -5,14 +5,14 @@ import React, { useContext, useState } from "react"
 import EntityContext from "store/entities/entity.context"
 import { DebtorAccount, DebtorEntity } from "store/entities/entity.interface"
 import ProcessorContext from "store/processors/processor.context"
-import { checkActiveEntity, checkIsActiveAccount } from "utils/helpers"
+import { checkActiveDebtorEntity, checkIsActiveDebtorAccount } from "utils/helpers"
 import { v4 as uuidv4 } from "uuid"
 
 export interface ProfileProps {
   reverse?: boolean
   colour?: string
   entity?: DebtorEntity
-  accounts?: Array<DebtorAccount>
+  accounts?: DebtorAccount[]
   selectedEntity: number
   index: number
   setModalVisible: (value: boolean) => void
@@ -103,7 +103,7 @@ export const Profile = ({ ...props }: ProfileProps) => {
             if (props.entity !== undefined) {
               props.setSelectedEntity(props.index) // Ensure the entity is selected
               await entityCtx.selectDebtorEntity(props.index, 0) // Select the first account for the entity (or modify as needed)
-              await processCtx.getAllConditions() // Select the first account for the entity (or modify as needed)
+              await processCtx.getAllDebtorConditions()
               props.setModalVisible(true) // Open the modal
             }
           }}
@@ -139,7 +139,7 @@ export const Profile = ({ ...props }: ProfileProps) => {
           {entityCtx.entities[props.index]?.Entity ? (
             <StatusIndicator
               customSize={12}
-              colour={checkActiveEntity(processCtx.conditionsData, entityCtx.entities[props.index])}
+              colour={checkActiveDebtorEntity(processCtx.conditionsDataDebtor, entityCtx.entities[props.index])}
             />
           ) : (
             <div className="h-[10px] w-[10px]"></div>
@@ -160,7 +160,11 @@ export const Profile = ({ ...props }: ProfileProps) => {
                 />
                 <StatusIndicator
                   customSize={12}
-                  colour={checkIsActiveAccount(index, processCtx.conditionsData, entityCtx.entities[props.index])}
+                  colour={checkIsActiveDebtorAccount(
+                    index,
+                    processCtx.conditionsDataDebtor,
+                    entityCtx.entities[props.index]
+                  )}
                 />
               </div>
             )
@@ -187,6 +191,7 @@ export const Profile = ({ ...props }: ProfileProps) => {
         <button
           onClick={async () => {
             props.setSelectedEntity(props.index)
+
             if (!props.entity && entityCtx.entities.length < 4) {
               // Create a new entity and select it
               await entityCtx.createEntity()

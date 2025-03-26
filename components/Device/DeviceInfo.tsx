@@ -5,7 +5,7 @@ import EditModal from "./EditModal"
 import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
 import ProcessorContext from "store/processors/processor.context"
 import { DebtorAccount, Entity } from "store/entities/entity.interface"
-import { checkIsActiveAccount } from "utils/helpers"
+import { checkIsActiveDebtorAccount } from "utils/helpers"
 
 interface DeviceProps {
   selectedEntity: number
@@ -45,11 +45,11 @@ export function DeviceInfo(props: DeviceProps) {
 
   useEffect(() => {
     setIsTransaction(false)
-    checkIsActiveAccount(
+    checkIsActiveDebtorAccount(
       entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
         ? entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
         : 0,
-      processCtx.conditionsData,
+      processCtx.conditionsDataDebtor,
       entity
     )
   }, [props.selectedEntity])
@@ -152,9 +152,9 @@ export function DeviceInfo(props: DeviceProps) {
               >
                 <StatusIndicator
                   colour={
-                    "activeConditions" in processCtx.conditionsData &&
-                    processCtx.conditionsData.activeConditions &&
-                    processCtx.conditionsData.activeConditions.includes(entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id)
+                    "activeConditions" in processCtx.conditionsDataDebtor &&
+                    processCtx.conditionsDataDebtor.activeConditions &&
+                    processCtx.conditionsDataDebtor.activeConditions.includes(entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id)
                       ? "b"
                       : "n"
                   }
@@ -187,9 +187,9 @@ export function DeviceInfo(props: DeviceProps) {
                   //     ? "b"
                   //     : "n"
                   // }
-                  colour={checkIsActiveAccount(
+                  colour={checkIsActiveDebtorAccount(
                     entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex,
-                    processCtx.conditionsData,
+                    processCtx.conditionsDataDebtor,
                     entity
                   )}
                 />
