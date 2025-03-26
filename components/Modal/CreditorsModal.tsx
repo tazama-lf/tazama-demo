@@ -79,8 +79,6 @@ const CreditorModal = ({ ...props }: Props) => {
   useEffect(() => {
     if (processCtx.showCreditorConditionsCreate) {
       processCtx.setShowCreditorConditions(false)
-    } else {
-      processCtx.setShowCreditorConditions(true)
     }
   }, [processCtx.showCreditorConditionsCreate])
 
@@ -733,8 +731,8 @@ const CreditorModal = ({ ...props }: Props) => {
                 handleClose={handleClose}
                 conditions_data={filteredConditions}
                 handleCreate={() => {
-                  processCtx.setShowCreditorConditions(!processCtx.showCreditorConditions)
-                  processCtx.setShowCreditorConditionsCreate(!processCtx.showCreditorConditionsCreate)
+                  processCtx.setShowCreditorConditions(false)
+                  processCtx.setShowCreditorConditionsCreate(true)
                 }}
                 entity_type="creditor"
               />
@@ -743,7 +741,8 @@ const CreditorModal = ({ ...props }: Props) => {
               <ConditionsCreate
                 handleClose={handleClose}
                 setVisible={() => {
-                  processCtx.setShowCreditorConditionsCreate(!processCtx.showCreditorConditionsCreate)
+                  processCtx.setShowCreditorConditions(true)
+                  processCtx.setShowCreditorConditionsCreate(false)
                 }}
                 newCondition={newCondition}
                 setNewCondition={setNewCondition}

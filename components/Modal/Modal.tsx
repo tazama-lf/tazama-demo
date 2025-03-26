@@ -77,8 +77,6 @@ const DebtorModal = ({ ...props }: Props) => {
   useEffect(() => {
     if (processCtx.showDebtorConditionsCreate) {
       processCtx.setShowDebtorConditions(false)
-    } else {
-      processCtx.setShowDebtorConditions(true)
     }
   }, [processCtx.showDebtorConditionsCreate])
 
@@ -728,8 +726,8 @@ const DebtorModal = ({ ...props }: Props) => {
                 handleClose={handleClose}
                 conditions_data={filteredConditions}
                 handleCreate={() => {
-                  processCtx.setShowDebtorConditions(!processCtx.showDebtorConditions)
-                  processCtx.setShowDebtorConditionsCreate(!processCtx.showDebtorConditionsCreate)
+                  processCtx.setShowDebtorConditions(false)
+                  processCtx.setShowDebtorConditionsCreate(true)
                 }}
                 entity_type="debtor"
               />
@@ -738,7 +736,8 @@ const DebtorModal = ({ ...props }: Props) => {
               <ConditionsCreate
                 handleClose={handleClose}
                 setVisible={() => {
-                  processCtx.setShowDebtorConditionsCreate(!processCtx.showDebtorConditionsCreate)
+                  processCtx.setShowDebtorConditions(true)
+                  processCtx.setShowDebtorConditionsCreate(false)
                 }}
                 newCondition={newCondition}
                 setNewCondition={setNewCondition}
