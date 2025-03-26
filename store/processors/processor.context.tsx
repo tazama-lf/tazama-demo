@@ -39,6 +39,8 @@ interface Context {
   creditorActiveSection: "Entity" | "Accounts"
   showDebtorConditions: boolean
   showCreditorConditions: boolean
+  showDebtorConditionsCreate: boolean
+  showCreditorConditionsCreate: boolean
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -62,6 +64,8 @@ interface Context {
   update_creditor_active_section: (section: "Entity" | "Accounts") => void
   setShowDebtorConditions: (option: boolean) => void
   setShowCreditorConditions: (option: boolean) => void
+  setShowDebtorConditionsCreate: (option: boolean) => void
+  setShowCreditorConditionsCreate: (option: boolean) => void
 }
 
 const ProcessorContext = createContext<Context>({
@@ -85,6 +89,8 @@ const ProcessorContext = createContext<Context>({
   creditorActiveSection: "Entity",
   showDebtorConditions: false,
   showCreditorConditions: false,
+  showDebtorConditionsCreate: false,
+  showCreditorConditionsCreate: false,
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
@@ -108,6 +114,8 @@ const ProcessorContext = createContext<Context>({
   update_creditor_active_section: (section: "Entity" | "Accounts") => {},
   setShowDebtorConditions: (option: boolean) => {},
   setShowCreditorConditions: (option: boolean) => {},
+  setShowDebtorConditionsCreate: (option: boolean) => {},
+  setShowCreditorConditionsCreate: (option: boolean) => {},
 })
 
 export default ProcessorContext

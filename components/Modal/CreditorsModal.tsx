@@ -28,7 +28,6 @@ const CreditorModal = ({ ...props }: Props) => {
   const [saved, setSaved] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
 
-  const [createConditions, setCreateConditions] = useState<boolean>(false)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [filteredConditions, setFilteredConditions] = useState<ListCondition[]>([])
 
@@ -78,8 +77,12 @@ const CreditorModal = ({ ...props }: Props) => {
   }, [newCondition])
 
   useEffect(() => {
-    console.log("CON-DATA: ", processCtx.conditionsDataCreditor)
-  }, [processCtx.conditionsDataCreditor])
+    if (processCtx.showCreditorConditionsCreate) {
+      processCtx.setShowCreditorConditions(false)
+    } else {
+      processCtx.setShowCreditorConditions(true)
+    }
+  }, [processCtx.showCreditorConditionsCreate])
 
   useEffect(() => {
     ;(async function () {
@@ -106,13 +109,13 @@ const CreditorModal = ({ ...props }: Props) => {
     entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].Id,
   ])
 
-  useEffect(() => {
-    if (processCtx.conditionsList.length === 0) {
-      setCreateConditions(true)
-    } else {
-      setCreateConditions(false)
-    }
-  }, [processCtx.conditionsList])
+  // useEffect(() => {
+  //   if (processCtx.conditionsList.length === 0) {
+  //     setCreateConditions(true)
+  //   } else {
+  //     setCreateConditions(false)
+  //   }
+  // }, [processCtx.conditionsList])
 
   function handleClose() {
     if (props.selectedEntity) {
@@ -124,6 +127,8 @@ const CreditorModal = ({ ...props }: Props) => {
     setCustomAccounts([])
     props.setModal(!props.showModal)
     processCtx.setShowCreditorConditions(false)
+    processCtx.setShowDebtorConditionsCreate(false)
+    processCtx.setShowCreditorConditionsCreate(false)
   }
 
   function handleCancel() {
@@ -189,6 +194,7 @@ const CreditorModal = ({ ...props }: Props) => {
   // Swap between Entities and Accounts
   const handleSectionChange = (section: "Entity" | "Accounts") => {
     processCtx.update_creditor_active_section(section)
+    processCtx.setShowCreditorConditionsCreate(false)
   }
 
   return (
@@ -722,35 +728,28 @@ const CreditorModal = ({ ...props }: Props) => {
                 )}
               </div>
             </div>
-            {filteredConditions.length === 0
-              ? processCtx.showCreditorConditions && (
-                  <ConditionsCreate
-                    handleClose={handleClose}
-                    setVisible={() => setCreateConditions(!createConditions)}
-                    newCondition={newCondition}
-                    setNewCondition={setNewCondition}
-                    activeSection={processCtx.creditorActiveSection}
-                  />
-                )
-              : processCtx.showCreditorConditions &&
-                (createConditions ? (
-                  <ConditionsCreate
-                    handleClose={handleClose}
-                    setVisible={() => setCreateConditions(!createConditions)}
-                    newCondition={newCondition}
-                    setNewCondition={setNewCondition}
-                    activeSection={processCtx.creditorActiveSection}
-                  />
-                ) : (
-                  <ConditionsList
-                    handleClose={handleClose}
-                    conditions_data={filteredConditions}
-                    handleCreate={() => {
-                      setCreateConditions(!createConditions)
-                    }}
-                    entity_type="creditor"
-                  />
-                ))}
+            {processCtx.showCreditorConditions && (
+              <ConditionsList
+                handleClose={handleClose}
+                conditions_data={filteredConditions}
+                handleCreate={() => {
+                  processCtx.setShowCreditorConditions(!processCtx.showCreditorConditions)
+                  processCtx.setShowCreditorConditionsCreate(!processCtx.showCreditorConditionsCreate)
+                }}
+                entity_type="creditor"
+              />
+            )}
+            {processCtx.showCreditorConditionsCreate && (
+              <ConditionsCreate
+                handleClose={handleClose}
+                setVisible={() => {
+                  processCtx.setShowCreditorConditionsCreate(!processCtx.showCreditorConditionsCreate)
+                }}
+                newCondition={newCondition}
+                setNewCondition={setNewCondition}
+                activeSection={processCtx.creditorActiveSection}
+              />
+            )}
           </div>
         </div>
       </div>

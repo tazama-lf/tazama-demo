@@ -11,6 +11,7 @@ interface DeviceProps {
   selectedEntity: number
   isDebtor?: boolean
   setModalVisible: (option: boolean) => void
+  setCreateModalVisible: (option: boolean) => void
 }
 
 export function DeviceInfo(props: DeviceProps) {
@@ -141,7 +142,8 @@ export function DeviceInfo(props: DeviceProps) {
               <button
                 className="mr-2 flex grow justify-end"
                 onClick={() => {
-                  processCtx.setShowDebtorConditions(true)
+                  processCtx.setShowDebtorConditions(false)
+                  props.setCreateModalVisible(true)
                   processCtx.update_debtor_active_section("Entity")
                   props.setModalVisible(true)
                 }}
@@ -167,7 +169,8 @@ export function DeviceInfo(props: DeviceProps) {
               <button
                 className="absolute right-0 top-0 mr-0 flex"
                 onClick={() => {
-                  processCtx.setShowDebtorConditions(true)
+                  processCtx.setShowDebtorConditions(false)
+                  props.setCreateModalVisible(true)
                   processCtx.update_debtor_active_section("Accounts")
                   props.setModalVisible(true)
                 }}
@@ -257,7 +260,8 @@ export function DeviceInfo(props: DeviceProps) {
               <button
                 className="mr-2 flex grow justify-end"
                 onClick={() => {
-                  processCtx.setShowCreditorConditions(true)
+                  processCtx.setShowCreditorConditions(false)
+                  props.setCreateModalVisible(true)
                   processCtx.update_creditor_active_section("Entity")
                   props.setModalVisible(true)
                 }}
@@ -284,7 +288,8 @@ export function DeviceInfo(props: DeviceProps) {
               <button
                 className="absolute right-0 top-0 mr-0 flex"
                 onClick={() => {
-                  processCtx.setShowCreditorConditions(true)
+                  processCtx.setShowCreditorConditions(false)
+                  props.setCreateModalVisible(true)
                   processCtx.update_creditor_active_section("Accounts")
                   props.setModalVisible(true)
                 }}

@@ -29,6 +29,7 @@ interface DebtorProps {
   resetAllLights: () => void
   resetLights: (data: boolean) => void
   setStarted: (data: boolean) => void
+  setCreateModalVisible: (option: boolean) => void
 }
 
 export function DebtorDevice(props: DebtorProps) {
@@ -47,8 +48,6 @@ export function DebtorDevice(props: DebtorProps) {
       setTmsUrl(parsedConfig.tmsServerUrl)
     })()
   }, [])
-
-  // const tmsUrl = process.env.NEXT_PUBLIC_TMS_SERVER_URL
 
   const postPacs002 = async () => {
     try {
@@ -169,6 +168,7 @@ export function DebtorDevice(props: DebtorProps) {
           selectedEntity={props.selectedEntity}
           isDebtor={props.isDebtor}
           setModalVisible={props.setModalVisible}
+          setCreateModalVisible={props.setCreateModalVisible}
         />
       </div>
 

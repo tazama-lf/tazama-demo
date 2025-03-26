@@ -105,6 +105,9 @@ export const Profile = ({ ...props }: ProfileProps) => {
               await entityCtx.selectDebtorEntity(props.index, 0) // Select the first account for the entity (or modify as needed)
               await processCtx.getAllDebtorConditions()
               props.setModalVisible(true) // Open the modal
+              processCtx.setShowDebtorConditionsCreate(false)
+              processCtx.setShowDebtorConditions(true)
+              processCtx.update_debtor_active_section("Entity")
             }
           }}
           style={props.entity !== undefined ? { cursor: "pointer" } : { cursor: "default" }}

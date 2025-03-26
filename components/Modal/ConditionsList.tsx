@@ -67,31 +67,6 @@ const ConditionsList = ({ conditions_data, handleClose, handleCreate }: Props) =
           }
         }
       }
-      // } else if (con.xprtnDtTm === null || con.xprtnDtTm !== undefined) {
-      //   let tstDate = new Date(con.incptnDtTm).getTime()
-      //   let now = new Date(handleAdjustTime(new Date().toISOString())).getTime()
-      //   if (tstDate !== undefined) {
-      //     if (con.condTp === "override") {
-      //       if (tstDate < now) {
-      //         colour = "g"
-      //       } else {
-      //         colour = "n"
-      //       }
-      //     } else if (con.condTp === "non-overridable-block") {
-      //       if (tstDate < now) {
-      //         colour = "r"
-      //       } else {
-      //         colour = "n"
-      //       }
-      //     } else if (con.condTp === "overridable-block") {
-      //       if (tstDate < now) {
-      //         colour = "r"
-      //       } else {
-      //         colour = "n"
-      //       }
-      //     }
-      //   }
-      // }
     } else {
       let tstDate = new Date(con.incptnDtTm).getTime()
       let t = viewLocalTime(con.incptnDtTm)

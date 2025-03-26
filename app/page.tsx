@@ -286,6 +286,7 @@ const Web = () => {
                     setStarted={setStarted}
                     resetAllLights={() => processCtx.resetAllLights()}
                     setModalVisible={setModal}
+                    setCreateModalVisible={processCtx.setShowDebtorConditionsCreate}
                   />
                 </div>
                 <div className="relative col-span-4 flex items-center justify-between px-5">
@@ -339,6 +340,7 @@ const Web = () => {
                     setStarted={setStarted}
                     resetAllLights={() => processCtx.resetAllLights()}
                     setModalVisible={setShowCreditorModal}
+                    setCreateModalVisible={processCtx.setShowCreditorConditionsCreate}
                   />
                 </div>
               </div>

@@ -28,7 +28,6 @@ const DebtorModal = ({ ...props }: Props) => {
   const [saved, setSaved] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
 
-  const [createConditions, setCreateConditions] = useState<boolean>(false)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [filteredConditions, setFilteredConditions] = useState<ListCondition[]>([])
 
@@ -76,8 +75,12 @@ const DebtorModal = ({ ...props }: Props) => {
   }, [newCondition])
 
   useEffect(() => {
-    console.log("CON-DATA_DEBTOR: ", processCtx.conditionsDataDebtor)
-  }, [processCtx.conditionsDataDebtor])
+    if (processCtx.showDebtorConditionsCreate) {
+      processCtx.setShowDebtorConditions(false)
+    } else {
+      processCtx.setShowDebtorConditions(true)
+    }
+  }, [processCtx.showDebtorConditionsCreate])
 
   useEffect(() => {
     ;(async function () {
@@ -104,13 +107,13 @@ const DebtorModal = ({ ...props }: Props) => {
     entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id,
   ])
 
-  useEffect(() => {
-    if (processCtx.conditionsList.length === 0) {
-      setCreateConditions(true)
-    } else {
-      setCreateConditions(false)
-    }
-  }, [processCtx.conditionsList])
+  // useEffect(() => {
+  //   if (processCtx.conditionsList.length === 0) {
+  //     setCreateConditions(true)
+  //   } else {
+  //     setCreateConditions(false)
+  //   }
+  // }, [processCtx.conditionsList])
 
   function handleClose() {
     if (props.selectedEntity) {
@@ -122,6 +125,7 @@ const DebtorModal = ({ ...props }: Props) => {
     setCustomAccounts([])
     props.setModal(!props.showModal)
     processCtx.setShowDebtorConditions(false)
+    processCtx.setShowDebtorConditionsCreate(false)
   }
 
   function handleCancel() {
@@ -186,6 +190,7 @@ const DebtorModal = ({ ...props }: Props) => {
   // Swap between Entities and Accounts
   const handleSectionChange = (section: "Entity" | "Accounts") => {
     processCtx.update_debtor_active_section(section)
+    processCtx.setShowDebtorConditionsCreate(false)
   }
 
   return (
@@ -718,35 +723,28 @@ const DebtorModal = ({ ...props }: Props) => {
                 )}
               </div>
             </div>
-            {filteredConditions.length === 0
-              ? processCtx.showDebtorConditions && (
-                  <ConditionsCreate
-                    handleClose={handleClose}
-                    setVisible={() => setCreateConditions(!createConditions)}
-                    newCondition={newCondition}
-                    setNewCondition={setNewCondition}
-                    activeSection={processCtx.debtorActiveSection}
-                  />
-                )
-              : processCtx.showDebtorConditions &&
-                (createConditions ? (
-                  <ConditionsCreate
-                    handleClose={handleClose}
-                    setVisible={() => setCreateConditions(!createConditions)}
-                    newCondition={newCondition}
-                    setNewCondition={setNewCondition}
-                    activeSection={processCtx.debtorActiveSection}
-                  />
-                ) : (
-                  <ConditionsList
-                    handleClose={handleClose}
-                    conditions_data={filteredConditions}
-                    handleCreate={() => {
-                      setCreateConditions(!createConditions)
-                    }}
-                    entity_type="debtor"
-                  />
-                ))}
+            {processCtx.showDebtorConditions && (
+              <ConditionsList
+                handleClose={handleClose}
+                conditions_data={filteredConditions}
+                handleCreate={() => {
+                  processCtx.setShowDebtorConditions(!processCtx.showDebtorConditions)
+                  processCtx.setShowDebtorConditionsCreate(!processCtx.showDebtorConditionsCreate)
+                }}
+                entity_type="debtor"
+              />
+            )}
+            {processCtx.showDebtorConditionsCreate && (
+              <ConditionsCreate
+                handleClose={handleClose}
+                setVisible={() => {
+                  processCtx.setShowDebtorConditionsCreate(!processCtx.showDebtorConditionsCreate)
+                }}
+                newCondition={newCondition}
+                setNewCondition={setNewCondition}
+                activeSection={processCtx.debtorActiveSection}
+              />
+            )}
           </div>
         </div>
       </div>
