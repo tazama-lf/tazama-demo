@@ -117,7 +117,7 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
           options={[
             { id: 1, option: "pacs.008.001.10", selected: false },
             { id: 2, option: "pacs.002.001.12", selected: false },
-            { id: 3, option: "pain.001.001.13", selected: false },
+            { id: 3, option: "pain.001.001.11", selected: false },
             { id: 4, option: "pain.013.001.09", selected: false },
           ]}
           state={newCondition}
