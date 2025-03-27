@@ -138,7 +138,14 @@ export function DeviceInfo(props: DeviceProps) {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="ml-2 text-white">{entity?.Entity?.Dbtr.Nm || "Name"}</span>
+              <button
+                onClick={() => {
+                  processCtx.update_creditor_active_section("Entity")
+                  props.setModalVisible(true)
+                }}
+              >
+                <span className="ml-2 text-white">{entity?.Entity?.Dbtr.Nm || "Name"}</span>
+              </button>
               <button
                 className="mr-2 flex grow justify-end"
                 onClick={() => {
@@ -255,8 +262,14 @@ export function DeviceInfo(props: DeviceProps) {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="ml-2 text-white">{creditorEntity?.CreditorEntity.Cdtr.Nm || "Name"}</span>
-
+              <button
+                onClick={() => {
+                  processCtx.update_creditor_active_section("Entity")
+                  props.setModalVisible(true)
+                }}
+              >
+                <span className="ml-2 text-white">{creditorEntity?.CreditorEntity.Cdtr.Nm || "Name"}</span>
+              </button>
               <button
                 className="mr-2 flex grow justify-end"
                 onClick={() => {
