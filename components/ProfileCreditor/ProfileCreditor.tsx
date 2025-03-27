@@ -104,10 +104,10 @@ export const CreditorProfile = ({ ...props }: ProfileProps) => {
               props.setSelectedEntity(props.index) // Ensure the entity is selected
               await entityCtx.selectCreditorEntity(props.index, 0) // Select the first account for the entity (or modify as needed)
               await processCtx.getAllCreditorConditions()
-              props.setModalVisible(true) // Open the modal
               processCtx.setShowCreditorConditionsCreate(false)
               processCtx.setShowCreditorConditions(false)
               processCtx.update_creditor_active_section("Entity")
+              props.setModalVisible(true) // Open the modal
             }
           }}
           style={props.entity !== undefined ? { cursor: "pointer" } : { cursor: "default" }}

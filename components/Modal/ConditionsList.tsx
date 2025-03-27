@@ -18,7 +18,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
   const processCtx = useContext(ProcessorContext)
   const [showExpire, setShowExpire] = useState<boolean>(false)
   const [selectedCondition, setSelectedCondition] = useState<ListCondition | undefined>(undefined)
-  const [expDtTm, setExpDtTm] = useState<string | null>(null)
+  const [expDtTm, setExpDtTm] = useState<string | undefined>(undefined)
   // const [filteredConditions, setFilteredConditions] = useState<ListCondition[]>([])
 
   useEffect(() => {
@@ -26,13 +26,15 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
   }),
     [selectedCondition]
 
-  useEffect(() => {
-    console.log("EXP_DT_TM_UE: ", expDtTm)
-  }, [expDtTm])
+  // useEffect(() => {
+  //   console.log("EXP_DT_TM_UE: ", expDtTm)
+  // }, [expDtTm])
 
-  const handleExpire = (con: ListCondition, newDate: string) => {
+  const handleExpire = (con: ListCondition, newDate?: string) => {
+    if (newDate) {
+      con.xprtnDtTm = newDate
+    }
     // ----------------------------------------------------------------> Here <----------------------------------------------------------------
-    con.xprtnDtTm = newDate
   }
 
   // const entityCtx = useContext(EntityContext)
@@ -144,24 +146,23 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                 type="datetime-local"
                 name="datetime"
                 id="datetime"
-                min={new Date().getTime().toString().substring(0, 16)}
+                min={new Date().toISOString().substring(0, 16)}
                 className="max-w-[150px] rounded-md p-1"
-                value={expDtTm !== null ? handleAdjustTime(expDtTm) : undefined}
+                onFocus={(e) => {
+                  e.target.value = ""
+                  setExpDtTm(undefined)
+                }}
+                value={expDtTm !== undefined ? handleAdjustTime(expDtTm).substring(0, 16) : undefined}
                 onBlur={(e) => {
                   let min_date = new Date().toISOString()
                   let dateAttempt = new Date(e.target.value)
                   let checkDate = new Date(min_date.substring(0, 16)).getTime()
-                  if (dateAttempt.getTime() > checkDate) {
-                    setExpDtTm(dateAttempt.toISOString())
+                  if (dateAttempt) {
+                    if (dateAttempt.getTime() > checkDate) {
+                      setExpDtTm(dateAttempt.toISOString())
+                    }
                   }
-                  setShowExpire(true)
                 }}
-
-                // onFocus={() => setShowExpire(true)}
-                // onClick={() => {
-                //   setSelectedCondition(con)
-                //   setShowExpire(true)
-                // }}
               />
             </div>
           )}
@@ -194,9 +195,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                   />
                 </svg>
               </button>
-            ) : con.xprtnDtTm &&
-              con.xprtnDtTm !== null &&
-              new Date(con.xprtnDtTm).getTime() > new Date(handleAdjustTime(new Date().toISOString())).getTime() ? (
+            ) : con.xprtnDtTm && con.xprtnDtTm !== null && new Date(con.xprtnDtTm).getTime() > new Date().getTime() ? (
               <button
                 className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
                 onClick={() => {
@@ -289,14 +288,16 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
       </div>
       {showExpire && (
         <ExpireModel
+          title="Expire condition now?"
+          date={expDtTm && expDtTm}
           show={showExpire}
           setShow={() => setShowExpire(!showExpire)}
-          handleExpire={() => {
+          handleExpire={async () => {
             if (selectedCondition !== undefined) {
               if ("acct" in selectedCondition) {
                 console.log("ACCOUNT EXPIRE HIT", selectedCondition)
                 if (expDtTm !== null) {
-                  processCtx.expireCondition({
+                  await processCtx.expireCondition({
                     type: "account",
                     accountId: selectedCondition.acct!.id,
                     agt: selectedCondition.acct?.agt.finInstnId.clrSysMmbId.mmbId,
@@ -304,6 +305,8 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                     condId: selectedCondition.condId,
                     xprtnDtTm: expDtTm,
                   })
+                  entity_type === "debtor" && (await processCtx.getAllDebtorConditions())
+                  entity_type === "creditor" && (await processCtx.getAllCreditorConditions())
                   handleExpire(selectedCondition, expDtTm)
                 } else {
                   processCtx.expireCondition({
@@ -313,26 +316,32 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                     schmeNm: selectedCondition.acct!.schmeNm.prtry,
                     condId: selectedCondition.condId,
                   })
+                  entity_type === "debtor" && (await processCtx.getAllDebtorConditions())
+                  entity_type === "creditor" && (await processCtx.getAllCreditorConditions())
                 }
                 // processCtx.expireCondition({ type: "account", accountId: "1", agt: "MSIDSN"})
               } else if ("ntty" in selectedCondition) {
                 console.log("ENTITY EXPIRE HIT")
                 if (expDtTm !== null) {
-                  processCtx.expireCondition({
+                  await processCtx.expireCondition({
                     type: "entity",
                     entityId: selectedCondition.ntty!.id,
                     schmeNm: selectedCondition.ntty!.schmeNm.prtry,
                     condId: selectedCondition.condId,
                     xprtnDtTm: expDtTm,
                   })
+                  entity_type === "debtor" && (await processCtx.getAllDebtorConditions())
+                  entity_type === "creditor" && (await processCtx.getAllCreditorConditions())
                   handleExpire(selectedCondition, expDtTm)
                 } else {
-                  processCtx.expireCondition({
+                  await processCtx.expireCondition({
                     type: "entity",
                     entityId: selectedCondition.ntty!.id,
                     schmeNm: selectedCondition.ntty!.schmeNm.prtry,
                     condId: selectedCondition.condId,
                   })
+                  entity_type === "debtor" && (await processCtx.getAllDebtorConditions())
+                  entity_type === "creditor" && (await processCtx.getAllCreditorConditions())
                 }
               }
 
