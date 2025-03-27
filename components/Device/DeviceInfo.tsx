@@ -140,7 +140,7 @@ export function DeviceInfo(props: DeviceProps) {
               </svg>
               <button
                 onClick={() => {
-                  processCtx.update_creditor_active_section("Entity")
+                  processCtx.update_debtor_active_section("Entity")
                   props.setModalVisible(true)
                 }}
               >
@@ -190,7 +190,14 @@ export function DeviceInfo(props: DeviceProps) {
                   )}
                 />
               </button>
-              <p className={`font-bold ${fillColour}`}>{entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Nm} </p>
+              <button
+                onClick={() => {
+                  processCtx.update_debtor_active_section("Accounts")
+                  props.setModalVisible(true)
+                }}
+              >
+                <p className={`font-bold ${fillColour}`}>{entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Nm} </p>
+              </button>
               <p className="truncate">ID: {entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Id?.Othr[0]?.Id}</p>
             </div>
 
@@ -325,10 +332,16 @@ export function DeviceInfo(props: DeviceProps) {
                   )}
                 />
               </button>
-
-              <p className={`font-bold ${fillColour}`}>
-                {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm}
-              </p>
+              <button
+                onClick={() => {
+                  processCtx.update_creditor_active_section("Accounts")
+                  props.setModalVisible(true)
+                }}
+              >
+                <p className={`font-bold ${fillColour}`}>
+                  {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm}
+                </p>
+              </button>
               <p className="truncate">
                 ID: {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0].Id}
               </p>
