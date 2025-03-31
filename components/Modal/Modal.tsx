@@ -252,6 +252,9 @@ const DebtorModal = ({ ...props }: Props) => {
                 <button
                   className="flex w-full items-center gap-3 rounded-lg bg-gradient-to-r from-gray-100 to-gray-300 py-2 pl-2 text-center shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)] drop-shadow-md"
                   onClick={() => {
+                    if (processCtx.showDebtorConditionsCreate) {
+                      processCtx.setShowDebtorConditionsCreate(false)
+                    }
                     processCtx.setShowDebtorConditions(!processCtx.showDebtorConditions)
                   }}
                 >

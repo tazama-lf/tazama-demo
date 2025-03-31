@@ -19,6 +19,7 @@ const handle = app.getRequestHandler()
 
 const handleMsg = async (msg, socket, room) => {
   const decodedMessage = frms.default.decode(msg.data)
+  console.log(decodedMessage["typologyResult"])
   await socket.to(room).emit(room, decodedMessage)
 }
 

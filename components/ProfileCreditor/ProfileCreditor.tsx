@@ -155,7 +155,7 @@ export const CreditorProfile = ({ ...props }: ProfileProps) => {
         {props?.creditorAccounts?.map((account, index) => {
           if (account !== null && account !== undefined) {
             return (
-              <div className="mt-1 flex flex-col items-center justify-center gap-1">
+              <div key={uuidv4().replaceAll("-", "")} className="mt-1 flex flex-col items-center justify-center gap-1">
                 <CreditorAccountsComponent
                   key={uuidv4().replaceAll("-", "")}
                   index={index}
