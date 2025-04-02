@@ -5,7 +5,7 @@ import dotenv from "dotenv"
 import React, { ReactNode, useEffect, useReducer, useRef, useState, useContext } from "react"
 import { io } from "socket.io-client"
 import { uiConfigInitialState } from "store/entities/entity.initialState"
-import { getTADPROCResult } from "utils/db"
+import { handleTadProcResults } from "utils/db"
 import { ACTIONS } from "./processor.actions"
 import ProcessorContext from "./processor.context"
 
@@ -42,6 +42,7 @@ interface Props {
 
 const ProcessorProvider = ({ children }: Props) => {
   const initialProcessorState = {
+    app_version: "",
     rulesLoading: false,
     tadprocLoading: false,
     edLightsLoading: false,
@@ -76,8 +77,19 @@ const ProcessorProvider = ({ children }: Props) => {
   const msgId: any = useRef("")
 
   useEffect(() => {
+    try {
+      ;(async function () {
+        let res = await axios.get("/api/version")
+        console.log("RES_DATA1: ", res.data)
+        dispatch({ type: ACTIONS.SET_APPLICATION_VERSION, payload: res.data.version })
+      })()
+    } catch (err: any) {
+      console.log(err)
+    }
+  }, [])
+
+  useEffect(() => {
     const test = { ...state.tadProcResults }
-    console.log("--------------- !!!!", test)
     if ("results" in test) {
       if (test.results.length > 0) {
         updateTadpLights(state.tadProcResults)
@@ -132,39 +144,81 @@ const ProcessorProvider = ({ children }: Props) => {
 
   useEffect(() => {
     if (socket !== undefined) {
-      socket.onAny((event: any, ...args: any) => {
-        const typoResult = Object.keys(args[0]).includes("typologyResult")
-
+      socket.on("tadProc", (msg) => {
+        const typoResult = Object.keys(msg.report.tadpResult).includes("typologyResult")
         if (typoResult) {
-          setTimeout(
-            async () => {
-              await updateTypologies(args[0])
-            },
-            Math.floor(Math.random() * (400 - 200)) + 200
-          )
+          msg.report.tadpResult.typologyResult.map((tpRes: any) => {
+            setTimeout(
+              async () => {
+                console.log("THIS_MSG1", msg)
 
-          if (msgId.current !== args[0]?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId) {
-            msgId.current = args[0]?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
-          }
+                await updateTypologies(tpRes)
+              },
+              Math.floor(Math.random() * (500 - 200)) + 200
+            )
+
+            if (msgId.current !== msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId) {
+              msgId.current = msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
+            }
+          })
         }
       })
+      // socket.onAny((event: any, ...args: any) => {
+      //   if (event === "stream") {
+      //     console.log("ARGS_EVENT", args[0])
+      //     const typoResult = Object.keys(args[0]).includes("typologyResult")
+      //     console.log("THIS_1", typoResult)
+      //     if (typoResult) {
+      //       setTimeout(
+      //         async () => {
+      //           console.log("THIS_MSG2", args[0])
+      //           await updateTypologies1(args[0])
+      //         },
+      //         // Math.floor(Math.random() * (400 - 200)) + 1500
+      //         50
+      //       )
+
+      //       if (msgId.current !== args[0]?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId) {
+      //         msgId.current = args[0]?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
+      //       }
+      //     }
+      //   }
+      // })
     }
   }, [state.typologies])
 
-  const handleTadProc = async (msg: any) => {
-    const configData: any = await localStorage.getItem("UI_CONFIG")
-    let conf: any = configData
-    let con: any = JSON.parse(conf)
-    const config: any = {
-      url: con.arangoDBHosting,
-      databaseName: "configuration",
-      auth: { username: con.dbUser, password: con.dbPassword },
-    }
+  // const handleTadProc = async (msg: any) => {
+  //   console.log("THIS: ", msg)
+  //   const configData: any = await localStorage.getItem("UI_CONFIG")
+  //   let conf: any = configData
+  //   let con: any = JSON.parse(conf)
+  //   const config: any = {
+  //     url: con.arangoDBHosting,
+  //     databaseName: "configuration",
+  //     auth: { username: con.dbUser, password: con.dbPassword },
+  //   }
+  //   try {
+  //     let results: TADPROC | undefined = undefined
+  //     while (results === undefined) {
+  //       // results = await handleTadProcResults(msg)
+  //       results = await getTADPROCResult(msg, config)
+  //       console.log("RESULTS: ", results)
+  //     }
+  //     if (results !== undefined) {
+  //       dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: results })
+  //     }
+  //   } catch (err) {
+  //     console.log("TADPROC ERROR", err)
+  //   }
+  // }
+
+  const handleTadProcLive = async (msg: any) => {
     try {
       let results: TADPROC | undefined = undefined
       while (results === undefined) {
-        results = await getTADPROCResult(msg, config)
-        console.log("RESULTS: ", results)
+        results = await handleTadProcResults(msg)
+        // results = await getTADPROCResult(msg, config)
+        console.log("RESULTS123: ", results)
       }
       if (results !== undefined) {
         dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: results })
@@ -174,12 +228,12 @@ const ProcessorProvider = ({ children }: Props) => {
     }
   }
 
-  useEffect(() => {
-    if (msgId.current !== "") {
-      handleTadProc(msgId.current)
-      msgId.current = ""
-    }
-  }, [msgId.current])
+  // useEffect(() => {
+  //   if (msgId.current !== "") {
+  //     handleTadProc(msgId.current)
+  //     msgId.current = ""
+  //   }
+  // }, [msgId.current])
 
   const getUIConfig = async () => {
     if (localStorage.getItem("UI_CONFIG") !== null) {
@@ -296,6 +350,66 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const updateTypologies = async (msg: any) => {
+    console.log("THIS_MSG_UPDATE: ", msg)
+    try {
+      dispatch({ type: ACTIONS.UPDATE_TYPO_LOADING })
+      const index: number = state.typologies.findIndex((r: Typology) => r.title === msg.cfg.split("@")[0])
+
+      const updatedTypo: any[] = [...state.typologies]
+
+      updatedTypo[index].result = msg.result
+
+      // FIX THIS LOGIC AS PER DOCUMENTATION
+      let interThreshold = null
+      let alertThreshold = null
+
+      if (Object.keys(msg.workflow).includes("interdictionThreshold")) {
+        interThreshold = msg.workflow.interdictionThreshold
+      }
+
+      if (Object.keys(msg.workflow).includes("alertThreshold")) {
+        alertThreshold = msg.workflow.alertThreshold
+      }
+      // if (msg?.typologyResult?.workflow?.interdictionThreshold !== undefined) {
+
+      // }
+      // if (msg?.typologyResult?.workflow?.interdictionThreshold !== undefined) {
+      //   alertThreshold = msg.typologyResult.workflow.alertThreshold
+      // }
+
+      updatedTypo[index].color = "g"
+
+      if (alertThreshold !== null && interThreshold !== null) {
+        if (msg.result < alertThreshold) {
+          updatedTypo[index].color = "g"
+        } else if (msg.result >= alertThreshold && msg.result < interThreshold) {
+          updatedTypo[index].color = "y"
+        } else if (msg.result >= interThreshold) {
+          updatedTypo[index].color = "r"
+          updatedTypo[index].stop = true
+        }
+      }
+      if (alertThreshold !== null && interThreshold === null) {
+        if (msg.result < alertThreshold) {
+          updatedTypo[index].color = "g"
+        } else if (msg.result >= alertThreshold) {
+          updatedTypo[index].color = "y"
+        }
+      } else {
+        if (msg.result < 0) {
+          updatedTypo[index].color = "y"
+        }
+      }
+
+      dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: updatedTypo })
+    } catch (error: any) {
+      dispatch({ type: ACTIONS.UPDATE_TYPO_FAIL })
+      console.error(error.message)
+    }
+  }
+
+  const updateTypologies1 = async (msg: any) => {
+    console.log("THIS_MSG_UPDATE1: ", msg)
     try {
       dispatch({ type: ACTIONS.UPDATE_TYPO_LOADING })
       const index: number = state.typologies.findIndex(
@@ -956,6 +1070,7 @@ const ProcessorProvider = ({ children }: Props) => {
   return (
     <ProcessorContext.Provider
       value={{
+        app_version: state.app_version,
         rulesLoading: false,
         tadprocLoading: false,
         edLightsLoading: false,
@@ -978,6 +1093,7 @@ const ProcessorProvider = ({ children }: Props) => {
         showCreditorConditions: state.showCreditorConditions,
         showDebtorConditionsCreate: state.showDebtorConditionsCreate,
         showCreditorConditionsCreate: state.showCreditorConditionsCreate,
+        uiconfig: uiConfig,
         updateEntityEventType,
         updateEntityAllChecked,
         createRules,
@@ -991,7 +1107,8 @@ const ProcessorProvider = ({ children }: Props) => {
         resetAllLights,
         clearResults,
         getUIConfig,
-        handleTadProc,
+        // handleTadProc,
+        handleTadProcLive,
         getConditions,
         createCondition,
         expireCondition,

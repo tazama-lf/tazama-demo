@@ -19,10 +19,23 @@ const handle = app.getRequestHandler()
 
 const handleMsg = async (msg, socket, room) => {
   const decodedMessage = frms.default.decode(msg.data)
-  console.log(decodedMessage["typologyResult"])
+
+  console.log("ALL: ", decodedMessage["typologyResult"])
+  await socket.to(room).emit(room, decodedMessage)
+}
+const handleMsg1 = async (msg, socket, room) => {
+  const decodedMessage = frms.default.decode(msg.data)
+
+  console.log("TADP1: ", decodedMessage["typologyResult"])
   await socket.to(room).emit(room, decodedMessage)
 }
 
+const handleMsg2 = async (msg, socket, room) => {
+  const decodedMessage = frms.default.decode(msg.data)
+
+  console.log("I-Service: ", decodedMessage)
+  await socket.to(room).emit(room, decodedMessage)
+}
 // const messageListener = async (messages, socket) => {
 //   ;(async () => {
 //     for await (const msg of messages) await handleMsg(msg, socket)
@@ -52,6 +65,8 @@ app.prepare().then(() => {
     "tadProc",
     "stream",
     "ui_config",
+    "cms",
+    "interdiction-service",
   ]
 
   io.on("connection", async (socket) => {
@@ -79,6 +94,9 @@ app.prepare().then(() => {
 
     socket.on("tadProc", (message) => {
       // Emit message to all subscribed clients
+      console.log(
+        "----------------------------------------------------------------> HIT!!! <----------------------------------------------------------------"
+      )
       io.to("tadProc").emit("tadProc", message)
     })
 
@@ -92,6 +110,7 @@ app.prepare().then(() => {
     let subscriptions = []
 
     NATSSubscriptions.forEach((sub) => {
+      console.log("SUB: ", sub)
       let subscription = nc.subscribe(sub, { queue: "MONITORING" })
       subscriptions.push(subscription)
       if (sub === ">") {
@@ -106,16 +125,20 @@ app.prepare().then(() => {
     const connected = nc.subscribe("connection")
     const all = nc.subscribe(">", { queue: "MONITORING1" })
     const cms = nc.subscribe("cms", { queue: "MONITORING_CMS" })
+    const is = nc.subscribe("interdiction-service", { queue: "MONITORING_IS" })
 
     ;(async () => {
       for await (const msg of connected) await handleMsg(msg, io, "connection")
     })()
     ;(async () => {
-      for await (const msg of all) await handleMsg(msg, io, "stream")
+      for await (const msg of cms) await handleMsg1(msg, io, "tadProc")
     })()
     ;(async () => {
-      for await (const msg of cms) await handleMsg(msg, io, "tadProc")
+      for await (const msg of is) await handleMsg2(msg, io, "interdiction-service")
     })()
+    // ;(async () => {
+    //   for await (const msg of all) await handleMsg(msg, io, "stream")
+    // })()
 
     io.to("stream").emit("stream", { message: "Stream Test Message" })
 

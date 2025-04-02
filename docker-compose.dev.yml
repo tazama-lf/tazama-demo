@@ -1,7 +1,7 @@
 services:
   app:
     container_name: tazama-demo
-    image: tazamaorg/demo-ui:v1.0.16
+    image: tazamaorg/demo-ui:v1.1.1-dev-preview
     build:
       context: ./
       target: dev

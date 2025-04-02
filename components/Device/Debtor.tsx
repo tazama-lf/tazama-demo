@@ -151,7 +151,7 @@ export function DebtorDevice(props: DebtorProps) {
     }
   }
   return (
-    <div className="relative col-span-4" style={{ height: "505px", width: "auto" }}>
+    <div className="relative col-span-4" style={{ height: "485px", width: "auto" }}>
       <Image
         src="/device.svg"
         width={250}

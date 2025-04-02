@@ -111,16 +111,103 @@ export const getTypologyDescriptions = async (config: DBConfig) => {
   return result
 }
 
-export const getTADPROCResult = async (transactionID: string, config: DBConfig) => {
-  const db = getTADPROCConnection(config)
-  await getCollection("transactions", db)
-  console.log("Fetching Results...")
-  let result = []
+// export const getTADPROCResult = async (transactionID: string, config: DBConfig) => {
+//   const db = getTADPROCConnection(config)
+//   await getCollection("transactions", db)
+//   console.log("Fetching Results...")
+//   let result = []
+//   try {
+//     const results = await db.query(aql`FOR c IN transactions FILTER c.transactionID == ${transactionID} RETURN c`)
+//     console.log("RESULTS111: ", results)
+//     for await (let transaction of results) {
+//       console.log("RESULTS111: ", transaction)
+//       result.push(transaction)
+//     }
+//     // db.close()
+//     if (result.length > 0) {
+//       let response: TADPROC = {
+//         status: result[0]?.report?.status,
+//         stop: false,
+//         color: "n",
+//         results: [],
+//       }
+//       // DOUBLE CHECK THIS LOGIC
+//       if (result[0]?.report?.status === "NALT") {
+//         response.color = "g"
+//       } else if (result[0]?.report?.status === "ALRT") {
+//         response.color = "y"
+//       }
+
+//       let tr = result[0]?.report?.tadpResult?.typologyResult
+//       // LOOP HERE
+//       if (tr.length > 0) {
+//         tr.forEach((typoRes: any) => {
+//           console.log(typoRes.cfg + " " + typoRes.result)
+//           // new result object
+//           let typoResult: TADPROC_RESULT = {
+//             cfg: typoRes.cfg,
+//             result: typoRes.result,
+//             efrup: undefined,
+//             workflow: {
+//               alertThreshold: null,
+//               interdictionThreshold: null,
+//             },
+//             ruleResults: [],
+//           }
+
+//           // #################################################################################################
+//           // modify result object
+//           typoRes.ruleResults.forEach((result: RuleResult) => {
+//             if (result.id === "EFRuP@1.0.0") {
+//               typoResult.efrup = result.subRuleRef
+//             }
+//             typoResult.ruleResults.push(result)
+//           })
+
+//           typoResult.workflow.interdictionThreshold = typoRes.workflow.interdictionThreshold
+//             ? typoRes.workflow.interdictionThreshold
+//             : null
+
+//           typoResult.workflow.alertThreshold = typoRes.workflow.alertThreshold ? typoRes.workflow.alertThreshold : null
+
+//           // Add this somewhere else...
+
+//           if (typoResult.efrup !== undefined) {
+//             response.efrup = typoResult.efrup
+//           }
+
+//           if (typoResult.workflow.interdictionThreshold !== null) {
+//             if (typoRes.result >= typoResult.workflow.interdictionThreshold) {
+//               response.stop = true
+//               response.color = "r"
+//             }
+//           }
+//           console.log("TYPORES: ", typoResult)
+//           response.results.push(typoResult)
+//         })
+//       }
+
+//       return response
+//     }
+//   } catch (err) {
+//     console.log("TadProc Results Error: ", err)
+//   }
+// }
+
+export const handleTadProcResults = async (msg: any) => {
+  // const db = getTADPROCConnection(config)
+  // await getCollection("transactions", db)
+  // console.log("Fetching Results...")
+  // console.log("TADPROC Results111: ", results.report.tadpResult.typologyResult)
+  let result: any[] = []
   try {
-    const results = await db.query(aql`FOR c IN transactions FILTER c.transactionID == ${transactionID} RETURN c`)
-    for await (let transaction of results) {
-      result.push(transaction)
-    }
+    // const results = await db.query(aql`FOR c IN transactions FILTER c.transactionID == ${transactionID} RETURN c`)
+    // console.log("TADPROC RESULTS111: ", results)
+    // for (let transaction of results) {
+    //   result.push(transaction)
+    // }
+    result.push(msg)
+    console.log("tadproc_msg: ", msg)
     // db.close()
     if (result.length > 0) {
       let response: TADPROC = {
@@ -184,7 +271,7 @@ export const getTADPROCResult = async (transactionID: string, config: DBConfig) 
           response.results.push(typoResult)
         })
       }
-
+      console.log("TADPROC_RESULT: ", response)
       return response
     }
   } catch (err) {

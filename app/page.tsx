@@ -17,8 +17,10 @@ import { DragDropContext, Draggable, Droppable } from "../node_modules/@hello-pa
 import RuleResult from "components/RuleResults/RuleResults"
 import TypeResult from "components/TypologyResults/TypologyResults"
 import { iconColour } from "utils/helpers"
+import io from "socket.io-client"
 import { ListCondition, Typology } from "store/processors/processor.interface"
 
+let socket
 const Web = () => {
   const entityCtx = useContext(EntityContext)
   const processCtx = useContext(ProcessorContext)
@@ -90,6 +92,32 @@ const Web = () => {
   const [error, setError] = useState(null)
   const [selectedEntity, setSelectedEntity] = useState<number>(0)
   const [selectedCreditorEntity, setSelectedCreditorEntity] = useState<number>(0)
+
+  // useEffect((): any => socketInitializer(), [])
+
+  useEffect(() => {
+    const socketInitializer = async () => {
+      try {
+        console.log("CONFIG: ", await processCtx.getUIConfig())
+        await fetch("http//localhost:3001")
+        socket = io()
+        socket.on("connect", () => {
+          console.log("connected")
+        })
+        socket.on("welcome", (msg) => {
+          console.log("received", msg)
+        })
+        socket.on("tadProc", async (msg) => {
+          console.log("tadproc", msg)
+          let test = await processCtx.handleTadProcLive(msg)
+          console.log("tadproc_test", test)
+        })
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    socketInitializer()
+  }, [])
 
   useEffect(() => {
     processCtx.getAllDebtorConditions()
@@ -176,13 +204,13 @@ const Web = () => {
           Clear All
         </button>
       </div>
-      <div className="min-h-screen bg-slate-300/25 px-5 pt-10">
+      <div className="bg-slate-300/25 px-3 pt-4">
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="grid grid-cols-12 gap-5">
             {/* Debtors */}
             <div className="col-span-2">
               <div className="flex flex-col flex-wrap justify-center rounded-lg py-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-                <div className="mb-5 text-center text-xl">Debtors</div>
+                <div className="mb-2 text-center text-xl">Debtors</div>
                 <Droppable droppableId="debtorProfiles">
                   {(provided: any) => (
                     <div ref={provided.innerRef} {...provided.droppableProps} className="min-w-full space-y-2">
@@ -348,8 +376,8 @@ const Web = () => {
 
             {/* Creditors */}
             <div className="col-span-2">
-              <div className="flex flex-col flex-wrap justify-center rounded-lg py-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-                <div className="mb-5 text-center text-xl">Creditors</div>
+              <div className="flex flex-col flex-wrap justify-center rounded-lg py-5  shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+                <div className="mb-2 text-center text-xl">Creditors</div>
                 <Droppable droppableId="creditorProfiles">
                   {(provided: any) => (
                     <div ref={provided.innerRef} {...provided.droppableProps} className="min-w-full space-y-2">
@@ -444,9 +472,9 @@ const Web = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-12 gap-5 pt-10">
+          <div className="grid grid-cols-6 gap-5 pt-8">
             {/* CRSP */}
-            <div className="col-span-2 rounded-md shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+            <div className="col-span-1 rounded-md shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
               <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
                 Event director
               </h2>
@@ -464,7 +492,7 @@ const Web = () => {
             </div>
 
             {/* Rules */}
-            <div className="col-span-4 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+            <div className="col-span-2 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
               <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
                 Rules
               </h2>
@@ -474,35 +502,39 @@ const Web = () => {
                     {processCtx.rulesLoading ? (
                       <p className="mb-5 w-80 rounded-t-lg py-5 text-center">Loading</p>
                     ) : (
-                      processCtx.rules?.map((rule: any) => (
-                        <div
-                          className={`mb-1  flex cursor-pointer rounded-md px-2 ${
-                            hoverRules && hoverRules.includes(rule.title) && "bg-gray-200 shadow"
-                          } ${
-                            selectedRules ? selectedRules.includes(rule.title) && "bg-gray-400 shadow" : null
-                          } hover:bg-gray-200 hover:shadow`}
-                          key={`r-${rule.id}`}
-                          onMouseEnter={() => {
-                            handleRuleMouseEnter(rule)
-                          }}
-                          onMouseLeave={() => handleRuleMouseLeave()}
-                          onClick={() => {
-                            if (selectedRule === null) {
-                              handleRuleClick(rule)
-                            } else if (selectedRule === rule) {
-                              handleRuleClickClose()
-                            }
+                      processCtx.rules
+                        ?.sort((a, b) => {
+                          return a.title.localeCompare(b.title)
+                        })
+                        .map((rule: any) => (
+                          <div
+                            className={`mb-1  flex cursor-pointer rounded-md px-2 ${
+                              hoverRules && hoverRules.includes(rule.title) && "bg-gray-200 shadow"
+                            } ${
+                              selectedRules ? selectedRules.includes(rule.title) && "bg-gray-400 shadow" : null
+                            } hover:bg-gray-200 hover:shadow`}
+                            key={`r-${rule.id}`}
+                            onMouseEnter={() => {
+                              handleRuleMouseEnter(rule)
+                            }}
+                            onMouseLeave={() => handleRuleMouseLeave()}
+                            onClick={() => {
+                              if (selectedRule === null) {
+                                handleRuleClick(rule)
+                              } else if (selectedRule === rule) {
+                                handleRuleClickClose()
+                              }
 
-                            if (selectedRules.length > 0) {
-                              handleRuleClickClose()
-                              handleRuleClick(rule)
-                            }
-                          }}
-                        >
-                          <StatusIndicator colour={rule.color} /> &nbsp;
-                          {rule.title}
-                        </div>
-                      ))
+                              if (selectedRules.length > 0) {
+                                handleRuleClickClose()
+                                handleRuleClick(rule)
+                              }
+                            }}
+                          >
+                            <StatusIndicator colour={rule.color} /> &nbsp;
+                            {rule.title}
+                          </div>
+                        ))
                     )}
                   </div>
                 </div>
@@ -525,7 +557,7 @@ const Web = () => {
             </div>
 
             {/* Typologies */}
-            <div className="col-span-4 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+            <div className="col-span-2 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
               <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
                 Typologies
               </h2>
@@ -533,26 +565,30 @@ const Web = () => {
                 <div className="col-span-6">
                   <div className="grid grid-cols-3 gap-1 px-5">
                     {processCtx.typologies &&
-                      processCtx.typologies.map((type: any) => (
-                        <div
-                          className={`mb-1 flex cursor-pointer rounded-md px-2 ${
-                            hoverTypes && hoverTypes.includes(type.title) && "bg-gray-200 shadow"
-                          } ${
-                            selectedTypes ? selectedTypes.includes(type.title) && "bg-gray-400 shadow" : null
-                          } hover:bg-gray-200 hover:shadow`}
-                          key={`r-${type.id}`}
-                          onMouseEnter={() => {
-                            handleTypeMouseEnter(type)
-                          }}
-                          onMouseLeave={() => handleTypeMouseLeave()}
-                          onClick={() => {
-                            handleTypeClick(type)
-                          }}
-                        >
-                          <StatusIndicator colour={type.color} /> &nbsp;
-                          {type.title}
-                        </div>
-                      ))}
+                      processCtx.typologies
+                        .sort((a, b) => {
+                          return a.title.localeCompare(b.title)
+                        })
+                        .map((type: any) => (
+                          <div
+                            className={`mb-1 flex cursor-pointer rounded-md px-2 ${
+                              hoverTypes && hoverTypes.includes(type.title) && "bg-gray-200 shadow"
+                            } ${
+                              selectedTypes ? selectedTypes.includes(type.title) && "bg-gray-400 shadow" : null
+                            } hover:bg-gray-200 hover:shadow`}
+                            key={`r-${type.id}`}
+                            onMouseEnter={() => {
+                              handleTypeMouseEnter(type)
+                            }}
+                            onMouseLeave={() => handleTypeMouseLeave()}
+                            onClick={() => {
+                              handleTypeClick(type)
+                            }}
+                          >
+                            <StatusIndicator colour={type.color} /> &nbsp;
+                            {type.title}
+                          </div>
+                        ))}
                   </div>
                 </div>
                 <div
@@ -567,11 +603,10 @@ const Web = () => {
             </div>
 
             {/* Tadproc */}
-            <div className="col-span-2 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+            <div className="col-span-1 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
               <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
                 Tadproc
               </h2>
-
               <div className="relative flex min-h-80 items-center justify-center">
                 <StatusIndicator large={true} colour={processCtx.tadpLights.color} />
 
@@ -598,7 +633,7 @@ const Web = () => {
                     )}
                   </div>
                 )}
-              </div>
+              </div>{" "}
             </div>
           </div>
 
@@ -641,6 +676,7 @@ const Web = () => {
           )}
         </DragDropContext>
       </div>
+      <p className="relative bottom-[20px] right-[15px] text-right text-xs">Tazama Demo - v{processCtx.app_version}</p>
     </>
   )
 }

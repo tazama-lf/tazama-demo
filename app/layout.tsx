@@ -5,6 +5,8 @@ import Link from "next/link"
 import EntityProvider from "store/entities/entity.provider"
 import ProcessorProvider from "store/processors/processor.provider"
 import { version } from "../package.json"
+import EntityContext from "store/entities/entity.context"
+import ProcessorContext from "store/processors/processor.context"
 
 export const metadata: Metadata = {
   title: "Tazama Demo",
@@ -38,7 +40,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   />
                 </svg>
               </Link>
-              <p className="absolute bottom-[2%] right-[2%] text-xs">Tazama Demo - v{version}</p>
             </div>
             {children}
           </body>

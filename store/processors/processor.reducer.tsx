@@ -387,6 +387,11 @@ const ProcessorReducer = (state: any, action: any) => {
         ...state,
         showCreditorConditionsCreate: action.payload,
       }
+    case ACTIONS.SET_APPLICATION_VERSION:
+      return {
+        ...state,
+        app_version: action.payload,
+      }
   }
 }
 

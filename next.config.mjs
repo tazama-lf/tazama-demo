@@ -1,5 +1,9 @@
 import withBundleAnalyzer from "@next/bundle-analyzer"
 import withPlugins from "next-compose-plugins"
+import { createRequire } from "module"
+
+const require = createRequire(import.meta.url)
+const json = require("./package.json")
 import { env } from "./env.mjs"
 
 /**
@@ -7,6 +11,9 @@ import { env } from "./env.mjs"
  */
 const config = withPlugins([[withBundleAnalyzer({ enabled: env.ANALYZE })]], {
   reactStrictMode: true,
+  publicRuntimeConfig: {
+    version: json.version,
+  },
   logging: {
     fetches: {
       fullUrl: true,

@@ -41,6 +41,8 @@ interface Context {
   showCreditorConditions: boolean
   showDebtorConditionsCreate: boolean
   showCreditorConditionsCreate: boolean
+  uiconfig: any
+  app_version: string
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -52,7 +54,8 @@ interface Context {
   resetAllLights: () => void
   clearResults: () => void
   getUIConfig: () => void
-  handleTadProc: (msgId: string) => void
+  // handleTadProc: (msgId: string) => void
+  handleTadProcLive: (msg: any) => void
   ruleLightsGreen: () => void
   ruleLightsNeutral: () => void
   getConditions: ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => void
@@ -91,6 +94,8 @@ const ProcessorContext = createContext<Context>({
   showCreditorConditions: false,
   showDebtorConditionsCreate: false,
   showCreditorConditionsCreate: false,
+  uiconfig: null,
+  app_version: "",
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
@@ -102,7 +107,8 @@ const ProcessorContext = createContext<Context>({
   resetAllLights: () => {},
   clearResults: () => {},
   getUIConfig: () => {},
-  handleTadProc: (msgId: string) => {},
+  // handleTadProc: (msgId: string) => {},
+  handleTadProcLive: (msg: any) => {},
   ruleLightsGreen: () => {},
   ruleLightsNeutral: () => {},
   getConditions: async ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => {},
