@@ -27,10 +27,6 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
   }),
     [selectedCondition]
 
-  // useEffect(() => {
-  //   console.log("EXP_DT_TM_UE: ", expDtTm)
-  // }, [expDtTm])
-
   const handleExpire = (con: ListCondition, newDate?: string) => {
     if (newDate) {
       con.xprtnDtTm = newDate
@@ -43,8 +39,6 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
     .toSorted((a, b) => {
       let a_date = new Date(a.incptnDtTm).getTime()
       let b_date = new Date(b.incptnDtTm).getTime()
-      console.log(a)
-      console.log(a_date, b_date)
       return a_date - b_date
     })
     .map((con: ListCondition) => {
@@ -54,10 +48,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
           let now1 = handleAdjustTime(new Date().toISOString())
           let now = new Date(now1).getTime()
           let chDt = new Date(con.xprtnDtTm).getTime()
-          let chDt1 = toIsoString(new Date(con.xprtnDtTm))
-          let t = viewLocalTime(con.incptnDtTm)
 
-          console.log("TEST - TIME: ", now, chDt1, t)
           if (con.condTp === "non-overridable-block") {
             if (chDt > now) {
               colour = "r"
@@ -80,8 +71,6 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
         }
       } else {
         let tstDate = new Date(con.incptnDtTm).getTime()
-        let t = viewLocalTime(con.incptnDtTm)
-        console.log("TEST - TIME: ", tstDate, t)
 
         let now = new Date(handleAdjustTime(new Date().toISOString())).getTime()
         if (tstDate !== undefined) {
@@ -307,7 +296,6 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
             handleExpire={async () => {
               if (selectedCondition !== undefined) {
                 if ("acct" in selectedCondition) {
-                  console.log("ACCOUNT EXPIRE HIT", selectedCondition)
                   if (expDtTm !== null) {
                     await processCtx.expireCondition({
                       type: "account",
@@ -333,7 +321,6 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                   }
                   // processCtx.expireCondition({ type: "account", accountId: "1", agt: "MSIDSN"})
                 } else if ("ntty" in selectedCondition) {
-                  console.log("ENTITY EXPIRE HIT")
                   if (expDtTm !== null) {
                     await processCtx.expireCondition({
                       type: "entity",

@@ -392,6 +392,18 @@ const ProcessorReducer = (state: any, action: any) => {
         ...state,
         app_version: action.payload,
       }
+
+    case ACTIONS.SET_LINKED_TYPOLOGIES:
+      return {
+        ...state,
+        linkedTypologies: action.payload,
+      }
+
+    case ACTIONS.CLEAR_LINKED_TYPOLOGIES:
+      return {
+        ...state,
+        linkedTypologies: [],
+      }
   }
 }
 

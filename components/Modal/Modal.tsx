@@ -56,7 +56,6 @@ const DebtorModal = ({ ...props }: Props) => {
         return con.acct!.id.includes(acctId!)
       })
       setFilteredConditions(filteredAcctData)
-      console.log("FILTERED: ", filteredAcctData)
     }
   }, [processCtx.conditionsDataDebtor])
 

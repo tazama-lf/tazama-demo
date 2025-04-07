@@ -382,24 +382,3 @@ export function DeviceInfo(props: DeviceProps) {
     )
   }
 }
-
-// const checkIsActiveAccount = (entity: Entity, selectedIndex: number | undefined) => {
-//   console.log("CHECKING", selectedIndex)
-//   if (entity) {
-//     if (entity.Accounts.length > 0 && entity!.Accounts) {
-//       let acc: DebtorAccount | undefined = entity!.Accounts[selectedIndex!]
-//       console.log("ACC: ", acc)
-//       if (acc !== undefined) {
-//         if (processCtx.conditionsData.activeConditions.includes(acc.DbtrAcct.Id.Othr[0].Id)) {
-//           return "b"
-//         } else {
-//           return "n"
-//         }
-//       } else {
-//         return "r"
-//       }
-//     }
-//   } else {
-//     return "n"
-//   }
-// }

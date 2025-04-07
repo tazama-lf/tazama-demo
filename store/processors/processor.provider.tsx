@@ -21,6 +21,7 @@ import {
   EDLightsManager,
   ExpireProps,
   GetConditionsProps,
+  LinkedTypo,
   ListCondition,
   NewCondition,
   Rule,
@@ -65,6 +66,7 @@ const ProcessorProvider = ({ children }: Props) => {
     showCreditorConditions: false,
     showDebtorConditionsCreate: false,
     showCreditorConditionsCreate: false,
+    linkedTypologies: [],
   }
   const [state, dispatch] = useReducer(ProcessorReducer, initialProcessorState)
   const nttyCtx = useContext(EntityContext)
@@ -80,13 +82,35 @@ const ProcessorProvider = ({ children }: Props) => {
     try {
       ;(async function () {
         let res = await axios.get("/api/version")
-        console.log("RES_DATA1: ", res.data)
         dispatch({ type: ACTIONS.SET_APPLICATION_VERSION, payload: res.data.version })
       })()
     } catch (err: any) {
       console.log(err)
     }
   }, [])
+
+  useEffect(() => {
+    if (state.linkedTypologies.length > 0) {
+      state.rules.map((rule: Rule) => {
+        if (rule.title !== "EFRuP") {
+          let links = state.linkedTypologies.filter((link: LinkedTypo) => {
+            if (link.rule === rule.title) {
+              if (link.ruleResult !== null && link.ruleResult > 0) {
+                return link
+              }
+            }
+          })
+          links.sort((a: LinkedTypo, b: LinkedTypo) => {
+            if (a.ruleResult !== null && b.ruleResult !== null) {
+              a.ruleResult - b.ruleResult
+            }
+          })
+
+          rule.linkedTypologies = [...links]
+        }
+      })
+    }
+  }, [state.linkedTypologies, state.rules])
 
   useEffect(() => {
     const test = { ...state.tadProcResults }
@@ -150,8 +174,6 @@ const ProcessorProvider = ({ children }: Props) => {
           msg.report.tadpResult.typologyResult.map((tpRes: any) => {
             setTimeout(
               async () => {
-                console.log("THIS_MSG1", msg)
-
                 await updateTypologies(tpRes)
               },
               Math.floor(Math.random() * (500 - 200)) + 200
@@ -163,62 +185,63 @@ const ProcessorProvider = ({ children }: Props) => {
           })
         }
       })
-      // socket.onAny((event: any, ...args: any) => {
-      //   if (event === "stream") {
-      //     console.log("ARGS_EVENT", args[0])
-      //     const typoResult = Object.keys(args[0]).includes("typologyResult")
-      //     console.log("THIS_1", typoResult)
-      //     if (typoResult) {
-      //       setTimeout(
-      //         async () => {
-      //           console.log("THIS_MSG2", args[0])
-      //           await updateTypologies1(args[0])
-      //         },
-      //         // Math.floor(Math.random() * (400 - 200)) + 1500
-      //         50
-      //       )
-
-      //       if (msgId.current !== args[0]?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId) {
-      //         msgId.current = args[0]?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
-      //       }
-      //     }
-      //   }
-      // })
     }
   }, [state.typologies])
 
-  // const handleTadProc = async (msg: any) => {
-  //   console.log("THIS: ", msg)
-  //   const configData: any = await localStorage.getItem("UI_CONFIG")
-  //   let conf: any = configData
-  //   let con: any = JSON.parse(conf)
-  //   const config: any = {
-  //     url: con.arangoDBHosting,
-  //     databaseName: "configuration",
-  //     auth: { username: con.dbUser, password: con.dbPassword },
-  //   }
-  //   try {
-  //     let results: TADPROC | undefined = undefined
-  //     while (results === undefined) {
-  //       // results = await handleTadProcResults(msg)
-  //       results = await getTADPROCResult(msg, config)
-  //       console.log("RESULTS: ", results)
-  //     }
-  //     if (results !== undefined) {
-  //       dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: results })
-  //     }
-  //   } catch (err) {
-  //     console.log("TADPROC ERROR", err)
-  //   }
-  // }
+  const handleLinkedTypologies = async (msg: any) => {
+    const typoResults = msg.report.tadpResult.typologyResult
+    const linksResponse: LinkedTypo[] = []
+
+    if (typoResults.length > 0) {
+      // MAP THE TYPOLOGY RESULTS
+      typoResults.map((typoResult: any) => {
+        // MAP THE TYPOLOGY RULE RESULTS
+        typoResult.ruleResults.map((ruleResult: any) => {
+          try {
+            if (ruleResult.id.split("@")[0] !== "EFRuP") {
+              let linkedTypo: LinkedTypo = {
+                typology: typoResult.cfg.split("@")[0],
+                typologyResult: typoResult.result,
+                ruleId: ruleResult.id,
+                rule: ruleResult.id.split("@")[0],
+                ruleResult: ruleResult.wght,
+                subRuleRef: ruleResult.subRuleRef,
+              }
+              linksResponse.push(linkedTypo)
+            }
+
+            // USE 'typoResult' for the typology
+          } catch (err) {
+            console.log(err)
+            throw err
+          }
+        })
+      })
+      // SORT BY TYPOLOGY
+      linksResponse.sort((a: LinkedTypo, b: LinkedTypo) => {
+        return a.typology.localeCompare(b.typology)
+      })
+      return linksResponse
+    } else {
+      return []
+    }
+  }
 
   const handleTadProcLive = async (msg: any) => {
     try {
       let results: TADPROC | undefined = undefined
-      while (results === undefined) {
+      let linkedTypologies: LinkedTypo[] | undefined = undefined
+      clearLinkedTypologies()
+      try {
+        linkedTypologies = await handleLinkedTypologies(msg)
+        if (linkedTypologies) {
+          setLinkedTypologies(linkedTypologies)
+        }
+      } catch (err: any) {
+        console.log("ERROR_MSG: ", err)
+      }
+      while (results === undefined && linkedTypologies !== undefined) {
         results = await handleTadProcResults(msg)
-        // results = await getTADPROCResult(msg, config)
-        console.log("RESULTS123: ", results)
       }
       if (results !== undefined) {
         dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: results })
@@ -307,13 +330,10 @@ const ProcessorProvider = ({ children }: Props) => {
       if (msg.ruleResult.id === "EFRuP@1.0.0") {
         index = await state.rules.findIndex((r: Rule) => r.title === msg.ruleResult.id)
         if (msg.ruleResult.subRuleRef === "override") {
-          console.log(msg.ruleResult.subRuleRef)
           updatedRules[index].color = "g"
         } else if (msg.ruleResult.subRuleRef === "block") {
-          console.log(msg.ruleResult.subRuleRef)
           updatedRules[index].color = "r"
         } else if (msg.ruleResult.subRuleRef === "none") {
-          console.log(msg.ruleResult.subRuleRef)
           updatedRules[index].color = "n"
         }
       } else {
@@ -350,7 +370,6 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const updateTypologies = async (msg: any) => {
-    console.log("THIS_MSG_UPDATE: ", msg)
     try {
       dispatch({ type: ACTIONS.UPDATE_TYPO_LOADING })
       const index: number = state.typologies.findIndex((r: Typology) => r.title === msg.cfg.split("@")[0])
@@ -408,67 +427,6 @@ const ProcessorProvider = ({ children }: Props) => {
     }
   }
 
-  const updateTypologies1 = async (msg: any) => {
-    console.log("THIS_MSG_UPDATE1: ", msg)
-    try {
-      dispatch({ type: ACTIONS.UPDATE_TYPO_LOADING })
-      const index: number = state.typologies.findIndex(
-        (r: Typology) => r.title === msg.typologyResult.cfg.split("@")[0]
-      )
-
-      const updatedTypo: any[] = [...state.typologies]
-
-      updatedTypo[index].result = msg.typologyResult.result
-
-      // FIX THIS LOGIC AS PER DOCUMENTATION
-      let interThreshold = null
-      let alertThreshold = null
-
-      if (Object.keys(msg?.typologyResult?.workflow).includes("interdictionThreshold")) {
-        interThreshold = msg.typologyResult.workflow.interdictionThreshold
-      }
-
-      if (Object.keys(msg?.typologyResult?.workflow).includes("alertThreshold")) {
-        alertThreshold = msg.typologyResult.workflow.alertThreshold
-      }
-      // if (msg?.typologyResult?.workflow?.interdictionThreshold !== undefined) {
-
-      // }
-      // if (msg?.typologyResult?.workflow?.interdictionThreshold !== undefined) {
-      //   alertThreshold = msg.typologyResult.workflow.alertThreshold
-      // }
-
-      updatedTypo[index].color = "g"
-
-      if (alertThreshold !== null && interThreshold !== null) {
-        if (msg.typologyResult.result < alertThreshold) {
-          updatedTypo[index].color = "g"
-        } else if (msg.typologyResult.result >= alertThreshold && msg.typologyResult.result < interThreshold) {
-          updatedTypo[index].color = "y"
-        } else if (msg.typologyResult.result >= interThreshold) {
-          updatedTypo[index].color = "r"
-          updatedTypo[index].stop = true
-        }
-      }
-      if (alertThreshold !== null && interThreshold === null) {
-        if (msg.typologyResult.result < alertThreshold) {
-          updatedTypo[index].color = "g"
-        } else if (msg.typologyResult.result >= alertThreshold) {
-          updatedTypo[index].color = "y"
-        }
-      } else {
-        if (msg.typologyResult.result < 0) {
-          updatedTypo[index].color = "y"
-        }
-      }
-
-      dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: updatedTypo })
-    } catch (error: any) {
-      dispatch({ type: ACTIONS.UPDATE_TYPO_FAIL })
-      console.error(error.message)
-    }
-  }
-
   const validateResults = async (result: TADPROC_RESULT) => {
     try {
       dispatch({ type: ACTIONS.VALIDATE_RESULTS_LOADING })
@@ -496,15 +454,11 @@ const ProcessorProvider = ({ children }: Props) => {
         result.ruleResults.map(async (ruleResult) => {
           if (ruleResult.id === "EFRuP@1.0.0") {
             const index = await state.rules.findIndex((r: Rule) => r.rule === ruleResult.id)
-            console.log("HIT!!", index)
             if (ruleResult.subRuleRef === "override") {
-              console.log(ruleResult.subRuleRef)
               state.rules[index].color = "g"
             } else if (ruleResult.subRuleRef === "block") {
-              console.log(ruleResult.subRuleRef)
               state.rules[index].color = "r"
             } else if (ruleResult.subRuleRef === "none") {
-              console.log(ruleResult.subRuleRef)
               state.rules[index].color = "n"
             }
             state.rules[index].result = ruleResult.subRuleRef
@@ -515,14 +469,14 @@ const ProcessorProvider = ({ children }: Props) => {
                 state.rules[index].result = ruleResult.subRuleRef
 
                 state.rules[index].color = "r"
-                state.rules[index].wght = ruleResult.wght
 
-                // if (!resIndex.includes(index)) {
-                //   resIndex.push({ index: index, wght: ruleResult.wght })
-                // }
+                if (state.rules[index].wght < ruleResult.wght) state.rules[index].wght = ruleResult.wght
+
+                if (!resIndex.includes(index)) {
+                  resIndex.push({ index: index, wght: ruleResult.wght })
+                }
               } else {
                 state.rules[index].result = ruleResult.subRuleRef
-
                 state.rules[index].color = "g"
                 state.rules[index].wght = ruleResult.wght
               }
@@ -584,7 +538,6 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const handleEntityAccountConditions = async (resData: any) => {
-    // console.log("ISSUE_1: ", resData)
     let filteredResData: ListCondition[] = []
     resData.conditions.map((item: any) => {
       let perspective: string = ""
@@ -620,8 +573,6 @@ const ProcessorProvider = ({ children }: Props) => {
     return filteredResData
   }
   const handleEntityConditions = async (resData: any) => {
-    console.log("ISSUE_1: ", resData)
-
     let filteredResData: ListCondition[] = []
     resData.conditions.map((item: any) => {
       let perspective: string = ""
@@ -677,58 +628,22 @@ const ProcessorProvider = ({ children }: Props) => {
         if (accountId !== undefined) {
           const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${accountId}&schmenm=${schmeNm}&agt=${agt}&synccache=all`
           const res: AxiosResponse = await axios.get(acctURL)
-          console.log("RES: ", res.data)
-
           const response: ListCondition[] = await handleEntityAccountConditions(res.data)
-
-          // let test: any[] = response.filter((condition) => {
-          //   return state.conditionsList.map((item: ListCondition) => {
-          //     item.condId.includes(condition.condId)
-          //   })
-          // })
-          // console.log("test: ", test)
 
           dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: response })
           const active = await get_active_list(response)
-          console.log("ACTIVE: ", active)
+
           dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
-
-          // await response.map(async (condition: ListCondition) => {
-          //   console.log("Condition ID: ", condition.condId)
-          //   const check = state.conditionsData.conditions.filter((con: ListCondition) => {
-          //     con.condId.includes(condition.condId)
-          //   })
-          //   console.log("Check: ", check)
-          //   if (check.length > 0) {
-          //     console.log("HIT!!!")
-          //   }
-          // })
-          // dispatch({ type: ACTIONS.ADD_GET_CONDITIONS_SUCCESS, payload: response })
-
-          console.log("LIST: ", state.conditionsData)
         }
       } else if (type === "entity") {
         if (entityId !== undefined) {
           const nttyURL = `http://localhost:5100/v1/admin/event-flow-control/entity?id=${entityId}&schmenm=${schmeNm}&synccache=all`
           const res: AxiosResponse = await axios.get(nttyURL)
-          console.log("RES: ", res.data)
-
           const response: ListCondition[] = await handleEntityConditions(res.data)
 
           dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: response })
           const active = await get_active_list(response)
-          console.log("ACTIVE: ", active)
           dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
-          // response.map((condition: ListCondition) => {
-          //   const check = state.conditionsData.conditions.filter((con: ListCondition) => {
-          //     con.condId.includes(condition.condId)
-          //   })
-          //   console.log("Check: ", check)
-          //   if (check.length > 0) {
-          //     console.log("HIT!!!")
-          //     // dispatch({ type: ACTIONS.ADD_GET_CONDITIONS_SUCCESS, payload: check })
-          //   }
-          // })
         }
       }
     } catch (error) {
@@ -746,7 +661,6 @@ const ProcessorProvider = ({ children }: Props) => {
         const res: AxiosResponse = await axios.post(acctURL, condition)
 
         if (res.status === 200 || res.status === 201) {
-          console.log("ACCOUNT_RES: ", res.data)
           const response: ListCondition[] = await handleEntityConditions(res.data.result)
           dispatch({ type: ACTIONS.CREATE_CONDITIONS_SUCCESS, payload: response })
         }
@@ -754,7 +668,6 @@ const ProcessorProvider = ({ children }: Props) => {
         const res: AxiosResponse = await axios.post(nttyURL, condition)
 
         if (res.status === 200 || res.status === 201) {
-          console.log("ENTITY_RES: ", res.data)
           const response: ListCondition[] = await handleEntityAccountConditions(res.data.result)
           dispatch({ type: ACTIONS.CREATE_CONDITIONS_SUCCESS, payload: response })
         }
@@ -769,15 +682,12 @@ const ProcessorProvider = ({ children }: Props) => {
     try {
       dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_LOADING })
       if (type === "account") {
-        console.log("ACCOUNT_ID: ", accountId)
         const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${accountId}&schmenm=${schmeNm}&agt=${agt}&condid=${condId}&synccache=all`
         const res: AxiosResponse = await axios.put(acctURL, { xprtnDtTm: xprtnDtTm ? xprtnDtTm : null })
         dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_LOADING, payload: [] })
-        console.log(res.data)
       } else if (type === "entity") {
         const nttyURL = `http://localhost:5100/v1/admin/event-flow-control/entity?id=${entityId}&schmenm=${schmeNm}&condid=${condId}&synccache=all`
         const res: AxiosResponse = await axios.put(nttyURL, { xprtnDtTm: xprtnDtTm ? xprtnDtTm : null })
-        console.log(res.data)
       }
     } catch (error) {
       dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_FAIL })
@@ -829,29 +739,13 @@ const ProcessorProvider = ({ children }: Props) => {
       entities.map(async (ntty) => {
         const nttyURL = `http://localhost:5100/v1/admin/event-flow-control/entity?id=${ntty.entityId}&schmenm=${ntty.schmeNm}&synccache=all`
         entityUrls.push(nttyURL)
-        // const res: AxiosResponse = await axios.get(nttyURL)
-        // console.log("RES: ", res.data)
-        // let entityConditions: ListCondition[] = await handleEntityConditions(res.data)
-        // entityRes.push(...entityConditions)
       })
     }
-
-    // const getEntityConditions = (nttyUrl: string) => {
-    //   return new Promise(async (resolve, reject) => {
-    //     const res: AxiosResponse = await axios.get(nttyUrl)
-    //   })
-    // }
 
     if (accounts.length > 0) {
       accounts.map(async (acct) => {
         const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}&syncache=all`
         accountUrls.push(acctURL)
-        // const res: AxiosResponse = await axios.get(acctURL)
-        // console.log("RES: ", res.data)
-
-        // const accountConditions: ListCondition[] = await handleEntityConditions(res.data)
-
-        // entityRes.push(...accountConditions)
       })
     }
 
@@ -864,7 +758,6 @@ const ProcessorProvider = ({ children }: Props) => {
         }
       })
     )
-    console.log("Parallel Entitys: ", entityResponses)
 
     const accountResponses: any[] = await Promise.all(
       accountUrls.map(async (url) => {
@@ -875,22 +768,14 @@ const ProcessorProvider = ({ children }: Props) => {
         }
       })
     )
-    console.log(
-      "Parallel Accounts: ",
-      accountResponses.filter((el) => el !== null)
-    )
 
     await entityResponses.map(async (response) => {
-      console.log("TEST-1:", response)
       if (response !== null) {
         if (response.statusText !== "No Content") {
           const nttyConditions: ListCondition[] = await handleEntityConditions(response.data)
-          console.log("nttyConditions: ", nttyConditions)
           nttyConditions.map((item) => {
-            console.log(item)
             finalResponse.push(item)
           })
-          console.log("HERE-1: ", finalResponse)
         }
       }
     })
@@ -898,24 +783,18 @@ const ProcessorProvider = ({ children }: Props) => {
     await accountResponses
       .filter((el) => el !== null)
       .map(async (response) => {
-        console.log("TEST-2:", response)
         if (response !== null) {
           if (response.statusText !== "No Content") {
             const accountConditions: ListCondition[] = await handleEntityAccountConditions(response.data)
-            console.log("accountConditions: ", accountConditions)
             accountConditions.map((item) => {
-              console.log(item)
               finalResponse.push(item)
-              console.log("HERE-2: ", finalResponse)
             })
           }
         }
       })
     dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: finalResponse })
     const active = await get_active_list(finalResponse)
-    console.log("ACTIVE: ", active)
     dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
-    console.log("Parallel Final: ", finalResponse)
 
     return finalResponse
   }
@@ -952,29 +831,13 @@ const ProcessorProvider = ({ children }: Props) => {
       entities.map(async (ntty) => {
         const nttyURL = `http://localhost:5100/v1/admin/event-flow-control/entity?id=${ntty.entityId}&schmenm=${ntty.schmeNm}&synccache=all`
         entityUrls.push(nttyURL)
-        // const res: AxiosResponse = await axios.get(nttyURL)
-        // console.log("RES: ", res.data)
-        // let entityConditions: ListCondition[] = await handleEntityConditions(res.data)
-        // entityRes.push(...entityConditions)
       })
     }
-
-    // const getEntityConditions = (nttyUrl: string) => {
-    //   return new Promise(async (resolve, reject) => {
-    //     const res: AxiosResponse = await axios.get(nttyUrl)
-    //   })
-    // }
 
     if (accounts.length > 0) {
       accounts.map(async (acct) => {
         const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}&syncache=all`
         accountUrls.push(acctURL)
-        // const res: AxiosResponse = await axios.get(acctURL)
-        // console.log("RES: ", res.data)
-
-        // const accountConditions: ListCondition[] = await handleEntityConditions(res.data)
-
-        // entityRes.push(...accountConditions)
       })
     }
 
@@ -987,7 +850,6 @@ const ProcessorProvider = ({ children }: Props) => {
         }
       })
     )
-    console.log("Parallel Entitys: ", entityResponses)
 
     const accountResponses: any[] = await Promise.all(
       accountUrls.map(async (url) => {
@@ -998,22 +860,14 @@ const ProcessorProvider = ({ children }: Props) => {
         }
       })
     )
-    console.log(
-      "Parallel Accounts: ",
-      accountResponses.filter((el) => el !== null)
-    )
 
     await entityResponses.map(async (response) => {
-      console.log("TEST-1:", response)
       if (response !== null) {
         if (response.statusText !== "No Content") {
           const nttyConditions: ListCondition[] = await handleEntityConditions(response.data)
-          console.log("nttyConditions: ", nttyConditions)
           nttyConditions.map((item) => {
-            console.log(item)
             finalResponse.push(item)
           })
-          console.log("HERE-1: ", finalResponse)
         }
       }
     })
@@ -1021,24 +875,18 @@ const ProcessorProvider = ({ children }: Props) => {
     await accountResponses
       .filter((el) => el !== null)
       .map(async (response) => {
-        console.log("TEST-2:", response)
         if (response !== null) {
           if (response.statusText !== "No Content") {
             const accountConditions: ListCondition[] = await handleEntityAccountConditions(response.data)
-            console.log("accountConditions: ", accountConditions)
             accountConditions.map((item) => {
-              console.log(item)
               finalResponse.push(item)
-              console.log("HERE-2: ", finalResponse)
             })
           }
         }
       })
     dispatch({ type: ACTIONS.GET_CREDITOR_CONDITIONS_SUCCESS, payload: finalResponse })
     const active = await get_active_list(finalResponse)
-    console.log("ACTIVE: ", active)
     dispatch({ type: ACTIONS.ADD_GET_CREDITOR_CONDITIONS_SUCCESS, payload: active })
-    console.log("Parallel Final: ", finalResponse)
 
     return finalResponse
   }
@@ -1065,6 +913,14 @@ const ProcessorProvider = ({ children }: Props) => {
 
   const setShowCreditorConditionsCreate = (option: true | false) => {
     dispatch({ type: ACTIONS.SET_SHOW_CREDITOR_CONDITIONS_CREATE, payload: option })
+  }
+
+  const setLinkedTypologies = (linkedTypos: LinkedTypo[]) => {
+    dispatch({ type: ACTIONS.SET_LINKED_TYPOLOGIES, payload: linkedTypos })
+  }
+
+  const clearLinkedTypologies = () => {
+    dispatch({ type: ACTIONS.CLEAR_LINKED_TYPOLOGIES })
   }
 
   return (
@@ -1094,6 +950,7 @@ const ProcessorProvider = ({ children }: Props) => {
         showDebtorConditionsCreate: state.showDebtorConditionsCreate,
         showCreditorConditionsCreate: state.showCreditorConditionsCreate,
         uiconfig: uiConfig,
+        linkedTypologies: state.linkedTypologies,
         updateEntityEventType,
         updateEntityAllChecked,
         createRules,
@@ -1120,6 +977,8 @@ const ProcessorProvider = ({ children }: Props) => {
         setShowCreditorConditions,
         setShowDebtorConditionsCreate,
         setShowCreditorConditionsCreate,
+        setLinkedTypologies,
+        clearLinkedTypologies,
       }}
     >
       {children}

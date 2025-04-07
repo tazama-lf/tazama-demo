@@ -20,20 +20,17 @@ const handle = app.getRequestHandler()
 const handleMsg = async (msg, socket, room) => {
   const decodedMessage = frms.default.decode(msg.data)
 
-  console.log("ALL: ", decodedMessage["typologyResult"])
   await socket.to(room).emit(room, decodedMessage)
 }
 const handleMsg1 = async (msg, socket, room) => {
   const decodedMessage = frms.default.decode(msg.data)
 
-  console.log("TADP1: ", decodedMessage["typologyResult"])
   await socket.to(room).emit(room, decodedMessage)
 }
 
 const handleMsg2 = async (msg, socket, room) => {
   const decodedMessage = frms.default.decode(msg.data)
 
-  console.log("I-Service: ", decodedMessage)
   await socket.to(room).emit(room, decodedMessage)
 }
 // const messageListener = async (messages, socket) => {
@@ -94,9 +91,6 @@ app.prepare().then(() => {
 
     socket.on("tadProc", (message) => {
       // Emit message to all subscribed clients
-      console.log(
-        "----------------------------------------------------------------> HIT!!! <----------------------------------------------------------------"
-      )
       io.to("tadProc").emit("tadProc", message)
     })
 
@@ -110,7 +104,6 @@ app.prepare().then(() => {
     let subscriptions = []
 
     NATSSubscriptions.forEach((sub) => {
-      console.log("SUB: ", sub)
       let subscription = nc.subscribe(sub, { queue: "MONITORING" })
       subscriptions.push(subscription)
       if (sub === ">") {
@@ -123,7 +116,7 @@ app.prepare().then(() => {
     console.log("NATS Server Info: ", nc.info)
 
     const connected = nc.subscribe("connection")
-    const all = nc.subscribe(">", { queue: "MONITORING1" })
+    // const all = nc.subscribe(">", { queue: "MONITORING1" })
     const cms = nc.subscribe("cms", { queue: "MONITORING_CMS" })
     const is = nc.subscribe("interdiction-service", { queue: "MONITORING_IS" })
 

@@ -5,6 +5,15 @@ export interface RuleBand {
   reason: string
 }
 
+export interface LinkedTypo {
+  typology: string
+  typologyResult: number
+  ruleId: string
+  rule: string
+  subRuleRef: string
+  ruleResult: number
+}
+
 export interface Rule {
   id: number
   title: string
@@ -13,7 +22,7 @@ export interface Rule {
   color: "r" | "g" | "y" | "n"
   result: any
   wght: number
-  linkedTypologies: string[]
+  linkedTypologies: LinkedTypo[]
   ruleBands: RuleBand[]
 }
 

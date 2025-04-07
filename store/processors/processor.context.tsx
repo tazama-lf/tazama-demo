@@ -11,6 +11,7 @@ import {
   EDLightsManager,
   ExpireProps,
   GetConditionsProps,
+  LinkedTypo,
   ListCondition,
   NewCondition,
   Rule,
@@ -43,6 +44,7 @@ interface Context {
   showCreditorConditionsCreate: boolean
   uiconfig: any
   app_version: string
+  linkedTypologies: LinkedTypo[]
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -69,6 +71,8 @@ interface Context {
   setShowCreditorConditions: (option: boolean) => void
   setShowDebtorConditionsCreate: (option: boolean) => void
   setShowCreditorConditionsCreate: (option: boolean) => void
+  setLinkedTypologies: (linkedTypos: LinkedTypo[]) => void
+  clearLinkedTypologies: () => void
 }
 
 const ProcessorContext = createContext<Context>({
@@ -96,6 +100,7 @@ const ProcessorContext = createContext<Context>({
   showCreditorConditionsCreate: false,
   uiconfig: null,
   app_version: "",
+  linkedTypologies: [],
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
@@ -122,6 +127,8 @@ const ProcessorContext = createContext<Context>({
   setShowCreditorConditions: (option: boolean) => {},
   setShowDebtorConditionsCreate: (option: boolean) => {},
   setShowCreditorConditionsCreate: (option: boolean) => {},
+  setLinkedTypologies: (linkedTypos: LinkedTypo[]) => {},
+  clearLinkedTypologies: () => {},
 })
 
 export default ProcessorContext

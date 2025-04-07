@@ -1,5 +1,6 @@
 import {
   DBConfig,
+  LinkedTypo,
   Rule,
   RuleBand,
   RuleConfig,
@@ -195,19 +196,10 @@ export const getTypologyDescriptions = async (config: DBConfig) => {
 // }
 
 export const handleTadProcResults = async (msg: any) => {
-  // const db = getTADPROCConnection(config)
-  // await getCollection("transactions", db)
-  // console.log("Fetching Results...")
-  // console.log("TADPROC Results111: ", results.report.tadpResult.typologyResult)
   let result: any[] = []
+
   try {
-    // const results = await db.query(aql`FOR c IN transactions FILTER c.transactionID == ${transactionID} RETURN c`)
-    // console.log("TADPROC RESULTS111: ", results)
-    // for (let transaction of results) {
-    //   result.push(transaction)
-    // }
     result.push(msg)
-    console.log("tadproc_msg: ", msg)
     // db.close()
     if (result.length > 0) {
       let response: TADPROC = {
@@ -227,7 +219,6 @@ export const handleTadProcResults = async (msg: any) => {
       // LOOP HERE
       if (tr.length > 0) {
         tr.forEach((typoRes: any) => {
-          console.log(typoRes.cfg + " " + typoRes.result)
           // new result object
           let typoResult: TADPROC_RESULT = {
             cfg: typoRes.cfg,
@@ -267,11 +258,9 @@ export const handleTadProcResults = async (msg: any) => {
               response.color = "r"
             }
           }
-          console.log("TYPORES: ", typoResult)
           response.results.push(typoResult)
         })
       }
-      console.log("TADPROC_RESULT: ", response)
       return response
     }
   } catch (err) {
@@ -279,25 +268,25 @@ export const handleTadProcResults = async (msg: any) => {
   }
 }
 
-const getTypologyDetails = async (cfg: string, config: DBConfig) => {
-  const db = getConfigConnection(config)
-  await getCollection("typologyConfiguration", db)
-  let result = []
+// const getTypologyDetails = async (cfg: string, config: DBConfig) => {
+//   const db = getConfigConnection(config)
+//   await getCollection("typologyConfiguration", db)
+//   let result = []
 
-  try {
-    const results = await db.query(aql`FOR typo IN typologyConfiguration FILTER typo.cfg == ${cfg} RETURN typo`)
+//   try {
+//     const results = await db.query(aql`FOR typo IN typologyConfiguration FILTER typo.cfg == ${cfg} RETURN typo`)
 
-    for await (let typo of results) {
-      result.push(typo)
-    }
+//     for await (let typo of results) {
+//       result.push(typo)
+//     }
 
-    await db.close()
+//     await db.close()
 
-    return result
-  } catch (err) {
-    console.log("Typology Details Error: ", err)
-  }
-}
+//     return result
+//   } catch (err) {
+//     console.log("Typology Details Error: ", err)
+//   }
+// }
 
 export const getNetworkMap = async (config: DBConfig) => {
   const db = await getConfigConnection(config)
@@ -345,11 +334,11 @@ export const getNetworkMap = async (config: DBConfig) => {
             rulesRes.push(newRule)
           }
 
-          rulesRes.map(async (r) => {
-            if (r.id === rule.id) {
-              r.linkedTypologies.push(typology.cfg.split("@")[0])
-            }
-          })
+          // rulesRes.map(async (r) => {
+          //   if (r.id === rule.id) {
+          //     r.linkedTypologies.push(typology.cfg.split("@")[0])
+          //   }
+          // })
 
           newTypology.linkedRules.push(newRule.title)
         })
@@ -423,11 +412,11 @@ export const getNetworkMap = async (config: DBConfig) => {
         }
       }
 
-      typologiesRes.forEach(async (typology) => {
-        if (typology.linkedRules.includes(rule.title)) {
-          rule.linkedTypologies.push(typology.title)
-        }
-      })
+      // typologiesRes.forEach(async (typology) => {
+      //   if (typology.linkedRules.includes(rule.title)) {
+      //     rule.linkedTypologies.push(typology.title)
+      //   }
+      // })
     }
   })
 

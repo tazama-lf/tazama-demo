@@ -10,7 +10,7 @@ interface TypoProps {
 const TypeResult = ({ ...props }: TypoProps) => {
   if (props.hoveredType === null && props.selectedType === null) return null
   return (
-    <div className="mb-5 cursor-pointer rounded-xl p-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+    <div className="max-h-[340px] cursor-pointer rounded-[20px] p-2 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
       <h3 className="text-center uppercase">Typology Results</h3>
       <div className="mb-2 p-2 text-center">
         {props.hoveredType && props.hoveredType.id
@@ -90,7 +90,7 @@ const TypeResult = ({ ...props }: TypoProps) => {
         </div>
       </div>
       <div className="mb-2 p-2 text-center">
-        <p className="align-center col-span-2 flex size-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
+        <p className="align-center col-span-2 flex size-full max-h-[105px] flex-row justify-center overflow-y-scroll rounded-b-[15px] border-2 border-black px-4 py-2 text-center text-xs">
           {props.hoveredType
             ? props.hoveredType.typoDescription
             : props.selectedType && props.selectedType.typoDescription}

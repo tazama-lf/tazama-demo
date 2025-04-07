@@ -31,23 +31,22 @@ const RuleResult = ({ ...props }: RuleProps) => {
         return r.id === props.hoveredRule.id
       })
       let tp_details = processCtx.typologies.filter((typo) => {
-        return typo.title === tp
+        return typo.title === tp.typology
       })
-      console.log("LINKED: ", tp_details)
       return (
-        <div className="align-center col-span-1 mx-1 mb-2 flex h-[95px] max-w-[98%] flex-col rounded-md border-2 p-2">
+        <div className="align-center col-span-1 mx-1 mb-2 flex min-h-[95px] max-w-[98%] flex-col rounded-md border-2 p-2">
           <p className="border-black px-1 text-center text-sm">
             {/* {props.hoveredRule ? props.hoveredRule.result : props.selectedRule && props.selectedRule.result} */}
-            Typology: <b>{tp}</b> : <b>{tp_rule[0]?.wght}</b>
+            Typology: <b>{tp.typology}</b> : <b>{tp.ruleResult}</b>
           </p>
           <div className="my-1">
             <hr />
           </div>
-          <p className="border-black px-4 py-1 text-center text-xs">
-            {tp_details[0] && tp_details[0]?.typoDescription.length > 50
-              ? tp_details[0]?.typoDescription.substring(0, 50) + "..."
-              : tp_details[0]?.typoDescription}
-          </p>
+          <div className="align-center flex w-full grow items-center border-black text-center text-xs">
+            <p className="w-full text-center text-xs">
+              {getRuleDescriptions(tp.subRuleRef, parseFloat(tp.rule)) || "None"}
+            </p>
+          </div>
         </div>
       )
     })
@@ -57,23 +56,28 @@ const RuleResult = ({ ...props }: RuleProps) => {
         return r.id === props.selectedRule.id
       })
       let tp_details = processCtx.typologies.filter((typo) => {
-        return typo.title === tp
+        return typo.title === tp.typology
       })
-      console.log("LINKED: ", tp_details[0]?.typoDescription)
+
       return (
         <div className="align-center col-span-1 mx-1 mb-2 flex min-h-[95px] max-w-[98%] flex-col rounded-md border-2 p-2">
           <p className="border-black px-1 text-center text-sm">
             {/* {props.hoveredRule ? props.hoveredRule.result : props.selectedRule && props.selectedRule.result} */}
-            Typology: <b>{tp}</b> : <b>{tp_rule[0]?.wght}</b>
+            Typology: <b>{tp.typology}</b> : <b>{tp.ruleResult}</b>
           </p>
           <div className="my-1">
             <hr />
           </div>
-          <div className="align-center flex w-full grow items-center border-black text-center text-xs">
+          {/* <div className="align-center flex w-full grow items-center border-black text-center text-xs">
             <p className="w-full text-center text-xs">
               {tp_details[0] && tp_details[0]?.typoDescription.length > 50
                 ? tp_details[0]?.typoDescription.substring(0, 50) + "..."
                 : tp_details[0]?.typoDescription}
+            </p>
+          </div> */}
+          <div className="align-center flex w-full grow items-center border-black text-center text-xs">
+            <p className="w-full text-center text-xs">
+              {getRuleDescriptions(tp.subRuleRef, parseFloat(tp.rule)) || "None"}
             </p>
           </div>
         </div>
@@ -101,7 +105,7 @@ const RuleResult = ({ ...props }: RuleProps) => {
             {props.hoveredRule ? props.hoveredRule.wght : props.selectedRule && props.selectedRule.wght}
           </p> */}
         {/* </div> */}
-        <p className="align-center col-span-full flex size-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
+        {/* <p className="align-center col-span-full flex size-full flex-row justify-center border-2 border-black px-4 py-2 text-center text-xs">
           {props.hoveredRule
             ? props.hoveredRule.result
               ? getRuleDescriptions(props.hoveredRule.result, props.hoveredRule.id)
@@ -109,8 +113,8 @@ const RuleResult = ({ ...props }: RuleProps) => {
             : props.selectedRule && props.selectedRule?.result
             ? getRuleDescriptions(props.selectedRule.result, props.selectedRule.id)
             : ""}
-        </p>
-        <div className="align-center col-span-full flex max-h-[110px] w-full flex-col justify-start overflow-scroll rounded-b-[15px] border-2 border-black py-2 text-center text-xs">
+        </p> */}
+        <div className="align-center col-span-full flex max-h-[165px] w-full flex-col justify-start overflow-scroll rounded-b-[15px] border-2 border-black py-2 text-center text-xs">
           {ruleTPS}
         </div>
       </div>

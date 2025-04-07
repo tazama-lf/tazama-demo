@@ -40,7 +40,11 @@ const Web = () => {
   const handleRuleMouseEnter = (type: any) => {
     setHoveredType(null) // fallback if stats is stuck
     setHoveredRule(type)
-    setHoverTypes([...type.linkedTypologies])
+    setHoverTypes([
+      ...type.linkedTypologies.map((t: any) => {
+        return t.typology
+      }),
+    ])
   }
 
   const handleRuleMouseLeave = () => {
@@ -53,7 +57,11 @@ const Web = () => {
     setHoveredType(null) // fallback if stats is stuck
     setSelectedRule(type)
     setSelectedRules([type.title])
-    setSelectedTypes([...type.linkedTypologies])
+    setSelectedTypes([
+      ...type.linkedTypologies.map((t: any) => {
+        return t.typology
+      }),
+    ])
   }
 
   const handleRuleClickClose = () => {
@@ -108,9 +116,9 @@ const Web = () => {
           console.log("received", msg)
         })
         socket.on("tadProc", async (msg) => {
-          console.log("tadproc", msg)
-          let test = await processCtx.handleTadProcLive(msg)
-          console.log("tadproc_test", test)
+          await processCtx.handleTadProcLive(msg)
+          // let test = await processCtx.handleTadProcLive(msg)
+          // console.log("tadproc_test", test)
         })
       } catch (error) {
         console.log(error)
@@ -191,7 +199,7 @@ const Web = () => {
   }
 
   return (
-    <>
+    <div className="flex min-h-[100%] w-[100%] flex-col">
       <div className="z-99 absolute right-[100px] top-5 cursor-pointer">
         <button
           className="content-right-center ml-auto rounded-md bg-gradient-to-b from-gray-100 to-gray-200 p-2 shadow-lg"
@@ -204,7 +212,7 @@ const Web = () => {
           Clear All
         </button>
       </div>
-      <div className="bg-slate-300/25 px-3 pt-4">
+      <div className="bg-slate-300/25 px-3 pb-1 pt-4">
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="grid grid-cols-12 gap-5">
             {/* Debtors */}
@@ -472,7 +480,7 @@ const Web = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-6 gap-5 pt-8">
+          <div className="mb-2 grid grid-cols-6 gap-3 pt-8">
             {/* CRSP */}
             <div className="col-span-1 rounded-md shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
               <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
@@ -675,9 +683,11 @@ const Web = () => {
             />
           )}
         </DragDropContext>
+        <p className="absolute bottom-[20px] right-[15px] text-right text-xs">
+          Tazama Demo - v{processCtx.app_version}
+        </p>
       </div>
-      <p className="relative bottom-[20px] right-[15px] text-right text-xs">Tazama Demo - v{processCtx.app_version}</p>
-    </>
+    </div>
   )
 }
 

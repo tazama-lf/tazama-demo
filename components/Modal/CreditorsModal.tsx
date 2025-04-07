@@ -32,7 +32,6 @@ const CreditorModal = ({ ...props }: Props) => {
   const [filteredConditions, setFilteredConditions] = useState<ListCondition[]>([])
 
   useEffect(() => {
-    console.log("ACTIVE SECTION: ", processCtx.creditorActiveSection)
     if (processCtx.creditorActiveSection === "Entity") {
       let nttyData = processCtx.conditionsDataCreditor.conditions.filter((con: ListCondition) => {
         return "ntty" in con
@@ -58,7 +57,6 @@ const CreditorModal = ({ ...props }: Props) => {
         return con.acct!.id.includes(acctId!)
       })
       setFilteredConditions(filteredAcctData)
-      console.log("FILTERED: ", filteredAcctData)
     }
   }, [processCtx.conditionsDataCreditor])
 
