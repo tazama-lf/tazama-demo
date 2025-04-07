@@ -37,6 +37,8 @@ const Web = () => {
   const [showModal, setModal] = useState(false)
   const [started, setStarted] = useState(false)
   const [showCreditorModal, setShowCreditorModal] = useState(false)
+  const [flashing, setFlashing] = useState(false)
+  const [flashColor, setFlashColor] = useState<"r" | "g">("r")
 
   const handleRuleMouseEnter = (type: any) => {
     setHoveredType(null) // fallback if stats is stuck
@@ -127,6 +129,28 @@ const Web = () => {
     }
     socketInitializer()
   }, [])
+
+  useEffect(() => {
+    if (flashing) {
+      // for (let i = 0; i < 2; i++) {
+      setTimeout(() => {
+        if (flashColor === "r") {
+          setFlashColor("g")
+        } else if (flashColor === "g") {
+          setFlashColor("r")
+        }
+      }, 700)
+    }
+    // }
+  }, [flashing, flashColor])
+
+  useEffect(() => {
+    if (processCtx.tadpLights.efrup === "override") {
+      setFlashing(true)
+    } else {
+      setFlashing(false)
+    }
+  }, [processCtx.tadpLights.efrup])
 
   useEffect(() => {
     processCtx.getAllDebtorConditions()
@@ -622,7 +646,10 @@ const Web = () => {
                 Tadproc
               </h2>
               <div className="relative flex min-h-80 items-center justify-center">
-                <StatusIndicator large={true} colour={processCtx.tadpLights.color} />
+                {processCtx.tadpLights.efrup === "override" && flashing && (
+                  <StatusIndicator large={true} colour={flashColor} />
+                )}
+                {!flashing && <StatusIndicator large={true} colour={processCtx.tadpLights.color} />}
 
                 {processCtx.tadpLights.color === "y" ||
                   (processCtx.tadpLights.color === "r" && (
@@ -647,7 +674,7 @@ const Web = () => {
                     )}
                   </div>
                 )}
-              </div>{" "}
+              </div>
             </div>
           </div>
 
