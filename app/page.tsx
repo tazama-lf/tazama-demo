@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import React, { useContext, useEffect, useState } from "react"
+import React, { use, useContext, useEffect, useState } from "react"
 import { DebtorDevice } from "components/Device/Debtor"
 import CreditorModal from "components/Modal/CreditorsModal"
 import DebtorModal from "components/Modal/Modal"
@@ -130,19 +130,44 @@ const Web = () => {
     socketInitializer()
   }, [])
 
+  const [start, setStart] = useState<boolean>(false)
+
+  // useEffect(() => {
+  //   if (flashing) {
+  //     for (let i = 0; i < 2; i++) {
+  //       setTimeout(() => {
+  //         if (flashColor === "r") {
+  //           setFlashColor("g")
+  //         } else if (flashColor === "g") {
+  //           setFlashColor("r")
+  //         }
+  //       }, 700)
+  //     }
+  //   }
+  // }, [flashing, flashColor])
+  useEffect(() => {
+    if (start) {
+      for (let i = 0; i < 2; i++) {
+        setTimeout(() => {
+          if (flashColor === "r") {
+            setFlashColor("g")
+          } else if (flashColor === "g") {
+            setFlashColor("r")
+          }
+        }, 500)
+      }
+    }
+  }, [start, flashColor])
+
   useEffect(() => {
     if (flashing) {
-      // for (let i = 0; i < 2; i++) {
+      setStart(true)
       setTimeout(() => {
-        if (flashColor === "r") {
-          setFlashColor("g")
-        } else if (flashColor === "g") {
-          setFlashColor("r")
-        }
-      }, 700)
+        setStart(false)
+        setFlashing(false)
+      }, 3000)
     }
-    // }
-  }, [flashing, flashColor])
+  }, [flashing])
 
   useEffect(() => {
     if (processCtx.tadpLights.efrup === "override") {
