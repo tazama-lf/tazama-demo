@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState } from "react"
 import { getNetworkMap } from "utils/db"
-import ProcessorContext from "./processor.context"
 
 async function getNetworkMapSetup() {
   const uiConfig: any = await localStorage.getItem("UI_CONFIG")

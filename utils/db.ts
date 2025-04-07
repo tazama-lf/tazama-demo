@@ -1,3 +1,4 @@
+import { TypoEFRuP } from "./../store/processors/processor.interface"
 import {
   DBConfig,
   LinkedTypo,
@@ -207,6 +208,7 @@ export const handleTadProcResults = async (msg: any) => {
         stop: false,
         color: "n",
         results: [],
+        efrupResults: [],
       }
       // DOUBLE CHECK THIS LOGIC
       if (result[0]?.report?.status === "NALT") {
@@ -236,6 +238,11 @@ export const handleTadProcResults = async (msg: any) => {
           typoRes.ruleResults.forEach((result: RuleResult) => {
             if (result.id === "EFRuP@1.0.0") {
               typoResult.efrup = result.subRuleRef
+              let typoEFRuP: TypoEFRuP = {
+                typology: typoRes.cfg.split("@")[0],
+                efrupResult: result.subRuleRef,
+              }
+              response.efrupResults.push(typoEFRuP)
             }
             typoResult.ruleResults.push(result)
           })
@@ -301,6 +308,7 @@ export const getNetworkMap = async (config: DBConfig) => {
 
   const typologiesRes: any[] = []
   const rulesRes: any[] = []
+  const typologiesEFRuP: TypoEFRuP[] = []
 
   if (result.length > 0) {
     result[0].messages.forEach((element: any) => {
@@ -328,6 +336,11 @@ export const getNetworkMap = async (config: DBConfig) => {
             ruleBands: [],
           }
           if (rule.id.toString() === "EFRuP@1.0.0") {
+            let typoEFRuP: TypoEFRuP = {
+              typology: typology.cfg.split("@")[0],
+              efrupResult: undefined,
+            }
+            typologiesEFRuP.push(typoEFRuP)
             let exists = rulesRes.filter((rule: Rule) => rule.title === "EFRuP")
             exists.length === 0 && rulesRes.push(newRule)
           } else {
@@ -465,5 +478,6 @@ export const getNetworkMap = async (config: DBConfig) => {
   return {
     rules: temp,
     typologies: typologiesRes,
+    typologiesEFRuP: typologiesEFRuP,
   }
 }

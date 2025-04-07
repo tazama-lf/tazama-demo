@@ -14,6 +14,11 @@ export interface LinkedTypo {
   ruleResult: number
 }
 
+export interface TypoEFRuP {
+  typology: string
+  efrupResult: string | undefined
+}
+
 export interface Rule {
   id: number
   title: string
@@ -64,6 +69,7 @@ export interface TADPROC {
   color: "r" | "g" | "y" | "n"
   efrup?: string | undefined
   results: TADPROC_RESULT[]
+  efrupResults: TypoEFRuP[]
 }
 
 export interface EDLightsManager {

@@ -19,6 +19,7 @@ import TypeResult from "components/TypologyResults/TypologyResults"
 import { iconColour } from "utils/helpers"
 import io from "socket.io-client"
 import { ListCondition, Typology } from "store/processors/processor.interface"
+import { v4 as uuidv4 } from "uuid"
 
 let socket
 const Web = () => {
@@ -225,7 +226,12 @@ const Web = () => {
                       <>
                         <Draggable key={`debtor-0`} draggableId={`debtor-0`} index={0}>
                           {(provided: any) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                            <div
+                              key={uuidv4().replaceAll("-", "")}
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
                               <Profile
                                 colour={!entityCtx.entities[0] ? "text-gray-300" : iconColour(0)}
                                 entity={entityCtx.entities[0]?.Entity}

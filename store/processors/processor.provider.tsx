@@ -50,6 +50,7 @@ const ProcessorProvider = ({ children }: Props) => {
     edError: "",
     typologiesLoading: false,
     typologies: typologiesInitialState,
+    typologiesEFRuP: [],
     rules: ruleInitialState,
     edLights: defaultEDLights,
     tadpLights: defaultTadProcLights,
@@ -88,6 +89,10 @@ const ProcessorProvider = ({ children }: Props) => {
       console.log(err)
     }
   }, [])
+
+  useEffect(() => {
+    console.log("EFRuP_ ", state.typologiesEFRuP)
+  }, [state.typologiesEFRuP])
 
   useEffect(() => {
     if (state.linkedTypologies.length > 0) {
@@ -232,6 +237,7 @@ const ProcessorProvider = ({ children }: Props) => {
       let results: TADPROC | undefined = undefined
       let linkedTypologies: LinkedTypo[] | undefined = undefined
       clearLinkedTypologies()
+      // INSERT CLEAR PREVIOUS EFRuP RESULTS HERE...
       try {
         linkedTypologies = await handleLinkedTypologies(msg)
         if (linkedTypologies) {
@@ -245,6 +251,7 @@ const ProcessorProvider = ({ children }: Props) => {
       }
       if (results !== undefined) {
         dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: results })
+        dispatch({ type: ACTIONS.SET_TYPO_EFRUP_SUCCESS, payload: results.efrupResults })
       }
     } catch (err) {
       console.log("TADPROC ERROR", err)
@@ -288,6 +295,9 @@ const ProcessorProvider = ({ children }: Props) => {
       }
       if (configData.typologies) {
         dispatch({ type: ACTIONS.CREATE_TYPO_SUCCESS, payload: configData.typologies })
+      }
+      if (configData.typologiesEFRuP) {
+        dispatch({ type: ACTIONS.CREATE_TYPO_EFRUP_SUCCESS, payload: configData.typologiesEFRuP })
       }
     } catch (err) {
       console.log("ERROR CREATING RULES: ", err)
@@ -932,6 +942,7 @@ const ProcessorProvider = ({ children }: Props) => {
         edLightsLoading: false,
         typologyLoading: false,
         typologies: state.typologies,
+        typologiesEFRuP: state.typologiesEFRuP,
         edLights: state.edLights,
         rules: state.rules,
         tadpLights: state.tadpLights,

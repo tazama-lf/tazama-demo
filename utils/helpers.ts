@@ -403,11 +403,9 @@ export const checkIsActiveDebtorAccount = (
   conditionsData: ConditionStructure,
   entity?: Entity | undefined
 ) => {
-  console.log("CHECKING", selectedIndex, entity, conditionsData)
   if (entity) {
     if (entity.Accounts.length > 0 && entity!.Accounts) {
       let acc: DebtorAccount | undefined = entity.Accounts[selectedIndex ? selectedIndex : 0]
-      console.log("ACC: ", acc)
       if (acc !== undefined) {
         if (conditionsData.activeConditions.includes(acc.DbtrAcct.Id.Othr[0].Id)) {
           return "b"
@@ -438,11 +436,9 @@ export const checkIsActiveCreditorAccount = (
   conditionsData: ConditionStructure,
   entity?: CdtrEntity | undefined
 ) => {
-  console.log("CHECKING", selectedIndex, entity, conditionsData)
   if (entity) {
     if (entity.CreditorAccounts.length > 0 && entity!.CreditorAccounts) {
       let acc: CreditorAccount | undefined = entity.CreditorAccounts[selectedIndex ? selectedIndex : 0]
-      console.log("ACC: ", acc)
       if (acc !== undefined) {
         if (conditionsData.activeConditions.includes(acc.CdtrAcct.Id.Othr[0].Id)) {
           return "b"

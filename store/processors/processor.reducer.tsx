@@ -398,6 +398,17 @@ const ProcessorReducer = (state: any, action: any) => {
         ...state,
         linkedTypologies: action.payload,
       }
+    case ACTIONS.CREATE_TYPO_EFRUP_SUCCESS:
+      return {
+        ...state,
+        typologiesEFRuP: action.payload,
+      }
+
+    case ACTIONS.SET_TYPO_EFRUP_SUCCESS:
+      return {
+        ...state,
+        typologiesEFRuP: action.payload,
+      }
 
     case ACTIONS.CLEAR_LINKED_TYPOLOGIES:
       return {

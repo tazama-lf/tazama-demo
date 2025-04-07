@@ -1,6 +1,7 @@
 "use client"
-import React from "react"
-import { Typology } from "store/processors/processor.interface"
+import React, { useContext, useState, useEffect } from "react"
+import ProcessorContext from "store/processors/processor.context"
+import { TypoEFRuP, Typology } from "store/processors/processor.interface"
 
 interface TypoProps {
   hoveredType: Typology | null
@@ -8,11 +9,33 @@ interface TypoProps {
 }
 
 const TypeResult = ({ ...props }: TypoProps) => {
+  const processCtx = useContext(ProcessorContext)
+  const [displayOverridden, setDisplayOverridden] = useState<boolean>(false)
+
+  useEffect(() => {
+    const test = processCtx.typologiesEFRuP.find((res: TypoEFRuP) => {
+      if (props.hoveredType) {
+        return res.typology === props.hoveredType.title
+      } else if (props.selectedType) {
+        return res.typology === props.selectedType.title
+      }
+    })
+    if (test) {
+      if (test.efrupResult === "override") {
+        setDisplayOverridden(true)
+      } else {
+        setDisplayOverridden(false)
+      }
+    } else {
+      setDisplayOverridden(false)
+    }
+  }, [processCtx.typologiesEFRuP, props.selectedType, props.hoveredType])
+
   if (props.hoveredType === null && props.selectedType === null) return null
   return (
     <div className="max-h-[340px] cursor-pointer rounded-[20px] p-2 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
       <h3 className="text-center uppercase">Typology Results</h3>
-      <div className="mb-2 p-2 text-center">
+      <div className="mb-2 flex w-full flex-row items-center justify-center p-2 text-center">
         {props.hoveredType && props.hoveredType.id
           ? props.hoveredType.id
           : props.selectedType
@@ -23,7 +46,34 @@ const TypeResult = ({ ...props }: TypoProps) => {
           : props.selectedType
           ? ` = ${props.selectedType.result}`
           : ""}
-        {/* {props.hoveredType ? (props.hoveredType.s === "g" ? "true" : "false") : ""} 600 */}
+        {displayOverridden && (
+          <div className="flex flex-col items-center">
+            <svg
+              className="overflow-hidden"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              height={30}
+              width={30}
+            >
+              <path
+                d="M124.3 860h775.5L512 139.9 124.3 860zM512 760c-19.9 0-36-16.1-36-36s16.1-36 36-36 36 16.1 36 36-16.1 36-36 36z m36-340v160c0 19.9-16.1 36-36 36s-36-16.1-36-36V420c0-19.9 16.1-36 36-36s36 16.1 36 36z"
+                fill="#FFEB3B"
+              />
+              <path
+                d="M991.7 878.9l-448-832C537.4 35.3 525.2 28 512 28s-25.4 7.3-31.7 18.9l-448 832c-6 11.2-5.7 24.6 0.8 35.5C39.6 925.3 51.3 932 64 932h896c12.7 0 24.4-6.7 30.9-17.5 6.5-10.9 6.8-24.4 0.8-35.6zM124.3 860L512 139.9 899.7 860H124.3z"
+                fill="#000000"
+              />
+              <path
+                d="M476 420v160c0 19.9 16.1 36 36 36s36-16.1 36-36V420c0-19.9-16.1-36-36-36s-36 16.1-36 36z"
+                fill="#000000"
+              />
+              <path d="M512 724m-36 0a36 36 0 1 0 72 0 36 36 0 1 0-72 0Z" fill="#000000" />
+            </svg>
+            <span className="flex flex-col text-center text-xs text-green-500">Override</span>
+          </div>
+          // {/* {props.hoveredType ? (props.hoveredType.s === "g" ? "true" : "false") : ""} 600 */}
+        )}
       </div>
       <div className="align-center grid grid-cols-4 justify-center">
         <div className="col-span-1 flex flex-row justify-center text-center">

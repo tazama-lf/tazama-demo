@@ -17,6 +17,7 @@ export const defaultTadProcLights: TADPROC = {
   status: "NALT",
   efrup: undefined,
   results: [],
+  efrupResults: [],
 }
 
 export const defaultEDLights: EDLightsManager = {

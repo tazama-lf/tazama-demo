@@ -16,6 +16,7 @@ import {
   NewCondition,
   Rule,
   TADPROC,
+  TypoEFRuP,
   Typology,
 } from "./processor.interface"
 
@@ -45,6 +46,7 @@ interface Context {
   uiconfig: any
   app_version: string
   linkedTypologies: LinkedTypo[]
+  typologiesEFRuP: TypoEFRuP[]
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -101,6 +103,7 @@ const ProcessorContext = createContext<Context>({
   uiconfig: null,
   app_version: "",
   linkedTypologies: [],
+  typologiesEFRuP: [],
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
