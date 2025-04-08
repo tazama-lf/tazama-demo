@@ -1,12 +1,8 @@
 import "styles/tailwind.css"
 import { Metadata } from "next"
-import Image from "next/image"
 import Link from "next/link"
 import EntityProvider from "store/entities/entity.provider"
 import ProcessorProvider from "store/processors/processor.provider"
-import { version } from "../package.json"
-import EntityContext from "store/entities/entity.context"
-import ProcessorContext from "store/processors/processor.context"
 
 export const metadata: Metadata = {
   title: "Tazama Demo",
@@ -24,8 +20,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <body>
             <div className="flex rounded-t-lg bg-gradient-to-b from-gray-100 to-gray-200 px-10 py-5 shadow-lg">
               <Link href={"/"}>
-                {/* -------- ADD SVG HERE -------- */}
-
                 <svg
                   id="Logos"
                   xmlns="http://www.w3.org/2000/svg"

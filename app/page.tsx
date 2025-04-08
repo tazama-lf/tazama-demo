@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import React, { use, useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { DebtorDevice } from "components/Device/Debtor"
 import CreditorModal from "components/Modal/CreditorsModal"
 import DebtorModal from "components/Modal/Modal"
@@ -18,7 +18,7 @@ import RuleResult from "components/RuleResults/RuleResults"
 import TypeResult from "components/TypologyResults/TypologyResults"
 import { iconColour } from "utils/helpers"
 import io from "socket.io-client"
-import { ListCondition, Typology } from "store/processors/processor.interface"
+import { Typology } from "store/processors/processor.interface"
 import { v4 as uuidv4 } from "uuid"
 
 let socket
@@ -741,10 +741,10 @@ const Web = () => {
             />
           )}
         </DragDropContext>
-        <p className="absolute bottom-[20px] right-[15px] text-right text-xs">
-          Tazama Demo - v{processCtx.app_version}
-        </p>
       </div>
+      <p className="absolute top-[65px] flex w-[265px] justify-end text-right text-xs font-light">
+        v{processCtx.app_version}
+      </p>
     </div>
   )
 }
