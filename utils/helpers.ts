@@ -151,6 +151,11 @@ export const ValidateCondition = async (condition: NewCondition) => {
   const dt = new Date().toUTCString()
   let errors: string[] = []
 
+  if (condition.condTp === "override" && condition.xprtnDtTm === undefined) {
+    let errorMsg: string = "orExp"
+    errors.push(errorMsg)
+  }
+
   if (condition.condTp === "") {
     let errorMsg: string = "condTp"
     errors.push(errorMsg)
@@ -165,7 +170,14 @@ export const ValidateCondition = async (condition: NewCondition) => {
     let errorMsg: string = "condRsn"
     errors.push(errorMsg)
   }
-
+  if (condition.incptnDtTm) {
+    let now = new Date().getTime()
+    let inputDate = new Date(condition.incptnDtTm).getTime()
+    if (inputDate < now) {
+      let errorMsg: string = "inDtTmErr"
+      errors.push(errorMsg)
+    }
+  }
   if (condition.incptnDtTm === "") {
     let errorMsg: string = "incptnDtTm"
     errors.push(errorMsg)

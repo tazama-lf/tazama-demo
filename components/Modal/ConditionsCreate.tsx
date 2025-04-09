@@ -22,9 +22,7 @@ interface Props {
 
 const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisible, activeSection }: Props) => {
   const processCtx = useContext(ProcessorContext)
-  const nttyCtx = useContext(EntityContext)
   const [errors, setErrors] = useState<string[]>([])
-  const [showCancel, setShowCancel] = useState<boolean>(false)
 
   const handleCancel = () => {
     // Need to bring some state in to handle this

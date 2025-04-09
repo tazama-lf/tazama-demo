@@ -34,7 +34,6 @@ const RuleResult = ({ ...props }: RuleProps) => {
       let tp_details = processCtx.typologies.filter((typo) => {
         return typo.title === tp.typology
       })
-      console.log("_TP", tp)
       return (
         <div
           className="align-center col-span-1 mx-1 mb-2 flex min-h-[95px] max-w-[98%] flex-col rounded-md border-2 p-2"

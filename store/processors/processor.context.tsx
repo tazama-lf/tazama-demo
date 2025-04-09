@@ -50,6 +50,7 @@ interface Context {
   conditionTypes: any[]
   eventTypes: any[]
   conditionReasons: any[]
+  createConError: any
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -110,6 +111,7 @@ const ProcessorContext = createContext<Context>({
   conditionTypes: [],
   eventTypes: [],
   conditionReasons: [],
+  createConError: undefined,
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},

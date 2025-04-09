@@ -23,12 +23,19 @@ const DateSelector = ({ errors, state, onChange }: Props) => {
                 {errors.includes("incptnDtTm") && (
                   <p className="ml-5 text-sm text-red-500">* Please select a Start Date</p>
                 )}
+                {errors.includes("inDtTmErr") && (
+                  <p className="ml-5 text-sm text-red-500">* Start Date may not be before now</p>
+                )}
               </label>
             </div>
-
-            <label className="w-full cursor-pointer" htmlFor="all-check">
-              End Date:
-            </label>
+            <div className="flex flex-row">
+              <label className="w-full cursor-pointer" htmlFor="all-check">
+                End Date:
+                {errors.includes("orExp") && (
+                  <p className="ml-1 text-sm text-red-500">* End date is required for an override condition type</p>
+                )}
+              </label>
+            </div>
           </div>
 
           <div className="grid w-full grid-cols-2 gap-4">
@@ -39,13 +46,10 @@ const DateSelector = ({ errors, state, onChange }: Props) => {
               min={min_date.substring(0, 16)}
               onBlur={(e) => {
                 let dateAttempt = new Date(e.target.value)
-                let checkDate = new Date(min_date.substring(0, 16)).getTime()
-                if (dateAttempt.getTime() < checkDate) {
-                  onChange({
-                    ...state,
-                    incptnDtTm: dateAttempt.toISOString(),
-                  })
-                }
+                onChange({
+                  ...state,
+                  incptnDtTm: dateAttempt.toISOString(),
+                })
               }}
               className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
             />
@@ -59,9 +63,6 @@ const DateSelector = ({ errors, state, onChange }: Props) => {
                 // value={expDate}
                 onBlur={(e) => {
                   let dateAttempt = new Date(e.target.value)
-                  let checkDate = new Date(min_date.substring(0, 16)).getTime()
-                  if (dateAttempt.getTime() < checkDate) {
-                  }
                   onChange({
                     ...state,
                     xprtnDtTm: dateAttempt.toISOString(),

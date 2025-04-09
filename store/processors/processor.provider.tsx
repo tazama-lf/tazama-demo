@@ -72,6 +72,7 @@ const ProcessorProvider = ({ children }: Props) => {
     conditionTypes: [],
     eventTypes: [],
     conditionReasons: [],
+    createConError: undefined,
   }
   const [state, dispatch] = useReducer(ProcessorReducer, initialProcessorState)
   const nttyCtx = useContext(EntityContext)
@@ -1054,6 +1055,7 @@ const ProcessorProvider = ({ children }: Props) => {
         conditionTypes: state.conditionTypes,
         eventTypes: state.eventTypes,
         conditionReasons: state.conditionReasons,
+        createConError: state.createConError,
         updateEntityEventType,
         updateEntityAllChecked,
         createRules,

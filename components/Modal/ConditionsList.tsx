@@ -6,6 +6,7 @@ import { Seperator } from "components/Inputs/Seperator"
 import ExpireModel from "components/Inputs/ExpireModal"
 import ProcessorContext from "store/processors/processor.context"
 import EntityContext from "store/entities/entity.context"
+import ErrorModel from "components/ErrorModal/ErrorModal"
 
 interface Props {
   entity_type: string // debtor or creditor
@@ -20,7 +21,6 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
   const [selectedCondition, setSelectedCondition] = useState<ListCondition | undefined>(undefined)
   const [expDtTm, setExpDtTm] = useState<string | undefined>(undefined)
   const [expError, setExpError] = useState<boolean>(false)
-  // const [filteredConditions, setFilteredConditions] = useState<ListCondition[]>([])
 
   useEffect(() => {
     console.log("Condition: ", selectedCondition)
@@ -31,10 +31,8 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
     if (newDate) {
       con.xprtnDtTm = newDate
     }
-    // ----------------------------------------------------------------> Here <----------------------------------------------------------------
   }
 
-  // const entityCtx = useContext(EntityContext)
   const conditions = conditions_data
     .toSorted((a, b) => {
       let a_date = new Date(a.incptnDtTm).getTime()
