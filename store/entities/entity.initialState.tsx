@@ -12,6 +12,10 @@ const ARANGO_DB_HOSTING = process.env.NEXT_PUBLIC_ARANGO_DB_HOSTING
 const DB_USER = process.env.NEXT_PUBLIC_DB_USER
 const DB_PASSWORD = process.env.NEXT_PUBLIC_DB_PASSWORD
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL
+const ADMIN_SERVICE = process.env.NEXT_PUBLIC_ADMIN_SERVICE_HOSTING
+const CONDITION_TYPES = process.env.NEXT_PUBLIC_CONDITION_TYPES
+const EVENT_TYPES = process.env.NEXT_PUBLIC_EVENT_TYPES
+const CONDITION_REASONS = process.env.NEXT_PUBLIC_CONDITION_REASONS
 
 export const creditorInitialState: SelectedCreditor = {
   creditorSelectedIndex: undefined,
@@ -234,6 +238,10 @@ export const uiConfigInitialState: UIConfiguration = {
   dbUser: DB_USER !== undefined ? DB_USER : "",
   dbPassword: DB_PASSWORD !== undefined ? DB_PASSWORD : "",
   wsIpAddress: WS_URL !== undefined ? WS_URL : "",
+  adminServiceUrl: ADMIN_SERVICE !== undefined ? ADMIN_SERVICE : "",
+  conditionTypes: CONDITION_TYPES !== undefined ? CONDITION_TYPES : "",
+  eventTypes: EVENT_TYPES !== undefined ? EVENT_TYPES : "",
+  conditionReasons: CONDITION_REASONS !== undefined ? CONDITION_REASONS : "",
 }
 
 export const rulesLightsInitialState = []

@@ -26,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   version="1.1"
                   viewBox="0 0 1277 260.3"
                   height={45}
+                  width={225}
                   className="flex"
                 >
                   <g id="Primary">
@@ -69,18 +70,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     />
                   </g>
                 </svg>
-                {/* <Image
-                  src="https://tazama.org/wp-content/uploads/sites/22/2025/02/Tazama_Primary.svg"
-                  width={200}
-                  height={41}
-                  alt="Tazama"
-                  priority={true}
-                /> */}
               </Link>
 
               <Link
                 href={"/settings"}
-                className="content-right-center ml-auto rounded-full bg-gradient-to-b from-gray-100 to-gray-200 p-2 shadow-lg"
+                className="content-right-center ml-auto max-h-[40px] rotate-[45deg] rounded-full bg-gradient-to-b from-gray-200 to-gray-100 p-2 shadow-lg"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
                   <path

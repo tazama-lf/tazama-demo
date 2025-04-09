@@ -98,6 +98,9 @@ export interface UI_CONFIG {
   dbUser: string
   dbPassword: string
   dbName: string
+  conditionTypes: string
+  eventTypes: string
+  adminServiceUrl: string
 }
 
 export interface DBConfig {

@@ -110,7 +110,7 @@ const Web = () => {
     const socketInitializer = async () => {
       try {
         console.log("CONFIG: ", await processCtx.getUIConfig())
-        await fetch("http//localhost:3001")
+        await fetch("/api/health")
         socket = io()
         socket.on("connect", () => {
           console.log("connected")
@@ -120,8 +120,6 @@ const Web = () => {
         })
         socket.on("tadProc", async (msg) => {
           await processCtx.handleTadProcLive(msg)
-          // let test = await processCtx.handleTadProcLive(msg)
-          // console.log("tadproc_test", test)
         })
       } catch (error) {
         console.log(error)

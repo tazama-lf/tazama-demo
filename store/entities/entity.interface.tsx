@@ -359,6 +359,7 @@ export interface SelectedCreditor {
 
 export interface UIConfiguration {
   tmsServerUrl: string
+  adminServiceUrl: string
   tmsKey: string
   cmsNatsHosting: string
   natsUsername: string
@@ -367,6 +368,9 @@ export interface UIConfiguration {
   dbUser: string
   dbPassword: string
   wsIpAddress: string
+  conditionTypes: string
+  eventTypes: string
+  conditionReasons: string
 }
 
 export interface UIConfigs {

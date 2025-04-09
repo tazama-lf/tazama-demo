@@ -65,7 +65,7 @@ const DropdownList = ({ state, options, onChange }: Props) => {
                     className="col-span-7 cursor-pointer px-1 py-1 hover:bg-zinc-400 hover:text-zinc-500"
                     onClick={() => toggle(option.id)}
                   >
-                    {sentanceCase(option.option)}
+                    {option.option}
                   </p>
                 </div>
               )

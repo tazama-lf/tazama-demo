@@ -415,6 +415,24 @@ const ProcessorReducer = (state: any, action: any) => {
         ...state,
         linkedTypologies: [],
       }
+    case ACTIONS.SET_CONDITION_TYPES: {
+      return {
+        ...state,
+        conditionTypes: action.payload,
+      }
+    }
+    case ACTIONS.SET_EVENT_TYPES: {
+      return {
+        ...state,
+        eventTypes: action.payload,
+      }
+    }
+    case ACTIONS.SET_CONDITION_REASONS: {
+      return {
+        ...state,
+        conditionReasons: action.payload,
+      }
+    }
   }
 }
 

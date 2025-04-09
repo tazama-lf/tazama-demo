@@ -133,7 +133,7 @@ const MultiSelect = ({ errors, state, options, onChange }: MultiSelectProps) => 
                     processCtx.entityEventType.includes(option.option) && "font-semibold"
                   } "pointer hover:pointer py-1" col-span-7 px-1`}
                 >
-                  {sentanceCase(option.option)}
+                  {option.option}
                 </p>
               </div>
             ))}

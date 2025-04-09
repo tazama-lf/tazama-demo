@@ -23,7 +23,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
   // const [filteredConditions, setFilteredConditions] = useState<ListCondition[]>([])
 
   useEffect(() => {
-    console.log("Condition: " + selectedCondition)
+    console.log("Condition: ", selectedCondition)
   }),
     [selectedCondition]
 
@@ -103,7 +103,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
         >
           <div className="flex w-1/4 w-[160px] content-center items-center gap-1 pl-1">
             <ConditionIndicator colour={colour} />
-            <p>{sentanceCase(con.condTp)}</p>
+            <p>{con.condTp}</p>
           </div>
           <Seperator />
           <p className="flex w-[285px] items-center  pl-1">{con.condRsn}</p>
@@ -118,7 +118,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
             })}
           </p>
           <Seperator />
-          <p className="flex w-[120px] items-center pl-1">{sentanceCase(con.prsptv)}</p>
+          <p className="flex w-[120px] items-center pl-1">{con.prsptv}</p>
           <Seperator />
           <p className="flex w-[155px] items-center pl-1">{displayDate(viewLocalTime(con.incptnDtTm)!)}</p>
           <Seperator />

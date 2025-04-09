@@ -102,24 +102,14 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
 
         <DropdownList
           errors={errors}
-          options={[
-            { id: 0, option: "Please select condition type...", visible: false },
-            { id: 1, option: "non-overridable-block", visible: true },
-            { id: 2, option: "overridable-block", visible: true },
-            { id: 3, option: "override", visible: true },
-          ]}
+          options={processCtx.conditionTypes}
           state={newCondition}
           onChange={(data: NewCondition) => setNewCondition(data)}
         />
 
         <MultiSelect
           errors={errors}
-          options={[
-            { id: 1, option: "pacs.008.001.10", selected: false },
-            { id: 2, option: "pacs.002.001.12", selected: false },
-            { id: 3, option: "pain.001.001.11", selected: false },
-            { id: 4, option: "pain.013.001.09", selected: false },
-          ]}
+          options={processCtx.eventTypes}
           state={newCondition}
           onChange={(data: NewCondition) => {
             setErrors([])
@@ -144,26 +134,7 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
           </label>
 
           <DropdownListWide
-            options={[
-              { id: 0, option: "Please select a reason...", visible: false },
-              { id: 1, option: "Suspicion of Money Laundering", visible: true },
-              { id: 2, option: "Violation of KYC/AML Requirements", visible: true },
-              { id: 3, option: "Suspicion of Terrorist Financing", visible: true },
-              { id: 4, option: "Tax Evasion Concerns", visible: true },
-              { id: 5, option: "Regulatory Reporting Thresholds", visible: true },
-              { id: 6, option: "Unusual Transaction Patterns", visible: true },
-              { id: 7, option: "High-Risk Countries", visible: true },
-              { id: 8, option: "Multiple Failed Login Attempts", visible: true },
-              { id: 9, option: "Fraudulent Activity", visible: true },
-              { id: 10, option: "Phishing or Account Takeover", visible: true },
-              { id: 11, option: "Suspicious Beneficiaries", visible: true },
-              { id: 12, option: "System Errors", visible: true },
-              { id: 13, option: "Exceeding Limits", visible: true },
-              { id: 14, option: "Legal Holds or Court Orders", visible: true },
-              { id: 15, option: "Adverse media reports", visible: true },
-              { id: 16, option: "Dormant or Inactive Accounts", visible: true },
-              { id: 17, option: "Internal Bank Policies", visible: true },
-            ]}
+            options={processCtx.conditionReasons}
             state={newCondition}
             onChange={(data: NewCondition) => setNewCondition(data)}
           />

@@ -50,7 +50,7 @@ export const newEntityConditionState: NewCondition = {
     },
   },
   forceCret: true,
-  usr: "demo UI",
+  usr: "TAZAMA_DEMO_UI",
 }
 
 export const newAccountConditionState: NewCondition = {

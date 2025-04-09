@@ -152,7 +152,7 @@ export const Profile = ({ ...props }: ProfileProps) => {
         {props?.accounts?.map((account, index) => {
           if (account !== null && account !== undefined) {
             return (
-              <div className="mt-1 flex flex-col items-center justify-center gap-1">
+              <div key={uuidv4().replaceAll("-", "")} className="mt-1 flex flex-col items-center justify-center gap-1">
                 <AccountsComponent
                   key={uuidv4().replaceAll("-", "")}
                   index={index}

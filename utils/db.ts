@@ -1,7 +1,6 @@
 import { TypoEFRuP } from "./../store/processors/processor.interface"
 import {
   DBConfig,
-  LinkedTypo,
   Rule,
   RuleBand,
   RuleConfig,
@@ -11,11 +10,8 @@ import {
   Typology,
 } from "store/processors/processor.interface"
 
-// import { Database, aql } from "arangojs"
 const { Database, aql } = require("arangojs")
 require("dotenv").config()
-
-// PASS ALL .ENV VARIABLES INTO THE FUNCTIONS FROM THE FE THAT COMES FROM THE LOCAL STORAGE
 
 const getConfigConnection = (config: DBConfig) => {
   return new Database({
@@ -25,14 +21,14 @@ const getConfigConnection = (config: DBConfig) => {
   })
 }
 
-const getTADPROCConnection = (config: any) => {
-  // establish database connection
-  return new Database({
-    url: config.url,
-    databaseName: "evaluationResults",
-    auth: { username: config.auth.username, password: config.auth.password },
-  })
-}
+// const getTADPROCConnection = (config: any) => {
+//   // establish database connection
+//   return new Database({
+//     url: config.url,
+//     databaseName: "evaluationResults",
+//     auth: { username: config.auth.username, password: config.auth.password },
+//   })
+// }
 
 const getCollection = async (cName: string, db: any) => {
   // get list of collections in database
@@ -113,95 +109,11 @@ export const getTypologyDescriptions = async (config: DBConfig) => {
   return result
 }
 
-// export const getTADPROCResult = async (transactionID: string, config: DBConfig) => {
-//   const db = getTADPROCConnection(config)
-//   await getCollection("transactions", db)
-//   console.log("Fetching Results...")
-//   let result = []
-//   try {
-//     const results = await db.query(aql`FOR c IN transactions FILTER c.transactionID == ${transactionID} RETURN c`)
-//     console.log("RESULTS111: ", results)
-//     for await (let transaction of results) {
-//       console.log("RESULTS111: ", transaction)
-//       result.push(transaction)
-//     }
-//     // db.close()
-//     if (result.length > 0) {
-//       let response: TADPROC = {
-//         status: result[0]?.report?.status,
-//         stop: false,
-//         color: "n",
-//         results: [],
-//       }
-//       // DOUBLE CHECK THIS LOGIC
-//       if (result[0]?.report?.status === "NALT") {
-//         response.color = "g"
-//       } else if (result[0]?.report?.status === "ALRT") {
-//         response.color = "y"
-//       }
-
-//       let tr = result[0]?.report?.tadpResult?.typologyResult
-//       // LOOP HERE
-//       if (tr.length > 0) {
-//         tr.forEach((typoRes: any) => {
-//           console.log(typoRes.cfg + " " + typoRes.result)
-//           // new result object
-//           let typoResult: TADPROC_RESULT = {
-//             cfg: typoRes.cfg,
-//             result: typoRes.result,
-//             efrup: undefined,
-//             workflow: {
-//               alertThreshold: null,
-//               interdictionThreshold: null,
-//             },
-//             ruleResults: [],
-//           }
-
-//           // #################################################################################################
-//           // modify result object
-//           typoRes.ruleResults.forEach((result: RuleResult) => {
-//             if (result.id === "EFRuP@1.0.0") {
-//               typoResult.efrup = result.subRuleRef
-//             }
-//             typoResult.ruleResults.push(result)
-//           })
-
-//           typoResult.workflow.interdictionThreshold = typoRes.workflow.interdictionThreshold
-//             ? typoRes.workflow.interdictionThreshold
-//             : null
-
-//           typoResult.workflow.alertThreshold = typoRes.workflow.alertThreshold ? typoRes.workflow.alertThreshold : null
-
-//           // Add this somewhere else...
-
-//           if (typoResult.efrup !== undefined) {
-//             response.efrup = typoResult.efrup
-//           }
-
-//           if (typoResult.workflow.interdictionThreshold !== null) {
-//             if (typoRes.result >= typoResult.workflow.interdictionThreshold) {
-//               response.stop = true
-//               response.color = "r"
-//             }
-//           }
-//           console.log("TYPORES: ", typoResult)
-//           response.results.push(typoResult)
-//         })
-//       }
-
-//       return response
-//     }
-//   } catch (err) {
-//     console.log("TadProc Results Error: ", err)
-//   }
-// }
-
 export const handleTadProcResults = async (msg: any) => {
   let result: any[] = []
 
   try {
     result.push(msg)
-    // db.close()
     if (result.length > 0) {
       let response: TADPROC = {
         status: result[0]?.report?.status,
@@ -233,7 +145,6 @@ export const handleTadProcResults = async (msg: any) => {
             ruleResults: [],
           }
 
-          // #################################################################################################
           // modify result object
           typoRes.ruleResults.forEach((result: RuleResult) => {
             if (result.id === "EFRuP@1.0.0") {
@@ -252,8 +163,6 @@ export const handleTadProcResults = async (msg: any) => {
             : null
 
           typoResult.workflow.alertThreshold = typoRes.workflow.alertThreshold ? typoRes.workflow.alertThreshold : null
-
-          // Add this somewhere else...
 
           if (typoResult.efrup !== undefined) {
             response.efrup = typoResult.efrup
@@ -274,26 +183,6 @@ export const handleTadProcResults = async (msg: any) => {
     console.log("TadProc Results Error: ", err)
   }
 }
-
-// const getTypologyDetails = async (cfg: string, config: DBConfig) => {
-//   const db = getConfigConnection(config)
-//   await getCollection("typologyConfiguration", db)
-//   let result = []
-
-//   try {
-//     const results = await db.query(aql`FOR typo IN typologyConfiguration FILTER typo.cfg == ${cfg} RETURN typo`)
-
-//     for await (let typo of results) {
-//       result.push(typo)
-//     }
-
-//     await db.close()
-
-//     return result
-//   } catch (err) {
-//     console.log("Typology Details Error: ", err)
-//   }
-// }
 
 export const getNetworkMap = async (config: DBConfig) => {
   const db = await getConfigConnection(config)
@@ -346,13 +235,6 @@ export const getNetworkMap = async (config: DBConfig) => {
           } else {
             rulesRes.push(newRule)
           }
-
-          // rulesRes.map(async (r) => {
-          //   if (r.id === rule.id) {
-          //     r.linkedTypologies.push(typology.cfg.split("@")[0])
-          //   }
-          // })
-
           newTypology.linkedRules.push(newRule.title)
         })
         typologiesRes.push(newTypology)
@@ -424,12 +306,6 @@ export const getNetworkMap = async (config: DBConfig) => {
           })
         }
       }
-
-      // typologiesRes.forEach(async (typology) => {
-      //   if (typology.linkedRules.includes(rule.title)) {
-      //     rule.linkedTypologies.push(typology.title)
-      //   }
-      // })
     }
   })
 
@@ -444,8 +320,7 @@ export const getNetworkMap = async (config: DBConfig) => {
 
   typologiesRes.forEach(async (typology) => {
     const typo = await typoData.find((t) => t.cfg === typology.id)
-    // let typo: any[] | undefined = await getTypologyDetails(typology.id, config)
-    // #################################################################################################
+
     if (typo !== undefined) {
       typology.typoDescription = typo.desc
       typology.workflow.interdictionThreshold = typo.workflow.hasOwnProperty("interdictionThreshold")
@@ -455,7 +330,6 @@ export const getNetworkMap = async (config: DBConfig) => {
         ? typo.workflow.alertThreshold
         : null
     }
-    // #################################################################################################
   })
 
   let temp = finalRules.filter((item, index) => finalRules.indexOf(item) === index)

@@ -7,6 +7,7 @@ import EntityContext from "store/entities/entity.context"
 import { sentanceCase } from "utils/helpers"
 import { DeviceInfo } from "./DeviceInfo"
 import ProcessorContext from "store/processors/processor.context"
+import DeviceComponent from "./DeviceComponent"
 
 dotenv.config()
 
@@ -152,14 +153,15 @@ export function DebtorDevice(props: DebtorProps) {
   }
   return (
     <div className="relative col-span-4" style={{ height: "485px", width: "auto" }}>
-      <Image
+      {/* <Image
         src="/device.svg"
         width={250}
         height={505}
         className="absolute inset-x-0 mx-auto h-auto"
         alt="device info"
         priority={true}
-      />
+      /> */}
+      <DeviceComponent width={250} height={505} />
 
       <div className="absolute inset-x-0 mx-auto break-words" style={{ width: "222px", top: "15px" }}>
         <TimeComponent />
@@ -173,7 +175,7 @@ export function DebtorDevice(props: DebtorProps) {
       </div>
 
       {props.isDebtor ? (
-        <div className="absolute inset-x-0 mx-auto" style={{ width: "222px", bottom: "25px" }}>
+        <div className="absolute inset-x-0 mx-auto" style={{ width: "222px", bottom: "5px" }}>
           <div
             className={`ml-5 w-4/5 rounded-lg bg-black text-white ${
               entity.length === 0 || creditorEntity.length === 0 ? " pointer-events-none opacity-30" : ""

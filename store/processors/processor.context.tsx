@@ -47,6 +47,9 @@ interface Context {
   app_version: string
   linkedTypologies: LinkedTypo[]
   typologiesEFRuP: TypoEFRuP[]
+  conditionTypes: any[]
+  eventTypes: any[]
+  conditionReasons: any[]
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -104,6 +107,9 @@ const ProcessorContext = createContext<Context>({
   app_version: "",
   linkedTypologies: [],
   typologiesEFRuP: [],
+  conditionTypes: [],
+  eventTypes: [],
+  conditionReasons: [],
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},

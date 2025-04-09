@@ -29,6 +29,7 @@ import {
   TADPROC,
   TADPROC_RESULT,
   Typology,
+  UI_CONFIG,
 } from "./processor.interface"
 import ProcessorReducer from "./processor.reducer"
 import { Socket } from "socket.io"
@@ -68,6 +69,9 @@ const ProcessorProvider = ({ children }: Props) => {
     showDebtorConditionsCreate: false,
     showCreditorConditionsCreate: false,
     linkedTypologies: [],
+    conditionTypes: [],
+    eventTypes: [],
+    conditionReasons: [],
   }
   const [state, dispatch] = useReducer(ProcessorReducer, initialProcessorState)
   const nttyCtx = useContext(EntityContext)
@@ -76,8 +80,18 @@ const ProcessorProvider = ({ children }: Props) => {
   const [socket, setSocket] = useState<Socket>()
   const [isConnected, setIsConnected] = useState<boolean>(false)
   const [wsAddress, setWsAddress] = useState<string | null>(null)
+  const [adminServiceUrl, setAdminServiceUrl] = useState<string>("")
 
   const msgId: any = useRef("")
+
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_ADMIN_SERVICE_HOSTING
+    if (adminServiceUrl === "") {
+      if (url) {
+        setAdminServiceUrl(url)
+      }
+    }
+  }, [adminServiceUrl])
 
   useEffect(() => {
     try {
@@ -91,7 +105,7 @@ const ProcessorProvider = ({ children }: Props) => {
   }, [])
 
   useEffect(() => {
-    console.log("EFRuP_ ", state.typologiesEFRuP)
+    state.typologiesEFRuP
   }, [state.typologiesEFRuP])
 
   useEffect(() => {
@@ -130,9 +144,62 @@ const ProcessorProvider = ({ children }: Props) => {
     if (wsAddress === null) {
       if (uiConfig !== null) {
         setWsAddress(uiConfig.wsIpAddress)
+        setAdminServiceUrl(uiConfig.adminServiceUrl)
+
+        // set condition types
+        let configConditionData: any[] = uiConfig.conditionTypes.slice(1, -1).split(",")
+        let conditionsRes: any[] = [{ id: 0, option: "Please select condition type...", visible: false }]
+        configConditionData.map((item: any, index: number) => {
+          let option = {
+            id: index + 1,
+            option: item.split("'")[1],
+            visible: true,
+          }
+          conditionsRes.push(option)
+        })
+        setConditionTypes(conditionsRes)
+
+        // set event types
+        let configEventData: any[] = uiConfig.eventTypes.slice(1, -1).split(",")
+        let eventTypesRes: any[] = []
+        configEventData.map((item: any, index: number) => {
+          let option = {
+            id: index + 1,
+            option: item.split("'")[1],
+            selected: false,
+          }
+          eventTypesRes.push(option)
+          // return (item = item.split("'")[1])
+        })
+        setEventTypes(eventTypesRes)
+
+        // set condition reasons
+        let configReasonsData: any[] = uiConfig.conditionReasons.slice(1, -1).split(",")
+        let conditionReasonsRes: any[] = [{ id: 0, option: "Please select a reason...", visible: false }]
+        configReasonsData.map((item: any, index: number) => {
+          let option = {
+            id: index + 1,
+            option: item.split("'")[1],
+            visible: true,
+          }
+          conditionReasonsRes.push(option)
+        })
+        setConditionReasons(conditionReasonsRes)
       }
     }
   }, [uiConfig])
+
+  useEffect(() => {
+    console.log("CONDITION_TYPES", state.conditionTypes)
+  }, [state.conditionTypes])
+
+  useEffect(() => {
+    console.log("REASONS_TYPES", state.conditionReasons)
+  }, [state.conditionReasons])
+
+  useEffect(() => {
+    console.log("EVENT_TYPES", state.eventTypes)
+  }, [state.eventTypes])
 
   useEffect(() => {
     const newSocket: any = io(wsAddress!, {
@@ -267,7 +334,7 @@ const ProcessorProvider = ({ children }: Props) => {
 
   const getUIConfig = async () => {
     if (localStorage.getItem("UI_CONFIG") !== null) {
-      const config: any = await localStorage.getItem("UI_CONFIG")
+      const config: string | null = await localStorage.getItem("UI_CONFIG")
       return config
     } else {
       await localStorage.setItem("UI_CONFIG", JSON.stringify(uiConfigInitialState))
@@ -278,7 +345,7 @@ const ProcessorProvider = ({ children }: Props) => {
   useEffect(() => {
     if (uiConfig === null) {
       ;(async () => {
-        let config = await getUIConfig()
+        let config: any = await getUIConfig()
         if (uiConfig !== undefined) {
           setUiConfig(JSON.parse(config))
         }
@@ -632,76 +699,82 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const getConditions = async ({ type, accountId, entityId, schmeNm, agt }: GetConditionsProps) => {
-    dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_LOADING })
-    try {
-      if (type === "account") {
-        if (accountId !== undefined) {
-          const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${accountId}&schmenm=${schmeNm}&agt=${agt}&synccache=all`
-          const res: AxiosResponse = await axios.get(acctURL)
-          const response: ListCondition[] = await handleEntityAccountConditions(res.data)
+    if (adminServiceUrl !== undefined) {
+      dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_LOADING })
+      try {
+        if (type === "account") {
+          if (accountId !== undefined) {
+            const acctURL = `${adminServiceUrl}/v1/admin/event-flow-control/account?id=${accountId}&schmenm=${schmeNm}&agt=${agt}&synccache=all`
+            const res: AxiosResponse = await axios.get(acctURL)
+            const response: ListCondition[] = await handleEntityAccountConditions(res.data)
 
-          dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: response })
-          const active = await get_active_list(response)
+            dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: response })
+            const active = await get_active_list(response)
 
-          dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
+            dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
+          }
+        } else if (type === "entity") {
+          if (entityId !== undefined) {
+            const nttyURL = `${adminServiceUrl}/v1/admin/event-flow-control/entity?id=${entityId}&schmenm=${schmeNm}&synccache=all`
+            const res: AxiosResponse = await axios.get(nttyURL)
+            const response: ListCondition[] = await handleEntityConditions(res.data)
+
+            dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: response })
+            const active = await get_active_list(response)
+            dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
+          }
         }
-      } else if (type === "entity") {
-        if (entityId !== undefined) {
-          const nttyURL = `http://localhost:5100/v1/admin/event-flow-control/entity?id=${entityId}&schmenm=${schmeNm}&synccache=all`
-          const res: AxiosResponse = await axios.get(nttyURL)
-          const response: ListCondition[] = await handleEntityConditions(res.data)
-
-          dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: response })
-          const active = await get_active_list(response)
-          dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
-        }
+      } catch (error) {
+        dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_FAIL, payload: error })
+        console.log("ERROR: " + error)
       }
-    } catch (error) {
-      dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_FAIL, payload: error })
-      console.log("ERROR: " + error)
     }
   }
 
   const createCondition = async (condition: NewCondition) => {
-    const nttyURL = "http://localhost:5100/v1/admin/event-flow-control/entity?synccache=all"
-    const acctURL = "http://localhost:5100/v1/admin/event-flow-control/account?synccache=all"
-    dispatch({ type: ACTIONS.CREATE_CONDITIONS_LOADING })
-    try {
-      if ("acct" in condition) {
-        const res: AxiosResponse = await axios.post(acctURL, condition)
+    if (adminServiceUrl !== undefined) {
+      const nttyURL = `${adminServiceUrl}/v1/admin/event-flow-control/entity?synccache=all`
+      const acctURL = `${adminServiceUrl}/v1/admin/event-flow-control/account?synccache=all`
+      dispatch({ type: ACTIONS.CREATE_CONDITIONS_LOADING })
+      try {
+        if ("acct" in condition) {
+          const res: AxiosResponse = await axios.post(acctURL, condition)
 
-        if (res.status === 200 || res.status === 201) {
-          const response: ListCondition[] = await handleEntityConditions(res.data.result)
-          dispatch({ type: ACTIONS.CREATE_CONDITIONS_SUCCESS, payload: response })
-        }
-      } else if ("ntty" in condition) {
-        const res: AxiosResponse = await axios.post(nttyURL, condition)
+          if (res.status === 200 || res.status === 201) {
+            const response: ListCondition[] = await handleEntityConditions(res.data.result)
+            dispatch({ type: ACTIONS.CREATE_CONDITIONS_SUCCESS, payload: response })
+          }
+        } else if ("ntty" in condition) {
+          const res: AxiosResponse = await axios.post(nttyURL, condition)
 
-        if (res.status === 200 || res.status === 201) {
-          const response: ListCondition[] = await handleEntityAccountConditions(res.data.result)
-          dispatch({ type: ACTIONS.CREATE_CONDITIONS_SUCCESS, payload: response })
+          if (res.status === 200 || res.status === 201) {
+            const response: ListCondition[] = await handleEntityAccountConditions(res.data.result)
+            dispatch({ type: ACTIONS.CREATE_CONDITIONS_SUCCESS, payload: response })
+          }
         }
+      } catch (error) {
+        dispatch({ type: ACTIONS.CREATE_CONDITIONS_FAIL, payload: error })
+        console.log("ERROR: ", error)
       }
-    } catch (error) {
-      dispatch({ type: ACTIONS.CREATE_CONDITIONS_FAIL, payload: error })
-      console.log("ERROR: ", error)
     }
   }
 
   const expireCondition = async ({ type, accountId, entityId, schmeNm, agt, xprtnDtTm, condId }: ExpireProps) => {
-    try {
-      dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_LOADING })
-      if (type === "account") {
-        const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${accountId}&schmenm=${schmeNm}&agt=${agt}&condid=${condId}&synccache=all`
-        const res: AxiosResponse = await axios.put(acctURL, { xprtnDtTm: xprtnDtTm ? xprtnDtTm : null })
-        dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_LOADING, payload: [] })
-      } else if (type === "entity") {
-        const nttyURL = `http://localhost:5100/v1/admin/event-flow-control/entity?id=${entityId}&schmenm=${schmeNm}&condid=${condId}&synccache=all`
-        const res: AxiosResponse = await axios.put(nttyURL, { xprtnDtTm: xprtnDtTm ? xprtnDtTm : null })
+    if (adminServiceUrl !== undefined) {
+      try {
+        dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_LOADING })
+        if (type === "account") {
+          const acctURL = `${adminServiceUrl}/v1/admin/event-flow-control/account?id=${accountId}&schmenm=${schmeNm}&agt=${agt}&condid=${condId}&synccache=all`
+          const res: AxiosResponse = await axios.put(acctURL, { xprtnDtTm: xprtnDtTm ? xprtnDtTm : null })
+          dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_LOADING, payload: [] })
+        } else if (type === "entity") {
+          const nttyURL = `${adminServiceUrl}/v1/admin/event-flow-control/entity?id=${entityId}&schmenm=${schmeNm}&condid=${condId}&synccache=all`
+          const res: AxiosResponse = await axios.put(nttyURL, { xprtnDtTm: xprtnDtTm ? xprtnDtTm : null })
+        }
+      } catch (error) {
+        dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_FAIL })
+        console.log("ERROR: ", error)
       }
-    } catch (error) {
-      dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_FAIL })
-      console.log("ERROR: ", error)
     }
   }
 
@@ -717,188 +790,192 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const getAllDebtorConditions = async () => {
-    dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_LOADING })
-    const entities: NttyGetObject[] = []
-    const accounts: AcctGetObject[] = []
+    if (adminServiceUrl !== undefined) {
+      dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_LOADING })
+      const entities: NttyGetObject[] = []
+      const accounts: AcctGetObject[] = []
 
-    const finalResponse: ListCondition[] = []
+      const finalResponse: ListCondition[] = []
 
-    nttyCtx.entities.map((entity) => {
-      let ntty: NttyGetObject = {
-        entityId: entity.Entity.Dbtr.Id.PrvtId.Othr[0].Id,
-        schmeNm: entity.Entity.Dbtr.Id.PrvtId.Othr[0].SchmeNm.Prtry,
+      nttyCtx.entities.map((entity) => {
+        let ntty: NttyGetObject = {
+          entityId: entity.Entity.Dbtr.Id.PrvtId.Othr[0].Id,
+          schmeNm: entity.Entity.Dbtr.Id.PrvtId.Othr[0].SchmeNm.Prtry,
+        }
+        entities.push(ntty)
+
+        entity.Accounts.map((account) => {
+          let acct: AcctGetObject = {
+            accountId: account.DbtrAcct.Id.Othr[0].Id,
+            schmeNm: account.DbtrAcct.Id.Othr[0].SchmeNm.Prtry,
+            agt: nttyCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAgt.FinInstnId.ClrSysMmbId.MmbId,
+          }
+          accounts.push(acct)
+        })
+      })
+
+      const entityUrls: string[] = []
+      const accountUrls: string[] = []
+      const entityRes: ListCondition[] = []
+      const accountRes: ListCondition[] = []
+
+      if (entities.length > 0) {
+        entities.map(async (ntty) => {
+          const nttyURL = `${adminServiceUrl}/v1/admin/event-flow-control/entity?id=${ntty.entityId}&schmenm=${ntty.schmeNm}&synccache=all`
+          entityUrls.push(nttyURL)
+        })
       }
-      entities.push(ntty)
 
-      entity.Accounts.map((account) => {
-        let acct: AcctGetObject = {
-          accountId: account.DbtrAcct.Id.Othr[0].Id,
-          schmeNm: account.DbtrAcct.Id.Othr[0].SchmeNm.Prtry,
-          agt: nttyCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAgt.FinInstnId.ClrSysMmbId.MmbId,
-        }
-        accounts.push(acct)
-      })
-    })
-
-    const entityUrls: string[] = []
-    const accountUrls: string[] = []
-    const entityRes: ListCondition[] = []
-    const accountRes: ListCondition[] = []
-
-    if (entities.length > 0) {
-      entities.map(async (ntty) => {
-        const nttyURL = `http://localhost:5100/v1/admin/event-flow-control/entity?id=${ntty.entityId}&schmenm=${ntty.schmeNm}&synccache=all`
-        entityUrls.push(nttyURL)
-      })
-    }
-
-    if (accounts.length > 0) {
-      accounts.map(async (acct) => {
-        const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}&syncache=all`
-        accountUrls.push(acctURL)
-      })
-    }
-
-    const entityResponses: any[] = await Promise.all(
-      entityUrls.map(async (url) => {
-        try {
-          return await axios.get(url)
-        } catch (error) {
-          return null
-        }
-      })
-    )
-
-    const accountResponses: any[] = await Promise.all(
-      accountUrls.map(async (url) => {
-        try {
-          return await axios.get(url)
-        } catch (error) {
-          return null
-        }
-      })
-    )
-
-    await entityResponses.map(async (response) => {
-      if (response !== null) {
-        if (response.statusText !== "No Content") {
-          const nttyConditions: ListCondition[] = await handleEntityConditions(response.data)
-          nttyConditions.map((item) => {
-            finalResponse.push(item)
-          })
-        }
+      if (accounts.length > 0) {
+        accounts.map(async (acct) => {
+          const acctURL = `${adminServiceUrl}/v1/admin/event-flow-control/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}&syncache=all`
+          accountUrls.push(acctURL)
+        })
       }
-    })
 
-    await accountResponses
-      .filter((el) => el !== null)
-      .map(async (response) => {
+      const entityResponses: any[] = await Promise.all(
+        entityUrls.map(async (url) => {
+          try {
+            return await axios.get(url)
+          } catch (error) {
+            return null
+          }
+        })
+      )
+
+      const accountResponses: any[] = await Promise.all(
+        accountUrls.map(async (url) => {
+          try {
+            return await axios.get(url)
+          } catch (error) {
+            return null
+          }
+        })
+      )
+
+      await entityResponses.map(async (response) => {
         if (response !== null) {
           if (response.statusText !== "No Content") {
-            const accountConditions: ListCondition[] = await handleEntityAccountConditions(response.data)
-            accountConditions.map((item) => {
+            const nttyConditions: ListCondition[] = await handleEntityConditions(response.data)
+            nttyConditions.map((item) => {
               finalResponse.push(item)
             })
           }
         }
       })
-    dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: finalResponse })
-    const active = await get_active_list(finalResponse)
-    dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
 
-    return finalResponse
+      await accountResponses
+        .filter((el) => el !== null)
+        .map(async (response) => {
+          if (response !== null) {
+            if (response.statusText !== "No Content") {
+              const accountConditions: ListCondition[] = await handleEntityAccountConditions(response.data)
+              accountConditions.map((item) => {
+                finalResponse.push(item)
+              })
+            }
+          }
+        })
+      dispatch({ type: ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS, payload: finalResponse })
+      const active = await get_active_list(finalResponse)
+      dispatch({ type: ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS, payload: active })
+
+      return finalResponse
+    }
   }
 
   const getAllCreditorConditions = async () => {
-    dispatch({ type: ACTIONS.GET_CREDITOR_CONDITIONS_LOADING })
-    const entities: NttyGetObject[] = []
-    const accounts: AcctGetObject[] = []
+    if (adminServiceUrl !== undefined) {
+      dispatch({ type: ACTIONS.GET_CREDITOR_CONDITIONS_LOADING })
+      const entities: NttyGetObject[] = []
+      const accounts: AcctGetObject[] = []
 
-    const finalResponse: ListCondition[] = []
+      const finalResponse: ListCondition[] = []
 
-    nttyCtx.creditorEntities.map((entity) => {
-      let ntty: NttyGetObject = {
-        entityId: entity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id,
-        schmeNm: entity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].SchmeNm.Prtry,
+      nttyCtx.creditorEntities.map((entity) => {
+        let ntty: NttyGetObject = {
+          entityId: entity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id,
+          schmeNm: entity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].SchmeNm.Prtry,
+        }
+        entities.push(ntty)
+
+        entity.CreditorAccounts.map((account) => {
+          let acct: AcctGetObject = {
+            accountId: account.CdtrAcct.Id.Othr[0].Id,
+            schmeNm: account.CdtrAcct.Id.Othr[0].SchmeNm.Prtry,
+            agt: nttyCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAgt.FinInstnId.ClrSysMmbId.MmbId,
+          }
+          accounts.push(acct)
+        })
+      })
+      const entityUrls: string[] = []
+      const accountUrls: string[] = []
+      const entityRes: ListCondition[] = []
+      const accountRes: ListCondition[] = []
+
+      if (entities.length > 0) {
+        entities.map(async (ntty) => {
+          const nttyURL = `${adminServiceUrl}/v1/admin/event-flow-control/entity?id=${ntty.entityId}&schmenm=${ntty.schmeNm}&synccache=all`
+          entityUrls.push(nttyURL)
+        })
       }
-      entities.push(ntty)
 
-      entity.CreditorAccounts.map((account) => {
-        let acct: AcctGetObject = {
-          accountId: account.CdtrAcct.Id.Othr[0].Id,
-          schmeNm: account.CdtrAcct.Id.Othr[0].SchmeNm.Prtry,
-          agt: nttyCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAgt.FinInstnId.ClrSysMmbId.MmbId,
-        }
-        accounts.push(acct)
-      })
-    })
-    const entityUrls: string[] = []
-    const accountUrls: string[] = []
-    const entityRes: ListCondition[] = []
-    const accountRes: ListCondition[] = []
-
-    if (entities.length > 0) {
-      entities.map(async (ntty) => {
-        const nttyURL = `http://localhost:5100/v1/admin/event-flow-control/entity?id=${ntty.entityId}&schmenm=${ntty.schmeNm}&synccache=all`
-        entityUrls.push(nttyURL)
-      })
-    }
-
-    if (accounts.length > 0) {
-      accounts.map(async (acct) => {
-        const acctURL = `http://localhost:5100/v1/admin/event-flow-control/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}&syncache=all`
-        accountUrls.push(acctURL)
-      })
-    }
-
-    const entityResponses: any[] = await Promise.all(
-      entityUrls.map(async (url) => {
-        try {
-          return await axios.get(url)
-        } catch (error) {
-          return null
-        }
-      })
-    )
-
-    const accountResponses: any[] = await Promise.all(
-      accountUrls.map(async (url) => {
-        try {
-          return await axios.get(url)
-        } catch (error) {
-          return null
-        }
-      })
-    )
-
-    await entityResponses.map(async (response) => {
-      if (response !== null) {
-        if (response.statusText !== "No Content") {
-          const nttyConditions: ListCondition[] = await handleEntityConditions(response.data)
-          nttyConditions.map((item) => {
-            finalResponse.push(item)
-          })
-        }
+      if (accounts.length > 0) {
+        accounts.map(async (acct) => {
+          const acctURL = `${adminServiceUrl}/v1/admin/event-flow-control/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}&syncache=all`
+          accountUrls.push(acctURL)
+        })
       }
-    })
 
-    await accountResponses
-      .filter((el) => el !== null)
-      .map(async (response) => {
+      const entityResponses: any[] = await Promise.all(
+        entityUrls.map(async (url) => {
+          try {
+            return await axios.get(url)
+          } catch (error) {
+            return null
+          }
+        })
+      )
+
+      const accountResponses: any[] = await Promise.all(
+        accountUrls.map(async (url) => {
+          try {
+            return await axios.get(url)
+          } catch (error) {
+            return null
+          }
+        })
+      )
+
+      await entityResponses.map(async (response) => {
         if (response !== null) {
           if (response.statusText !== "No Content") {
-            const accountConditions: ListCondition[] = await handleEntityAccountConditions(response.data)
-            accountConditions.map((item) => {
+            const nttyConditions: ListCondition[] = await handleEntityConditions(response.data)
+            nttyConditions.map((item) => {
               finalResponse.push(item)
             })
           }
         }
       })
-    dispatch({ type: ACTIONS.GET_CREDITOR_CONDITIONS_SUCCESS, payload: finalResponse })
-    const active = await get_active_list(finalResponse)
-    dispatch({ type: ACTIONS.ADD_GET_CREDITOR_CONDITIONS_SUCCESS, payload: active })
 
-    return finalResponse
+      await accountResponses
+        .filter((el) => el !== null)
+        .map(async (response) => {
+          if (response !== null) {
+            if (response.statusText !== "No Content") {
+              const accountConditions: ListCondition[] = await handleEntityAccountConditions(response.data)
+              accountConditions.map((item) => {
+                finalResponse.push(item)
+              })
+            }
+          }
+        })
+      dispatch({ type: ACTIONS.GET_CREDITOR_CONDITIONS_SUCCESS, payload: finalResponse })
+      const active = await get_active_list(finalResponse)
+      dispatch({ type: ACTIONS.ADD_GET_CREDITOR_CONDITIONS_SUCCESS, payload: active })
+
+      return finalResponse
+    }
   }
 
   const update_debtor_active_section = (selection: "Entity" | "Accounts") => {
@@ -927,6 +1004,18 @@ const ProcessorProvider = ({ children }: Props) => {
 
   const setLinkedTypologies = (linkedTypos: LinkedTypo[]) => {
     dispatch({ type: ACTIONS.SET_LINKED_TYPOLOGIES, payload: linkedTypos })
+  }
+
+  const setConditionTypes = (conditionTypes: any[]) => {
+    dispatch({ type: ACTIONS.SET_CONDITION_TYPES, payload: conditionTypes })
+  }
+
+  const setEventTypes = (eventTypes: any[]) => {
+    dispatch({ type: ACTIONS.SET_EVENT_TYPES, payload: eventTypes })
+  }
+
+  const setConditionReasons = (reasons: any[]) => {
+    dispatch({ type: ACTIONS.SET_CONDITION_REASONS, payload: reasons })
   }
 
   const clearLinkedTypologies = () => {
@@ -962,6 +1051,9 @@ const ProcessorProvider = ({ children }: Props) => {
         showCreditorConditionsCreate: state.showCreditorConditionsCreate,
         uiconfig: uiConfig,
         linkedTypologies: state.linkedTypologies,
+        conditionTypes: state.conditionTypes,
+        eventTypes: state.eventTypes,
+        conditionReasons: state.conditionReasons,
         updateEntityEventType,
         updateEntityAllChecked,
         createRules,

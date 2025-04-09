@@ -3,6 +3,7 @@ import React, { useContext } from "react"
 import ProcessorContext from "store/processors/processor.context"
 import { Rule } from "store/processors/processor.interface"
 import { getRuleDescriptions } from "utils/rules"
+import { v4 as uuidv4 } from "uuid"
 
 interface RuleProps {
   hoveredRule: Rule
@@ -33,8 +34,12 @@ const RuleResult = ({ ...props }: RuleProps) => {
       let tp_details = processCtx.typologies.filter((typo) => {
         return typo.title === tp.typology
       })
+      console.log("_TP", tp)
       return (
-        <div className="align-center col-span-1 mx-1 mb-2 flex min-h-[95px] max-w-[98%] flex-col rounded-md border-2 p-2">
+        <div
+          className="align-center col-span-1 mx-1 mb-2 flex min-h-[95px] max-w-[98%] flex-col rounded-md border-2 p-2"
+          key={uuidv4().replaceAll("-", "")}
+        >
           <p className="border-black px-1 text-center text-sm">
             {/* {props.hoveredRule ? props.hoveredRule.result : props.selectedRule && props.selectedRule.result} */}
             Typology: <b>{tp.typology}</b> : <b>{tp.ruleResult}</b>
@@ -60,7 +65,10 @@ const RuleResult = ({ ...props }: RuleProps) => {
       })
 
       return (
-        <div className="align-center col-span-1 mx-1 mb-2 flex min-h-[95px] max-w-[98%] flex-col rounded-md border-2 p-2">
+        <div
+          className="align-center col-span-1 mx-1 mb-2 flex min-h-[95px] max-w-[98%] flex-col rounded-md border-2 p-2"
+          key={uuidv4().replaceAll("-", "")}
+        >
           <p className="border-black px-1 text-center text-sm">
             {/* {props.hoveredRule ? props.hoveredRule.result : props.selectedRule && props.selectedRule.result} */}
             Typology: <b>{tp.typology}</b> : <b>{tp.ruleResult}</b>
