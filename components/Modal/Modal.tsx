@@ -115,7 +115,10 @@ const DebtorModal = ({ ...props }: Props) => {
   function handleClose() {
     if (props.selectedEntity) {
       entityCtx.setDebtorPacs008(props.selectedEntity)
-      entityCtx.setDebtorAccountPacs008(props.selectedEntity, 0)
+      entityCtx.setDebtorAccountPacs008(
+        props.selectedEntity,
+        entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex || 0
+      )
     }
 
     setCustomEntity(undefined)
@@ -130,7 +133,10 @@ const DebtorModal = ({ ...props }: Props) => {
       if (entityCtx.entities.length > 0 && typeof props.selectedEntity === "number") {
         setCustomEntity(entityCtx.entities[props.selectedEntity]?.Entity)
         setCustomAccounts(entityCtx.entities[props.selectedEntity]?.Accounts || [])
-        entityCtx.selectDebtorEntity(props.selectedEntity, 0)
+        entityCtx.selectDebtorEntity(
+          props.selectedEntity,
+          entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex || 0
+        )
       }
       setEditing(false)
       setSaved(false)
@@ -142,7 +148,10 @@ const DebtorModal = ({ ...props }: Props) => {
       if (entityCtx.entities.length > 0 && typeof props.selectedEntity === "number") {
         setCustomEntity(entityCtx.entities[props.selectedEntity]?.Entity)
         setCustomAccounts(entityCtx.entities[props.selectedEntity]?.Accounts || [])
-        entityCtx.selectDebtorEntity(props.selectedEntity, 0)
+        entityCtx.selectDebtorEntity(
+          props.selectedEntity,
+          entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex || 0
+        )
       }
     }
   }, [props.entity])
@@ -569,7 +578,7 @@ const DebtorModal = ({ ...props }: Props) => {
                           entityCtx.selectDebtorEntity(
                             entityCtx.selectedDebtorEntity.debtorSelectedIndex !== undefined
                               ? entityCtx.selectedDebtorEntity.debtorSelectedIndex
-                              : 0,
+                              : entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex || 0,
                             index
                           )
                         }}
@@ -691,7 +700,10 @@ const DebtorModal = ({ ...props }: Props) => {
                         await entityCtx.setDebtorPacs008(props.selectedEntity)
                         // save the accounts
                         await entityCtx.updateAccounts(customAccounts, props.selectedEntity)
-                        await entityCtx.setDebtorAccountPacs008(props.selectedEntity, 0)
+                        await entityCtx.setDebtorAccountPacs008(
+                          props.selectedEntity,
+                          entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex || 0
+                        )
 
                         setCustomEntity(entityCtx.entities[props.selectedEntity]?.Entity)
                         setCustomAccounts(entityCtx.entities[props.selectedEntity]?.Accounts || [])

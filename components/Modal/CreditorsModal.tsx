@@ -116,7 +116,10 @@ const CreditorModal = ({ ...props }: Props) => {
   function handleClose() {
     if (props.selectedEntity) {
       entityCtx.setCreditorPacs008(props.selectedEntity)
-      entityCtx.setCreditorAccountPacs008(props.selectedEntity, 0)
+      entityCtx.setCreditorAccountPacs008(
+        props.selectedEntity,
+        entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex || 0
+      )
     }
 
     setCustomEntity(undefined)
@@ -132,7 +135,10 @@ const CreditorModal = ({ ...props }: Props) => {
       if (entityCtx.creditorEntities.length > 0 && typeof props.selectedEntity === "number") {
         setCustomEntity(entityCtx.creditorEntities[props.selectedEntity]?.CreditorEntity)
         setCustomAccounts(entityCtx.creditorEntities[props.selectedEntity]?.CreditorAccounts || [])
-        entityCtx.selectCreditorEntity(props.selectedEntity, 0)
+        entityCtx.selectCreditorEntity(
+          props.selectedEntity,
+          entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex || 0
+        )
       }
       setEditing(false)
       setSaved(false)
@@ -144,7 +150,10 @@ const CreditorModal = ({ ...props }: Props) => {
       if (entityCtx.creditorEntities.length > 0 && typeof props.selectedEntity === "number") {
         setCustomEntity(entityCtx.creditorEntities[props.selectedEntity]?.CreditorEntity)
         setCustomAccounts(entityCtx.creditorEntities[props.selectedEntity]?.CreditorAccounts || [])
-        entityCtx.selectCreditorEntity(props.selectedEntity, 0)
+        entityCtx.selectCreditorEntity(
+          props.selectedEntity,
+          entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex || 0
+        )
       }
     }
   }, [props.entity])
@@ -573,7 +582,7 @@ const CreditorModal = ({ ...props }: Props) => {
                           entityCtx.selectCreditorEntity(
                             entityCtx.selectedCreditorEntity.creditorSelectedIndex !== undefined
                               ? entityCtx.selectedCreditorEntity.creditorSelectedIndex
-                              : 0,
+                              : entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex || 0,
                             index
                           )
                         }}
@@ -695,7 +704,10 @@ const CreditorModal = ({ ...props }: Props) => {
                         await entityCtx.setCreditorPacs008(props.selectedEntity)
                         // save the accounts
                         await entityCtx.updateCreditorAccount(customAccounts, props.selectedEntity)
-                        await entityCtx.setCreditorAccountPacs008(props.selectedEntity, 0)
+                        await entityCtx.setCreditorAccountPacs008(
+                          props.selectedEntity,
+                          entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex || 0
+                        )
 
                         setCustomEntity(entityCtx.creditorEntities[props.selectedEntity]?.CreditorEntity)
                         setCustomAccounts(entityCtx.creditorEntities[props.selectedEntity]?.CreditorAccounts || [])
