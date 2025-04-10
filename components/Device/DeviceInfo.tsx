@@ -144,7 +144,13 @@ export function DeviceInfo(props: DeviceProps) {
                   props.setModalVisible(true)
                 }}
               >
-                <span className="ml-2 text-white">{entity?.Entity?.Dbtr.Nm || "Name"}</span>
+                <span className="ml-2 text-white">
+                  {entity?.Entity?.Dbtr.Nm
+                    ? entity?.Entity?.Dbtr.Nm.length >= 21
+                      ? `${entity?.Entity?.Dbtr.Nm.substring(0, 17)}...`
+                      : entity?.Entity?.Dbtr.Nm.substring(0, 30)
+                    : "Name"}
+                </span>
               </button>
               <button
                 className="mr-2 flex grow justify-end"
@@ -275,7 +281,13 @@ export function DeviceInfo(props: DeviceProps) {
                   props.setModalVisible(true)
                 }}
               >
-                <span className="ml-2 text-white">{creditorEntity?.CreditorEntity.Cdtr.Nm || "Name"}</span>
+                <span className="ml-2 text-white">
+                  {creditorEntity?.CreditorEntity?.Cdtr.Nm
+                    ? creditorEntity?.CreditorEntity?.Cdtr.Nm.length >= 21
+                      ? `${creditorEntity?.CreditorEntity?.Cdtr.Nm.substring(0, 17)}...`
+                      : creditorEntity?.CreditorEntity?.Cdtr.Nm.substring(0, 30)
+                    : "Name"}
+                </span>
               </button>
               <button
                 className="mr-2 flex grow justify-end"
