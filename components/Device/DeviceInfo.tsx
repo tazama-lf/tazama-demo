@@ -155,10 +155,16 @@ export function DeviceInfo(props: DeviceProps) {
               <button
                 className="mr-2 flex grow justify-end"
                 onClick={() => {
-                  processCtx.setShowDebtorConditions(false)
-                  props.setCreateModalVisible(true)
-                  processCtx.update_debtor_active_section("Entity")
-                  props.setModalVisible(true)
+                  if (
+                    "activeConditions" in processCtx.conditionsDataDebtor &&
+                    processCtx.conditionsDataDebtor.activeConditions &&
+                    processCtx.conditionsDataDebtor.activeConditions.includes(entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id)
+                  ) {
+                    processCtx.setShowDebtorConditions(true)
+                    props.setCreateModalVisible(false)
+                    processCtx.update_debtor_active_section("Entity")
+                    props.setModalVisible(true)
+                  }
                 }}
               >
                 <StatusIndicator
@@ -182,10 +188,18 @@ export function DeviceInfo(props: DeviceProps) {
               <button
                 className="absolute right-0 top-0 mr-0 flex"
                 onClick={() => {
-                  processCtx.setShowDebtorConditions(false)
-                  props.setCreateModalVisible(true)
-                  processCtx.update_debtor_active_section("Accounts")
-                  props.setModalVisible(true)
+                  if (
+                    checkIsActiveDebtorAccount(
+                      entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex,
+                      processCtx.conditionsDataDebtor,
+                      entity
+                    ) === "b"
+                  ) {
+                    processCtx.setShowDebtorConditions(true)
+                    props.setCreateModalVisible(false)
+                    processCtx.update_debtor_active_section("Accounts")
+                    props.setModalVisible(true)
+                  }
                 }}
               >
                 <StatusIndicator
@@ -292,10 +306,18 @@ export function DeviceInfo(props: DeviceProps) {
               <button
                 className="mr-2 flex grow justify-end"
                 onClick={() => {
-                  processCtx.setShowCreditorConditions(false)
-                  props.setCreateModalVisible(true)
-                  processCtx.update_creditor_active_section("Entity")
-                  props.setModalVisible(true)
+                  if (
+                    "activeConditions" in processCtx.conditionsDataCreditor &&
+                    processCtx.conditionsDataCreditor.activeConditions &&
+                    processCtx.conditionsDataCreditor.activeConditions.includes(
+                      creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id
+                    )
+                  ) {
+                    processCtx.setShowCreditorConditions(true)
+                    props.setCreateModalVisible(false)
+                    processCtx.update_creditor_active_section("Entity")
+                    props.setModalVisible(true)
+                  }
                 }}
               >
                 <StatusIndicator
@@ -320,10 +342,18 @@ export function DeviceInfo(props: DeviceProps) {
               <button
                 className="absolute right-0 top-0 mr-0 flex"
                 onClick={() => {
-                  processCtx.setShowCreditorConditions(false)
-                  props.setCreateModalVisible(true)
-                  processCtx.update_creditor_active_section("Accounts")
-                  props.setModalVisible(true)
+                  if (
+                    checkIsActiveCreditorAccount(
+                      entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex,
+                      processCtx.conditionsDataCreditor,
+                      creditorEntity
+                    ) === "b"
+                  ) {
+                    processCtx.setShowCreditorConditions(true)
+                    props.setCreateModalVisible(false)
+                    processCtx.update_creditor_active_section("Accounts")
+                    props.setModalVisible(true)
+                  }
                 }}
               >
                 <StatusIndicator
