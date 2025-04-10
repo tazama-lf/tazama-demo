@@ -21,6 +21,10 @@ interface MultiSelectProps {
 const MultiSelect = ({ errors, state, options, onChange }: MultiSelectProps) => {
   const processCtx = useContext(ProcessorContext)
 
+  useEffect(() => {
+    processCtx.updateEntityAllChecked(false)
+  }, [])
+
   const handleSelect = (option: Item) => {
     let tmpSelectedItems: string[] = processCtx.entityEventType
     if (processCtx.entityAllChecked === true) {
