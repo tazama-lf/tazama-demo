@@ -45,11 +45,18 @@ const DateSelector = ({ errors, state, onChange }: Props) => {
               id="datetime"
               min={min_date.substring(0, 16)}
               onBlur={(e) => {
-                let dateAttempt = new Date(e.target.value)
-                onChange({
-                  ...state,
-                  incptnDtTm: dateAttempt.toISOString(),
-                })
+                if (e.target.value) {
+                  let dateAttempt = new Date(e.target.value)
+                  onChange({
+                    ...state,
+                    incptnDtTm: dateAttempt.toISOString(),
+                  })
+                } else {
+                  if ("incptnDtTm" in state) {
+                    console.log("TRUE")
+                    delete state.incptnDtTm
+                  }
+                }
               }}
               className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
             />
@@ -59,14 +66,21 @@ const DateSelector = ({ errors, state, onChange }: Props) => {
                 name="datetime"
                 id="datetime"
                 min={min_date.substring(0, 16)}
-                value={state["xprtnDtTm"] !== undefined ? displayDate(viewLocalTime(state["xprtnDtTm"]!)!) : undefined}
+                // value={state["xprtnDtTm"] !== undefined ? displayDate(viewLocalTime(state["xprtnDtTm"]!)!) : undefined}
                 // value={expDate}
                 onBlur={(e) => {
-                  let dateAttempt = new Date(e.target.value)
-                  onChange({
-                    ...state,
-                    xprtnDtTm: dateAttempt.toISOString(),
-                  })
+                  if (e.target.value) {
+                    let dateAttempt = new Date(e.target.value)
+                    onChange({
+                      ...state,
+                      xprtnDtTm: dateAttempt.toISOString(),
+                    })
+                  } else {
+                    if ("xprtnDtTm" in state) {
+                      console.log("TRUE")
+                      delete state.xprtnDtTm
+                    }
+                  }
                 }}
                 className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
               />

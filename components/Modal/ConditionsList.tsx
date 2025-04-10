@@ -136,24 +136,28 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                 id="datetime"
                 min={new Date().toISOString().substring(0, 16)}
                 className="max-w-[150px] rounded-md p-1"
-                onFocus={(e) => {
-                  e.target.value = ""
-                  setExpDtTm(undefined)
-                }}
+                // onFocus={(e) => {
+                //   e.target.value = ""
+                //   setExpDtTm(undefined)
+                // }}
                 value={expDtTm !== undefined ? handleAdjustTime(expDtTm).substring(0, 16) : undefined}
                 onBlur={(e) => {
-                  let min_date = new Date().toISOString()
-                  let dateAttempt = new Date(e.target.value)
-                  let checkDate = new Date(min_date.substring(0, 16)).getTime()
-                  if (dateAttempt) {
-                    if (dateAttempt.getTime() > checkDate) {
-                      setExpDtTm(dateAttempt.toISOString())
-                    } else {
-                      let new_date = new Date().getTime() + 10000
-                      setExpDtTm(new Date(new_date).toISOString())
-                      // setExpDtTm(undefined)
-                      setExpError(true)
+                  if (e.target.value) {
+                    let min_date = new Date().toISOString()
+                    let dateAttempt = new Date(e.target.value)
+                    let checkDate = new Date(min_date.substring(0, 16)).getTime()
+                    if (dateAttempt) {
+                      if (dateAttempt.getTime() > checkDate) {
+                        setExpDtTm(dateAttempt.toISOString())
+                      } else {
+                        let new_date = new Date().getTime() + 10000
+                        setExpDtTm(new Date(new_date).toISOString())
+                        // setExpDtTm(undefined)
+                        setExpError(true)
+                      }
                     }
+                  } else {
+                    setExpDtTm(undefined)
                   }
                 }}
               />
