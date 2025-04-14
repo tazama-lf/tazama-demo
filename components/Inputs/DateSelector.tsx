@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from "react"
 import { NewCondition } from "store/processors/processor.interface"
-import {
-  convertCheckDate,
-  displayDate,
-  handleAdjustTime,
-  handleDateTimeChange,
-  isBeforeOrEqualToNow,
-  toIsoString,
-  viewLocalTime,
-} from "utils/helpers"
-import moment from "moment"
 
 interface Props {
   state: NewCondition
@@ -21,10 +11,11 @@ interface Props {
 const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
   const [nowChecked, setNowChecked] = useState<boolean>(true)
   const [startValue, setStartValue] = useState<string | undefined>("")
+  const [endValue, setEndValue] = useState<string | undefined>("")
   let min_date = new Date().toISOString()
+  let max_date = new Date(new Date().getTime() + Math.floor(31556952000 * 5)).toISOString()
 
-  useEffect(() => {}, [startValue])
-  useEffect(() => {}, [nowChecked])
+  useEffect(() => {}, [startValue, endValue, nowChecked])
 
   const handleCheck = () => {
     setErrors([])
@@ -96,6 +87,7 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                   setErrors([])
                 }}
                 onChange={(e) => {
+                  console.log("_DEFAULT: ", e)
                   if (e.target.value) {
                     setStartValue(e.target.value)
                     let dateAttempt = new Date(e.target.value).getTime()
@@ -136,12 +128,15 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                   name="datetime"
                   id="datetime"
                   min={min_date.substring(0, 16)}
+                  max={max_date.substring(0, 16)}
                   onFocus={() => {
                     min_date = new Date().toISOString()
                     setErrors([])
                   }}
+                  value={endValue}
                   onChange={(e) => {
                     if (e.target.value) {
+                      setEndValue(e.target.value)
                       let dateAttempt = new Date(e.target.value).getTime()
                       let nowValue = new Date().toISOString()
 
@@ -163,6 +158,7 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                     }
                   }}
                   onBlur={(e) => {
+                    console.log("BLUR_DEFAULT: ", e)
                     if (e.target.value) {
                       let dateAttempt = new Date(e.target.value)
                       onChange({

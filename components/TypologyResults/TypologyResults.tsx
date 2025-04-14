@@ -29,7 +29,9 @@ const TypeResult = ({ ...props }: TypoProps) => {
     } else {
       setDisplayOverridden(false)
     }
-  }, [processCtx.typologiesEFRuP, props.selectedType, props.hoveredType])
+  }, [processCtx.typologiesEFRuP, props.selectedType, props.hoveredType, processCtx.typologies])
+
+  // useEffect(() => {}, [processCtx.typologies])
 
   if (props.hoveredType === null && props.selectedType === null) return null
   return (

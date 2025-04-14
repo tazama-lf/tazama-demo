@@ -306,12 +306,14 @@ const ProcessorReducer = (state: any, action: any) => {
     case ACTIONS.RESET_TADPROC_RESULTS:
       return {
         ...state,
-        // tadProcResults: defaultTadProcLights,
+        tadProcResults: defaultTadProcLights,
+        typologiesEFRuP: [],
       }
     case ACTIONS.CLEAR_RESULTS:
       return {
         ...state,
         tadProcResults: defaultTadProcLights,
+        typologiesEFRuP: [],
       }
     case ACTIONS.SET_TADPROC_RESULTS:
       return {

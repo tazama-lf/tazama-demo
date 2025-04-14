@@ -597,10 +597,10 @@ const ProcessorProvider = ({ children }: Props) => {
     const updatedRules: any[] = [...state.rules]
 
     updatedTypos.map((typo: Typology) => {
-      typo.result = []
+      typo.result = null
     })
     updatedRules.map((rule: Rule) => {
-      rule.result = []
+      rule.result = null
     })
     dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: updatedTypos })
     dispatch({ type: ACTIONS.UPDATE_RULES_SUCCESS, payload: updatedRules })

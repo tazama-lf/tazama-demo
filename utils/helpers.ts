@@ -110,8 +110,8 @@ export const set_event_type = (data: string[]) => {
 }
 
 export const displayDate = (inDate: string) => {
-  let date: any
-  let time: any
+  let date: any = ""
+  let time: any = ""
   if (inDate.split("T")[0] !== undefined && inDate.split("T")[1] !== undefined) {
     date = inDate.split("T")[0]
     if (inDate.split("T")[1]?.includes(".")) {
@@ -121,8 +121,6 @@ export const displayDate = (inDate: string) => {
     } else if (inDate.split("T")[1]?.includes("-")) {
       time = inDate.split("T")[1]?.split("-")[0]
     }
-  } else {
-    date = ""
   }
 
   return `${date} ${time}`
