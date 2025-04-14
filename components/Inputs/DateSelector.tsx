@@ -190,7 +190,7 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                   <p className="text-sm text-red-500">* End date is required for an override</p>
                 )}
                 {errors.includes("expDtTmErr") && (
-                  <p className="text-sm text-red-500">* End date cannot be before inception date</p>
+                  <p className="text-sm text-red-500">* End date cannot be before start date</p>
                 )}
                 {errors.includes("expDtTmErrNow") && (
                   <p className="text-sm text-red-500">* End date cannot be before now</p>
