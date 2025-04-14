@@ -226,7 +226,11 @@ export function DeviceInfo(props: DeviceProps) {
                   props.setModalVisible(true)
                 }}
               >
-                <p className={`font-bold ${fillColour}`}>{entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Nm} </p>
+                <p className={`font-bold ${fillColour}`}>
+                  {entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Nm.length! > 21
+                    ? entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Nm.substring(0, 21) + "..."
+                    : entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Nm}
+                </p>
               </button>
               <p className="truncate">ID: {entity?.Accounts[accountIndex || 0]?.DbtrAcct?.Id?.Othr[0]?.Id}</p>
             </div>
@@ -401,7 +405,9 @@ export function DeviceInfo(props: DeviceProps) {
                 }}
               >
                 <p className={`font-bold ${fillColour}`}>
-                  {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm}
+                  {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm.length > 21
+                    ? creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm.substring(0, 21) + "..."
+                    : creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm}
                 </p>
               </button>
               <p className="truncate">

@@ -37,9 +37,9 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
 
   const conditions = conditions_data
     .toSorted((a, b) => {
-      let a_date = new Date(a.incptnDtTm).getTime()
-      let b_date = new Date(b.incptnDtTm).getTime()
-      return a_date - b_date
+      let a_date = new Date(a.creDtTm).getTime()
+      let b_date = new Date(b.creDtTm).getTime()
+      return b_date - a_date
     })
     .map((con: ListCondition, index: number) => {
       let colour: any = "n"
