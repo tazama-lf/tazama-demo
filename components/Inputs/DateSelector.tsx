@@ -136,16 +136,16 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                   id="datetime"
                   min={min_date.substring(0, 16)}
                   max={max_date.substring(0, 16)}
-                  onFocus={() => {
-                    min_date = new Date().toISOString()
-                    setErrors([])
-                  }}
-                  value={endValue}
                   onKeyDown={(e) => {
                     if (e.code === "Backspace") {
                       setEndValue("")
                     }
                   }}
+                  onFocus={() => {
+                    min_date = new Date().toISOString()
+                    setErrors([])
+                  }}
+                  value={endValue}
                   onChange={(e) => {
                     if (e.target.value) {
                       setEndValue(e.target.value)

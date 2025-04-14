@@ -1,12 +1,10 @@
 import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
 import React, { useEffect, useState, useContext } from "react"
-import { displayDate, generateString, handleAdjustTime, sentanceCase, toIsoString, viewLocalTime } from "utils/helpers"
-import { Conditions, ListCondition } from "store/processors/processor.interface"
+import { displayDate, generateString, handleAdjustTime, viewLocalTime } from "utils/helpers"
+import { ListCondition } from "store/processors/processor.interface"
 import { Seperator } from "components/Inputs/Seperator"
 import ExpireModel from "components/Inputs/ExpireModal"
 import ProcessorContext from "store/processors/processor.context"
-import EntityContext from "store/entities/entity.context"
-import ErrorModel from "components/ErrorModal/ErrorModal"
 
 interface Props {
   entity_type: string // debtor or creditor
@@ -14,13 +12,17 @@ interface Props {
   handleCreate: () => void
   conditions_data: ListCondition[]
 }
-
+interface Exp {
+  idx: number
+  expDtTm: string
+}
 const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreate }: Props) => {
   const processCtx = useContext(ProcessorContext)
   const [showExpire, setShowExpire] = useState<boolean>(false)
   const [selectedCondition, setSelectedCondition] = useState<ListCondition | undefined>(undefined)
-  const [expDtTm, setExpDtTm] = useState<string | undefined>(undefined)
+  const [expDtTm, setExpDtTm] = useState<Exp | undefined>(undefined)
   const [expError, setExpError] = useState<boolean>(false)
+  let max_date = new Date(new Date().getTime() + Math.floor(31556952000 * 5)).toISOString()
 
   useEffect(() => {
     console.log("Condition: ", selectedCondition)
@@ -39,7 +41,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
       let b_date = new Date(b.incptnDtTm).getTime()
       return a_date - b_date
     })
-    .map((con: ListCondition) => {
+    .map((con: ListCondition, index: number) => {
       let colour: any = "n"
       if (con.xprtnDtTm) {
         if (con.xprtnDtTm !== null) {
@@ -134,11 +136,17 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                 id="datetime"
                 min={new Date().toISOString().substring(0, 16)}
                 className="max-w-[150px] rounded-md p-1"
-                // onFocus={(e) => {
-                //   e.target.value = ""
-                //   setExpDtTm(undefined)
-                // }}
-                value={expDtTm !== undefined ? handleAdjustTime(expDtTm).substring(0, 16) : undefined}
+                max={max_date.substring(0, 16)}
+                onKeyDown={(e) => {
+                  if (e.code === "Backspace") {
+                    setExpDtTm(undefined)
+                  }
+                }}
+                value={
+                  expDtTm !== undefined && expDtTm.idx === index
+                    ? handleAdjustTime(expDtTm.expDtTm).substring(0, 16)
+                    : undefined
+                }
                 onBlur={(e) => {
                   if (e.target.value) {
                     let min_date = new Date().toISOString()
@@ -146,10 +154,10 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                     let checkDate = new Date(min_date.substring(0, 16)).getTime()
                     if (dateAttempt) {
                       if (dateAttempt.getTime() > checkDate) {
-                        setExpDtTm(dateAttempt.toISOString())
+                        setExpDtTm({ idx: index, expDtTm: dateAttempt.toISOString() })
                       } else {
                         let new_date = new Date().getTime() + 10000
-                        setExpDtTm(new Date(new_date).toISOString())
+                        setExpDtTm({ idx: index, expDtTm: dateAttempt.toISOString() })
                         // setExpDtTm(undefined)
                         setExpError(true)
                       }
@@ -290,7 +298,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
         {showExpire && (
           <ExpireModel
             title="Expire condition now?"
-            date={expDtTm && expDtTm}
+            date={expDtTm && expDtTm.expDtTm}
             show={showExpire}
             setShow={() => setShowExpire(!showExpire)}
             handleExpire={async () => {
@@ -303,11 +311,11 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                       agt: selectedCondition.acct?.agt.finInstnId.clrSysMmbId.mmbId,
                       schmeNm: selectedCondition.acct!.schmeNm.prtry,
                       condId: selectedCondition.condId,
-                      xprtnDtTm: expDtTm,
+                      xprtnDtTm: expDtTm?.expDtTm,
                     })
                     entity_type === "debtor" && (await processCtx.getAllDebtorConditions())
                     entity_type === "creditor" && (await processCtx.getAllCreditorConditions())
-                    handleExpire(selectedCondition, expDtTm)
+                    handleExpire(selectedCondition, expDtTm?.expDtTm)
                   } else {
                     processCtx.expireCondition({
                       type: "account",
@@ -321,17 +329,17 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                   }
                   // processCtx.expireCondition({ type: "account", accountId: "1", agt: "MSIDSN"})
                 } else if ("ntty" in selectedCondition) {
-                  if (expDtTm !== null) {
+                  if (expDtTm !== undefined) {
                     await processCtx.expireCondition({
                       type: "entity",
                       entityId: selectedCondition.ntty!.id,
                       schmeNm: selectedCondition.ntty!.schmeNm.prtry,
                       condId: selectedCondition.condId,
-                      xprtnDtTm: expDtTm,
+                      xprtnDtTm: expDtTm?.expDtTm,
                     })
                     entity_type === "debtor" && (await processCtx.getAllDebtorConditions())
                     entity_type === "creditor" && (await processCtx.getAllCreditorConditions())
-                    handleExpire(selectedCondition, expDtTm)
+                    handleExpire(selectedCondition, expDtTm.expDtTm)
                   } else {
                     await processCtx.expireCondition({
                       type: "entity",
