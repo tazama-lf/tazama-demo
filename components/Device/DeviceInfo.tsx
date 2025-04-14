@@ -405,7 +405,7 @@ export function DeviceInfo(props: DeviceProps) {
                 }}
               >
                 <p className={`font-bold ${fillColour}`}>
-                  {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm.length > 21
+                  {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm.length! > 21
                     ? creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm.substring(0, 21) + "..."
                     : creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Nm}
                 </p>
