@@ -22,7 +22,19 @@ const TypeResult = ({ ...props }: TypoProps) => {
     })
     if (test) {
       if (test.efrupResult === "override") {
-        setDisplayOverridden(true)
+        if (props.hoveredType) {
+          if (props.hoveredType.workflow.interdictionThreshold) {
+            if (props.hoveredType.result >= props.hoveredType.workflow.interdictionThreshold) {
+              setDisplayOverridden(true)
+            }
+          }
+        } else if (props.selectedType) {
+          if (props.selectedType.workflow.interdictionThreshold) {
+            if (props.selectedType.result >= props.selectedType.workflow.interdictionThreshold) {
+              setDisplayOverridden(true)
+            }
+          }
+        }
       } else {
         setDisplayOverridden(false)
       }

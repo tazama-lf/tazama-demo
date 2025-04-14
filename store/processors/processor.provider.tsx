@@ -268,6 +268,7 @@ const ProcessorProvider = ({ children }: Props) => {
   }, [state.typologies])
 
   const handleLinkedTypologies = async (msg: any) => {
+    console.log("_FLASH", msg)
     const typoResults = msg.report.tadpResult.typologyResult
     const linksResponse: LinkedTypo[] = []
 

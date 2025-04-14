@@ -656,10 +656,11 @@ const Web = () => {
                 Tadproc
               </h2>
               <div className="relative flex min-h-80 items-center justify-center">
-                {processCtx.tadpLights.efrup === "override" && flashing && (
+                {processCtx.tadpLights.efrup === "override" && processCtx.tadpLights.color === "r" && flashing ? (
                   <StatusIndicator large={true} colour={flashColor} />
+                ) : (
+                  <StatusIndicator large={true} colour={processCtx.tadpLights.color} />
                 )}
-                {!flashing && <StatusIndicator large={true} colour={processCtx.tadpLights.color} />}
 
                 {processCtx.tadpLights.color === "y" ||
                   (processCtx.tadpLights.color === "r" && (
@@ -676,7 +677,8 @@ const Web = () => {
                         BLOCKED
                       </p>
                     ) : (
-                      processCtx.tadpLights.efrup === "override" && (
+                      processCtx.tadpLights.efrup === "override" &&
+                      processCtx.tadpLights.color === "r" && (
                         <p className="mb-5 flex max-w-[120px] rounded-lg border-[1px] border-green-500 bg-gradient-to-r from-green-100 to-green-200 px-5 py-2 text-center text-xs uppercase text-green-500 shadow-lg">
                           INTERDICTION OVERRIDDEN
                         </p>
