@@ -134,7 +134,7 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                   type="datetime-local"
                   name="datetime"
                   id="datetime"
-                  min={min_date.substring(0, 16)}
+                  min={startValue ? startValue.substring(0, 16) : min_date.substring(0, 16)}
                   max={max_date.substring(0, 16)}
                   onKeyDown={(e) => {
                     if (e.code === "Backspace") {
