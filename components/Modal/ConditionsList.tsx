@@ -43,8 +43,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
       let colour: any = "n"
       if (con.xprtnDtTm) {
         if (con.xprtnDtTm !== null) {
-          let now1 = handleAdjustTime(new Date().toISOString())
-          let now = new Date(now1).getTime()
+          let now = new Date().getTime()
           let chDt = new Date(con.xprtnDtTm).getTime()
 
           if (con.condTp === "non-overridable-block") {
@@ -69,8 +68,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
         }
       } else {
         let tstDate = new Date(con.incptnDtTm).getTime()
-
-        let now = new Date(handleAdjustTime(new Date().toISOString())).getTime()
+        let now = new Date().getTime()
         if (tstDate !== undefined) {
           if (con.condTp === "override") {
             if (tstDate < now) {

@@ -164,6 +164,11 @@ export function DeviceInfo(props: DeviceProps) {
                     props.setCreateModalVisible(false)
                     processCtx.update_debtor_active_section("Entity")
                     props.setModalVisible(true)
+                  } else {
+                    processCtx.setShowDebtorConditions(false)
+                    props.setCreateModalVisible(true)
+                    processCtx.update_debtor_active_section("Entity")
+                    props.setModalVisible(true)
                   }
                 }}
               >
@@ -197,6 +202,11 @@ export function DeviceInfo(props: DeviceProps) {
                   ) {
                     processCtx.setShowDebtorConditions(true)
                     props.setCreateModalVisible(false)
+                    processCtx.update_debtor_active_section("Accounts")
+                    props.setModalVisible(true)
+                  } else {
+                    processCtx.setShowDebtorConditions(false)
+                    props.setCreateModalVisible(true)
                     processCtx.update_debtor_active_section("Accounts")
                     props.setModalVisible(true)
                   }
@@ -317,6 +327,11 @@ export function DeviceInfo(props: DeviceProps) {
                     props.setCreateModalVisible(false)
                     processCtx.update_creditor_active_section("Entity")
                     props.setModalVisible(true)
+                  } else {
+                    processCtx.setShowCreditorConditions(false)
+                    props.setCreateModalVisible(true)
+                    processCtx.update_creditor_active_section("Entity")
+                    props.setModalVisible(true)
                   }
                 }}
               >
@@ -351,6 +366,11 @@ export function DeviceInfo(props: DeviceProps) {
                   ) {
                     processCtx.setShowCreditorConditions(true)
                     props.setCreateModalVisible(false)
+                    processCtx.update_creditor_active_section("Accounts")
+                    props.setModalVisible(true)
+                  } else {
+                    processCtx.setShowCreditorConditions(false)
+                    props.setCreateModalVisible(true)
                     processCtx.update_creditor_active_section("Accounts")
                     props.setModalVisible(true)
                   }

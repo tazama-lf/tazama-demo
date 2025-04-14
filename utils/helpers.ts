@@ -188,6 +188,20 @@ export const ValidateCondition = async (condition: NewCondition) => {
     errors.push(errorMsg)
   }
 
+  if ("xprtnDtTm" in condition && condition.xprtnDtTm) {
+    if ("incptnDtTm" in condition && condition.incptnDtTm) {
+      if (new Date(condition.xprtnDtTm).getTime() <= new Date(condition.incptnDtTm).getTime()) {
+        let errorMsg: string = "expDtTmErr"
+        errors.push(errorMsg)
+      }
+    } else {
+      if (new Date(condition.xprtnDtTm).getTime() <= new Date().getTime()) {
+        let errorMsg: string = "expDtTmErrNow"
+        errors.push(errorMsg)
+      }
+    }
+  }
+
   return errors
 }
 
@@ -473,5 +487,43 @@ export const checkActiveCreditorEntity = (conditionsData: ConditionStructure, en
     }
   } else {
     return "n"
+  }
+}
+
+export function isBeforeOrEqualToNow(dateString: string): boolean {
+  try {
+    // Validate the input format first
+    const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
+    if (!regex.test(dateString)) {
+      throw new Error("Invalid date format. Expected format: YYYY-MM-DDTHH:MM")
+    }
+
+    // Parse the date parts
+    const [datePart, timePart] = dateString.split("T")
+
+    if (datePart && timePart) {
+      const [year, month, day] = datePart.split("-").map(Number)
+      const [hours, minutes] = timePart!.split(":").map(Number)
+
+      // Create a date object using local time components
+      // Note: Month is 0-indexed in JavaScript Date
+      const inputLocalDate = new Date(year!, month! - 1, day, hours, minutes)
+
+      // Check if the date is valid
+      if (isNaN(inputLocalDate.getTime())) {
+        throw new Error("Invalid date. Could not parse the date string.")
+      }
+
+      // Get the current date and time
+      const now = new Date()
+
+      // Compare the dates and return the result
+      return inputLocalDate <= now
+    } else {
+      throw new Error("Something went wrong!!!")
+    }
+  } catch (error) {
+    console.error("Error in isBeforeOrEqualToNow:", error)
+    throw error
   }
 }
