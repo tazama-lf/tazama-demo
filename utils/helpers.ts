@@ -110,16 +110,19 @@ export const set_event_type = (data: string[]) => {
 }
 
 export const displayDate = (inDate: string) => {
+  const testDate = inDate.substring(0, 16)
   let date: any = ""
   let time: any = ""
-  if (inDate.split("T")[0] !== undefined && inDate.split("T")[1] !== undefined) {
-    date = inDate.split("T")[0]
-    if (inDate.split("T")[1]?.includes(".")) {
-      time = inDate.split("T")[1]?.split(".")[0]
-    } else if (inDate.split("T")[1]?.includes("+")) {
-      time = inDate.split("T")[1]?.split("+")[0]
-    } else if (inDate.split("T")[1]?.includes("-")) {
-      time = inDate.split("T")[1]?.split("-")[0]
+  if (testDate.split("T")[0] !== undefined && testDate.split("T")[1] !== undefined) {
+    date = testDate.split("T")[0]
+    if (testDate.split("T")[1]?.includes(".")) {
+      time = testDate.split("T")[1]?.split(".")[0]
+    } else if (testDate.split("T")[1]?.includes("+")) {
+      time = testDate.split("T")[1]?.split("+")[0]
+    } else if (testDate.split("T")[1]?.includes("-")) {
+      time = testDate.split("T")[1]?.split("-")[0]
+    } else {
+      time = testDate.split("T")[1]
     }
   }
 
