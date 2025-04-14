@@ -15,7 +15,11 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
   let min_date = new Date().toISOString()
   let max_date = new Date(new Date().getTime() + Math.floor(31556952000 * 5)).toISOString()
 
-  useEffect(() => {}, [startValue, endValue, nowChecked])
+  useEffect(() => {
+    console.log(startValue)
+  }, [startValue])
+  useEffect(() => {}, [endValue])
+  useEffect(() => {}, [nowChecked])
 
   const handleCheck = () => {
     setErrors([])
@@ -73,7 +77,7 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
           </div>
 
           <div className="grid w-full grid-cols-2 gap-4">
-            <div className="flex flex-col">
+            <div className="flex w-full flex-col">
               <input
                 type="datetime-local"
                 name="datetime"
@@ -85,6 +89,11 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                 onFocus={() => {
                   min_date = new Date().toISOString()
                   setErrors([])
+                }}
+                onKeyDown={(e) => {
+                  if (e.code === "Backspace") {
+                    setStartValue("")
+                  }
                 }}
                 onChange={(e) => {
                   console.log("_DEFAULT: ", e)
@@ -112,16 +121,14 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                     }
                   }
                 }}
-                className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
+                className="col-span-1 h-8 w-full rounded-md bg-gray-100 p-2 shadow-inner drop-shadow-md"
               />
-              {errors.includes("incptnDtTm") && (
-                <p className="ml-5 text-sm text-red-500">* Please select a Start Date</p>
-              )}
+              {errors.includes("incptnDtTm") && <p className="text-sm text-red-500">* Please select a start date</p>}
               {errors.includes("inDtTmErr") && (
-                <p className="ml-5 text-sm text-red-500">* Start Date may not be before now</p>
+                <p className="ml-1 text-sm text-red-500">* Start Date may not be before now</p>
               )}
             </div>
-            <div className="flex flex-row gap-1">
+            <div className="flex flex-row">
               <div className="flex w-full flex-col">
                 <input
                   type="datetime-local"
@@ -134,6 +141,11 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                     setErrors([])
                   }}
                   value={endValue}
+                  onKeyDown={(e) => {
+                    if (e.code === "Backspace") {
+                      setEndValue("")
+                    }
+                  }}
                   onChange={(e) => {
                     if (e.target.value) {
                       setEndValue(e.target.value)
@@ -172,16 +184,16 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                       }
                     }
                   }}
-                  className="col-span-1 w-full rounded-md bg-gray-100 p-1 shadow-inner drop-shadow-md"
+                  className="col-span-1 h-8 w-full rounded-md bg-gray-100 p-2 shadow-inner drop-shadow-md"
                 />
                 {errors.includes("orExp") && (
-                  <p className="ml-1 text-sm text-red-500">* End date is required for an override condition type</p>
+                  <p className="text-sm text-red-500">* End date is required for an override</p>
                 )}
                 {errors.includes("expDtTmErr") && (
-                  <p className="ml-1 text-sm text-red-500">* End date cannot be before inception date</p>
+                  <p className="text-sm text-red-500">* End date cannot be before inception date</p>
                 )}
                 {errors.includes("expDtTmErrNow") && (
-                  <p className="ml-1 text-sm text-red-500">* End date cannot be before now</p>
+                  <p className="text-sm text-red-500">* End date cannot be before now</p>
                 )}
               </div>
             </div>

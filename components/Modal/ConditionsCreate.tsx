@@ -131,7 +131,7 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
         />
 
         <div className="relative mt-5 flex w-[700px] flex-col">
-          <label className="flex w-full cursor-pointer items-center pb-5" htmlFor="all-check">
+          <label className="mt-1 flex w-full cursor-pointer items-center pb-3" htmlFor="all-check">
             Reason:
             {errors.includes("condRsn") && <div className="pl-5 text-sm text-red-500">* Please select a Reason</div>}
           </label>
