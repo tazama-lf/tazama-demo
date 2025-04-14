@@ -130,19 +130,6 @@ const Web = () => {
 
   const [start, setStart] = useState<boolean>(false)
 
-  // useEffect(() => {
-  //   if (flashing) {
-  //     for (let i = 0; i < 2; i++) {
-  //       setTimeout(() => {
-  //         if (flashColor === "r") {
-  //           setFlashColor("g")
-  //         } else if (flashColor === "g") {
-  //           setFlashColor("r")
-  //         }
-  //       }, 700)
-  //     }
-  //   }
-  // }, [flashing, flashColor])
   useEffect(() => {
     if (start) {
       for (let i = 0; i < 2; i++) {

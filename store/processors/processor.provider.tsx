@@ -148,7 +148,9 @@ const ProcessorProvider = ({ children }: Props) => {
         setAdminServiceUrl(uiConfig.adminServiceUrl)
 
         // set condition types
-        let configConditionData: any[] = uiConfig.conditionTypes.slice(1, -1).split(",")
+        let configConditionData: any[] = uiConfig.conditionTypes
+          ? uiConfig.conditionTypes.slice(1, -1).split(",")
+          : ["configuration error"]
         let conditionsRes: any[] = [{ id: 0, option: "Please select condition type...", visible: false }]
         configConditionData.map((item: any, index: number) => {
           let option = {
@@ -161,7 +163,9 @@ const ProcessorProvider = ({ children }: Props) => {
         setConditionTypes(conditionsRes)
 
         // set event types
-        let configEventData: any[] = uiConfig.eventTypes.slice(1, -1).split(",")
+        let configEventData: any[] = uiConfig.eventTypes
+          ? uiConfig.eventTypes.slice(1, -1).split(",")
+          : ["configuration error"]
         let eventTypesRes: any[] = []
         configEventData.map((item: any, index: number) => {
           let option = {
@@ -175,7 +179,9 @@ const ProcessorProvider = ({ children }: Props) => {
         setEventTypes(eventTypesRes)
 
         // set condition reasons
-        let configReasonsData: any[] = uiConfig.conditionReasons.slice(1, -1).split(",")
+        let configReasonsData: any[] = uiConfig.conditionReasons
+          ? uiConfig.conditionReasons.slice(1, -1).split(",")
+          : []
         let conditionReasonsRes: any[] = [{ id: 0, option: "Please select a reason...", visible: false }]
         configReasonsData.map((item: any, index: number) => {
           let option = {
