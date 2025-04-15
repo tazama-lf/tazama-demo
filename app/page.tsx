@@ -242,6 +242,10 @@ const Web = () => {
             entityCtx.clearUIData()
             processCtx.resetAllLights()
             processCtx.clearResults()
+            setSelectedRule(null)
+            setSelectedRules([])
+            setSelectedType(null)
+            setSelectedTypes([])
           }}
         >
           Clear All
