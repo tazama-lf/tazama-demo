@@ -6,6 +6,7 @@ import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
 import ProcessorContext from "store/processors/processor.context"
 import { CreditorEntity, DebtorAccount, Entity } from "store/entities/entity.interface"
 import { checkIsActiveCreditorAccount, checkIsActiveDebtorAccount } from "utils/helpers"
+import { Conditions } from "store/processors/processor.interface"
 
 interface DeviceProps {
   selectedEntity: number
@@ -39,12 +40,46 @@ export function DeviceInfo(props: DeviceProps) {
   const entity: Entity | undefined = entityCtx.entities[props.selectedEntity]
   const creditorAccountIndex = entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex
   const creditorEntity = entityCtx.creditorEntities[props.selectedEntity]
+  const [nttyDebColor, setNttyDebColor] = useState<"n" | "b">("n")
+  const [nttyCredColor, setNttyCredColor] = useState<"n" | "b">("n")
 
   const handleClick = async () => {
     await entityCtx.generateTransaction()
     setGetPacs008(entityCtx.pacs008)
     setIsTransaction(true)
   }
+
+  useEffect(() => {
+    if (props.isDebtor) {
+      let test = processCtx.conditionsDataDebtor.conditions.find((con: Conditions) => {
+        let startDate = new Date(con.incptnDtTm).getTime()
+        let now = new Date().getTime()
+        return startDate <= now && con.ntty?.id === entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id
+      })
+      if (test) {
+        console.log("_TEST: ", test)
+        setNttyDebColor("b")
+      } else {
+        setNttyDebColor("n")
+      }
+    }
+  }, [props.isDebtor, nttyDebColor, processCtx.conditionsDataDebtor.conditions])
+
+  useEffect(() => {
+    if (!props.isDebtor) {
+      let test = processCtx.conditionsDataCreditor.conditions.find((con: Conditions) => {
+        let startDate = new Date(con.incptnDtTm).getTime()
+        let now = new Date().getTime()
+        return startDate <= now && con.ntty?.id === creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id
+      })
+      console.log("_TEST: ", entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id)
+      if (test) {
+        setNttyCredColor("b")
+      } else {
+        setNttyCredColor("n")
+      }
+    }
+  }, [entity, nttyCredColor, processCtx.conditionsDataCreditor.conditions])
 
   useEffect(() => {
     setIsTransaction(false)
@@ -172,15 +207,7 @@ export function DeviceInfo(props: DeviceProps) {
                   }
                 }}
               >
-                <StatusIndicator
-                  colour={
-                    "activeConditions" in processCtx.conditionsDataDebtor &&
-                    processCtx.conditionsDataDebtor.activeConditions &&
-                    processCtx.conditionsDataDebtor.activeConditions.includes(entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id)
-                      ? "b"
-                      : "n"
-                  }
-                />
+                <StatusIndicator colour={nttyDebColor} />
               </button>
             </div>
 
@@ -339,17 +366,7 @@ export function DeviceInfo(props: DeviceProps) {
                   }
                 }}
               >
-                <StatusIndicator
-                  colour={
-                    "activeConditions" in processCtx.conditionsDataCreditor &&
-                    processCtx.conditionsDataCreditor.activeConditions &&
-                    processCtx.conditionsDataCreditor.activeConditions.includes(
-                      creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id
-                    )
-                      ? "b"
-                      : "n"
-                  }
-                />
+                <StatusIndicator colour={nttyCredColor} />
               </button>
             </div>
 
