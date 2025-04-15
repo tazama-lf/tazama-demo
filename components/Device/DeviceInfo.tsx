@@ -42,6 +42,8 @@ export function DeviceInfo(props: DeviceProps) {
   const creditorEntity = entityCtx.creditorEntities[props.selectedEntity]
   const [nttyDebColor, setNttyDebColor] = useState<"n" | "b">("n")
   const [nttyCredColor, setNttyCredColor] = useState<"n" | "b">("n")
+  const [acctDebColor, setAcctDebColor] = useState<"n" | "b">("n")
+  const [acctCredColor, setAcctCredColor] = useState<"n" | "b">("n")
 
   const handleClick = async () => {
     await entityCtx.generateTransaction()
@@ -57,7 +59,6 @@ export function DeviceInfo(props: DeviceProps) {
         return startDate <= now && con.ntty?.id === entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id
       })
       if (test) {
-        console.log("_TEST: ", test)
         setNttyDebColor("b")
       } else {
         setNttyDebColor("n")
@@ -72,7 +73,6 @@ export function DeviceInfo(props: DeviceProps) {
         let now = new Date().getTime()
         return startDate <= now && con.ntty?.id === creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id
       })
-      console.log("_TEST: ", entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id)
       if (test) {
         setNttyCredColor("b")
       } else {
@@ -80,6 +80,43 @@ export function DeviceInfo(props: DeviceProps) {
       }
     }
   }, [entity, nttyCredColor, processCtx.conditionsDataCreditor.conditions])
+
+  useEffect(() => {
+    if (props.isDebtor) {
+      let test = processCtx.conditionsDataDebtor.conditions.find((con: Conditions) => {
+        let startDate = new Date(con.incptnDtTm).getTime()
+        let now = new Date().getTime()
+        return startDate <= now && con.acct?.id === entity?.Accounts[accountIndex || 0]?.DbtrAcct.Id.Othr[0].Id
+      })
+      console.log("TEST1_ACCT: ", test)
+      if (test) {
+        setAcctDebColor("b")
+      } else {
+        setAcctDebColor("n")
+      }
+    }
+  }, [acctDebColor, processCtx.conditionsDataDebtor.conditions, accountIndex])
+
+  useEffect(() => {
+    if (!props.isDebtor && creditorAccountIndex && creditorEntity) {
+      let test = processCtx.conditionsDataCreditor.conditions.find((con: Conditions) => {
+        let startDate = new Date(con.incptnDtTm).getTime()
+        let now = new Date().getTime()
+        return (
+          startDate <= now &&
+          con.acct?.id === creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0].Id
+        )
+      })
+      if (test) {
+        console.log("TEST2_ACCT: ", test, creditorAccountIndex)
+        setAcctCredColor("b")
+      } else {
+        setAcctCredColor("n")
+      }
+    } else {
+      setAcctCredColor("n")
+    }
+  }, [acctCredColor, processCtx.conditionsDataCreditor.conditions, creditorAccountIndex])
 
   useEffect(() => {
     setIsTransaction(false)
@@ -240,11 +277,12 @@ export function DeviceInfo(props: DeviceProps) {
                 }}
               >
                 <StatusIndicator
-                  colour={checkIsActiveDebtorAccount(
-                    entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex,
-                    processCtx.conditionsDataDebtor,
-                    entity
-                  )}
+                  // colour={checkIsActiveDebtorAccount(
+                  //   entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex,
+                  //   processCtx.conditionsDataDebtor,
+                  //   entity
+                  // )}
+                  colour={acctDebColor}
                 />
               </button>
               <button
@@ -408,11 +446,12 @@ export function DeviceInfo(props: DeviceProps) {
                   //     ? "b"
                   //     : "n"
                   // }
-                  colour={checkIsActiveCreditorAccount(
-                    entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex,
-                    processCtx.conditionsDataCreditor,
-                    creditorEntity
-                  )}
+                  colour={acctCredColor}
+                  // colour={checkIsActiveCreditorAccount(
+                  //   entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex,
+                  //   processCtx.conditionsDataCreditor,
+                  //   creditorEntity
+                  // )}
                 />
               </button>
               <button
