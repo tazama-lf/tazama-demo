@@ -44,9 +44,10 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
     .map((con: ListCondition, index: number) => {
       let colour: any = "n"
       if (con.xprtnDtTm) {
-        if (con.xprtnDtTm !== null) {
+        if (con.xprtnDtTm !== undefined) {
           let now = new Date().getTime()
           let chDt = new Date(con.xprtnDtTm).getTime()
+          let stDtTm = new Date(con.incptnDtTm).getTime()
 
           if (con.condTp === "non-overridable-block") {
             if (chDt > now) {
@@ -62,7 +63,11 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
             }
           } else if (con.condTp === "override") {
             if (chDt > now) {
-              colour = "g"
+              if (stDtTm > now) {
+                colour = "n"
+              } else {
+                colour = "g"
+              }
             } else {
               colour = "n"
             }
@@ -97,7 +102,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
       return (
         <div
           key={generateString(5)}
-          className="my-[1px] flex h-[45px] w-full max-w-[1160px] rounded-md bg-gray-200 text-[14px] drop-shadow-md"
+          className="my-[1px] flex h-[45px] w-full max-w-[1260px] rounded-md bg-gray-200 text-[14px] drop-shadow-md"
         >
           <div className="flex w-1/4 w-[160px] content-center items-center gap-1 pl-1">
             <ConditionIndicator colour={colour} />
@@ -118,13 +123,17 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
           <Seperator />
           <p className="flex w-[120px] items-center pl-1">{con.prsptv}</p>
           <Seperator />
-          <p className="flex w-[155px] items-center pl-1">{displayDate(viewLocalTime(con.incptnDtTm)!)}</p>
+          <p className="flex w-[185px] items-center overflow-x-hidden text-nowrap pl-1">
+            {displayDate(viewLocalTime(con.incptnDtTm)!.toString())}
+          </p>
           <Seperator />
           {con.xprtnDtTm && con.xprtnDtTm !== null ? (
-            <p className="flex w-[155px] items-center  pl-1">{displayDate(viewLocalTime(con.xprtnDtTm)!)}</p>
+            <p className="flex w-[185px] items-center overflow-x-hidden text-nowrap pl-1">
+              {displayDate(viewLocalTime(con.xprtnDtTm)!.toString()!)}
+            </p>
           ) : (
             <div
-              className="z-99 mt-[7px]"
+              className="z-99 mt-[7px] flex max-h-[30px] w-[185px] px-1"
               onClick={() => {
                 setSelectedCondition(con)
                 // setShowExpire(true)
@@ -135,7 +144,7 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                 name="datetime"
                 id="datetime"
                 min={new Date().toISOString().substring(0, 16)}
-                className="max-w-[150px] rounded-md p-1"
+                className="w-[185px] rounded-md p-1"
                 max={max_date.substring(0, 16)}
                 onKeyDown={(e) => {
                   if (e.code === "Backspace") {
@@ -234,8 +243,8 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
 
   return (
     <>
-      <div className="relative h-[790px] w-[1200px] overflow-hidden  rounded-lg bg-gray-200 p-5">
-        <div className="grid h-[30px] max-w-[1100px] grid-cols-2 content-between">
+      <div className="relative h-[790px] w-[1300px] overflow-hidden  rounded-lg bg-gray-200 p-5">
+        <div className="grid h-[30px] max-w-[1200px] grid-cols-2 content-between">
           <button
             className="absolute right-5 max-w-[40px] rounded-full bg-gradient-to-r from-gray-200 to-gray-100 p-1 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
             // onClick={handleClose}
@@ -266,13 +275,13 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
                 <th className="w-[262.5px] py-1 pl-3">Reason</th>
                 <th className="w-[200px] py-1 pl-3">Events</th>
                 <th className="w-[117.5px] py-1 pl-3">Perspective</th>
-                <th className="w-[142.5px] py-1 pl-3">Start</th>
-                <th className="w-[142.5px] py-1 pl-3">End</th>
+                <th className="w-[172.5px] py-1 pl-3">Start</th>
+                <th className="w-[182.5px] py-1 pl-3">End</th>
                 <th className="w-[56px] py-1 pl-3"> </th>
               </tr>
             </thead>
           </table>
-          <div className="flex w-[1160px] flex-col overflow-y-auto p-[1px]">{conditions}</div>
+          <div className="flex w-[1260px] flex-col overflow-y-auto p-[1px]">{conditions}</div>
         </div>
         <div className="align-center flex w-full grow justify-end p-5">
           <button
