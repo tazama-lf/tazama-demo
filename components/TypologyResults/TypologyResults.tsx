@@ -6,42 +6,47 @@ import { TypoEFRuP, Typology } from "store/processors/processor.interface"
 interface TypoProps {
   hoveredType: Typology | null
   selectedType: Typology | null
+  overridden: boolean
 }
 
 const TypeResult = ({ ...props }: TypoProps) => {
-  const processCtx = useContext(ProcessorContext)
-  const [displayOverridden, setDisplayOverridden] = useState<boolean>(false)
+  // const processCtx = useContext(ProcessorContext)
+  // const [displayOverridden, setDisplayOverridden] = useState<boolean>(false)
 
   useEffect(() => {
-    const test = processCtx.typologiesEFRuP.find((res: TypoEFRuP) => {
-      if (props.hoveredType) {
-        return res.typology === props.hoveredType.title
-      } else if (props.selectedType) {
-        return res.typology === props.selectedType.title
-      }
-    })
-    if (test) {
-      if (test.efrupResult === "override") {
-        if (props.hoveredType) {
-          if (props.hoveredType.workflow.interdictionThreshold) {
-            if (props.hoveredType.result >= props.hoveredType.workflow.interdictionThreshold) {
-              setDisplayOverridden(true)
-            }
-          }
-        } else if (props.selectedType) {
-          if (props.selectedType.workflow.interdictionThreshold) {
-            if (props.selectedType.result >= props.selectedType.workflow.interdictionThreshold) {
-              setDisplayOverridden(true)
-            }
-          }
-        }
-      } else {
-        setDisplayOverridden(false)
-      }
-    } else {
-      setDisplayOverridden(false)
-    }
-  }, [processCtx.typologiesEFRuP, props.selectedType, props.hoveredType, processCtx.typologies])
+    props.overridden
+  }, [props.overridden])
+
+  // useEffect(() => {
+  //   const test = processCtx.typologiesEFRuP.find((res: TypoEFRuP) => {
+  //     if (props.hoveredType) {
+  //       return res.typology === props.hoveredType.title
+  //     } else if (props.selectedType) {
+  //       return res.typology === props.selectedType.title
+  //     }
+  //   })
+  //   if (test) {
+  //     if (test.efrupResult === "override") {
+  //       if (props.hoveredType) {
+  //         if (props.hoveredType.workflow.interdictionThreshold) {
+  //           if (props.hoveredType.result >= props.hoveredType.workflow.interdictionThreshold) {
+  //             setDisplayOverridden(true)
+  //           }
+  //         }
+  //       } else if (props.selectedType) {
+  //         if (props.selectedType.workflow.interdictionThreshold) {
+  //           if (props.selectedType.result >= props.selectedType.workflow.interdictionThreshold) {
+  //             setDisplayOverridden(true)
+  //           }
+  //         }
+  //       }
+  //     } else {
+  //       setDisplayOverridden(false)
+  //     }
+  //   } else {
+  //     setDisplayOverridden(false)
+  //   }
+  // }, [processCtx.typologiesEFRuP, props.selectedType, props.hoveredType, processCtx.typologies])
 
   // useEffect(() => {}, [processCtx.typologies])
 
@@ -60,7 +65,7 @@ const TypeResult = ({ ...props }: TypoProps) => {
           : props.selectedType
           ? ` = ${props.selectedType.result}`
           : ""}
-        {displayOverridden && (
+        {props.overridden && (
           <div className="flex flex-col items-center">
             <svg
               className="overflow-hidden"

@@ -18,7 +18,7 @@ import RuleResult from "components/RuleResults/RuleResults"
 import TypeResult from "components/TypologyResults/TypologyResults"
 import { iconColour } from "utils/helpers"
 import io from "socket.io-client"
-import { Rule, Typology } from "store/processors/processor.interface"
+import { Rule, TypoEFRuP, Typology } from "store/processors/processor.interface"
 import { v4 as uuidv4 } from "uuid"
 
 let socket
@@ -39,6 +39,51 @@ const Web = () => {
   const [showCreditorModal, setShowCreditorModal] = useState(false)
   const [flashing, setFlashing] = useState(false)
   const [flashColor, setFlashColor] = useState<"r" | "g">("r")
+  const [displayOverridden, setDisplayOverridden] = useState(false)
+
+  useEffect(() => {
+    if (hoveredType) {
+      setDisplayOverridden(false)
+      const test = processCtx.typologiesEFRuP.find((res: TypoEFRuP) => {
+        return res.typology === hoveredType.title
+      })
+      if (test) {
+        if (test.efrupResult === "override") {
+          if (hoveredType.workflow.interdictionThreshold) {
+            if (hoveredType.result >= hoveredType.workflow.interdictionThreshold) {
+              setDisplayOverridden(true)
+            } else {
+              setDisplayOverridden(false)
+            }
+          }
+        }
+      } else {
+        setDisplayOverridden(false)
+      }
+    } else if (selectedType) {
+      if (started) {
+        setDisplayOverridden(false)
+      }
+      const test = processCtx.typologiesEFRuP.find((res: TypoEFRuP) => {
+        return res.typology === selectedType.title
+      })
+      if (test) {
+        if (test.efrupResult === "override") {
+          if (selectedType.workflow.interdictionThreshold) {
+            if (selectedType.result >= selectedType.workflow.interdictionThreshold) {
+              setDisplayOverridden(true)
+            } else {
+              setDisplayOverridden(false)
+            }
+          }
+        }
+      } else {
+        setDisplayOverridden(false)
+      }
+    } else {
+      setDisplayOverridden(false)
+    }
+  }, [processCtx.typologiesEFRuP, hoveredType, selectedType, processCtx.typologies, displayOverridden, started])
 
   useEffect(() => {
     if (selectedRule) {
@@ -711,7 +756,7 @@ const Web = () => {
                     handleTypeClickClose()
                   }}
                 >
-                  <TypeResult hoveredType={hoveredType} selectedType={selectedType} />
+                  <TypeResult hoveredType={hoveredType} selectedType={selectedType} overridden={displayOverridden} />
                 </div>
               </div>
             </div>
