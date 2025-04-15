@@ -35,8 +35,8 @@ interface DebtorProps {
 
 export function DebtorDevice(props: DebtorProps) {
   const [tmsUrl, setTmsUrl] = useState(process.env.NEXT_PUBLIC_TMS_SERVER_URL)
-  const entityCtx: any = useContext(EntityContext)
-  const procCtx: any = useContext(ProcessorContext)
+  const entityCtx = useContext(EntityContext)
+  const procCtx = useContext(ProcessorContext)
 
   const entity = entityCtx.entities
 
@@ -194,6 +194,7 @@ export function DebtorDevice(props: DebtorProps) {
                     error: "",
                   },
                 })
+                // procCtx.
                 props.resetLights(true)
                 setTimeout(async () => {
                   await postPacs008()

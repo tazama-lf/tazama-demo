@@ -1,21 +1,60 @@
 "use client"
-import React, { useContext } from "react"
+import React, { useEffect, useContext } from "react"
 import ProcessorContext from "store/processors/processor.context"
-import { Rule } from "store/processors/processor.interface"
+import { LinkedTypo, Rule } from "store/processors/processor.interface"
 import { getRuleDescriptions } from "utils/rules"
 import { v4 as uuidv4 } from "uuid"
 
 interface RuleProps {
   hoveredRule: Rule
+  setHoveredRule: (rule: Rule | null) => void
   selectedRule: Rule
   setSelectedRule: (rule: Rule | null) => void
   hoveredTypes: Array<string>
   selectedTypes: Array<string>
   setSelectedTypes: (types: Array<string>) => void
+  handleClose: () => void
 }
 
 const RuleResult = ({ ...props }: RuleProps) => {
   const processCtx = useContext(ProcessorContext)
+
+  // useEffect(() => {
+  //   if (props.selectedRule) {
+  //     console.log("SELECTED_RULE: ", props.selectedRule)
+  //     let newSelectedRule = processCtx.rules.find((rule: Rule) => {
+  //       return rule.title === props.selectedRule.title
+  //     })
+
+  //     if (newSelectedRule) {
+  //       if (props.selectedRule.linkedTypologies !== newSelectedRule.linkedTypologies)
+  //         console.log("FIND_RULE: ", newSelectedRule)
+  //       props.setHoveredRule(null)
+  //       props.setSelectedRule(newSelectedRule)
+  //     } else {
+  //       props.setHoveredRule(null)
+  //       props.setSelectedRule(null)
+  //     }
+  //   }
+  // }, [props.selectedRule, processCtx.rules])
+
+  // useEffect(() => {
+  //   if (props.hoveredRule) {
+  //     console.log("HOVERED_RULE: ", props.hoveredRule.title)
+  //     let newHoverRule = processCtx.rules.find((rule: Rule) => {
+  //       return rule.title === props.hoveredRule.title
+  //     })
+
+  //     if (newHoverRule) {
+  //       console.log("FIND_RULE: ", newHoverRule)
+  //       props.setHoveredRule(null)
+  //       props.setHoveredRule(newHoverRule)
+  //     } else {
+  //       props.setHoveredRule(null)
+  //     }
+  //   }
+  // }, [props.hoveredRule, processCtx.rules])
+
   const EFRuPComponent = () => {
     return (
       <div className="align-center mb-2 grid w-full grid-cols-4 justify-center gap-4 text-center">
@@ -28,12 +67,14 @@ const RuleResult = ({ ...props }: RuleProps) => {
   let ruleTPS: any
   if (props.hoveredRule) {
     ruleTPS = props.hoveredRule?.linkedTypologies.map((tp) => {
-      let tp_rule = processCtx.rules.filter((r) => {
+      let tp_rule = processCtx.rules.find((r) => {
         return r.id === props.hoveredRule.id
       })
-      let tp_details = processCtx.typologies.filter((typo) => {
-        return typo.title === tp.typology
-      })
+      console.log("HOVERED_BUG: ", tp_rule)
+      // let tp_details = processCtx.typologies.filter((typo) => {
+      //   return typo.title === tp.typology
+      // })
+
       return (
         <div
           className="align-center col-span-1 mx-1 mb-2 flex min-h-[95px] max-w-[98%] flex-col rounded-md border-2 p-2"
@@ -56,12 +97,13 @@ const RuleResult = ({ ...props }: RuleProps) => {
     })
   } else if (props.selectedRule) {
     ruleTPS = props.selectedRule?.linkedTypologies.map((tp) => {
-      let tp_rule = processCtx.rules.filter((r) => {
+      let tp_rule = processCtx.rules.find((r) => {
         return r.id === props.selectedRule.id
       })
-      let tp_details = processCtx.typologies.filter((typo) => {
-        return typo.title === tp.typology
-      })
+      // console.log("SELECTED_BUG: ", tp_rule)
+      // let tp_details = processCtx.typologies.filter((typo) => {
+      //   return typo.title === tp.typology
+      // })
 
       return (
         <div
@@ -76,12 +118,12 @@ const RuleResult = ({ ...props }: RuleProps) => {
             <hr />
           </div>
           {/* <div className="align-center flex w-full grow items-center border-black text-center text-xs">
-            <p className="w-full text-center text-xs">
-              {tp_details[0] && tp_details[0]?.typoDescription.length > 50
-                ? tp_details[0]?.typoDescription.substring(0, 50) + "..."
-                : tp_details[0]?.typoDescription}
-            </p>
-          </div> */}
+              <p className="w-full text-center text-xs">
+                {tp_details[0] && tp_details[0]?.typoDescription.length > 50
+                  ? tp_details[0]?.typoDescription.substring(0, 50) + "..."
+                  : tp_details[0]?.typoDescription}
+              </p>
+            </div> */}
           <div className="align-center flex w-full grow items-center border-black text-center text-xs">
             <p className="w-full text-center text-xs">
               {getRuleDescriptions(tp.subRuleRef, parseFloat(tp.rule)) || "None"}
@@ -133,7 +175,8 @@ const RuleResult = ({ ...props }: RuleProps) => {
     <div
       className="cursor-pointer rounded-[20px] p-2 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
       onClick={() => {
-        props.setSelectedRule(null)
+        // props.setSelectedRule(null)
+        props.handleClose()
       }}
     >
       <h3 className="text-center uppercase">Rule Results</h3>

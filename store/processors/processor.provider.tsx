@@ -134,6 +134,7 @@ const ProcessorProvider = ({ children }: Props) => {
 
   useEffect(() => {
     const test = { ...state.tadProcResults }
+    console.log("TADPROC_RULE: ", test)
     if ("results" in test) {
       if (test.results.length > 0) {
         updateTadpLights(state.tadProcResults)
@@ -268,7 +269,6 @@ const ProcessorProvider = ({ children }: Props) => {
   }, [state.typologies])
 
   const handleLinkedTypologies = async (msg: any) => {
-    console.log("_FLASH", msg)
     const typoResults = msg.report.tadpResult.typologyResult
     const linksResponse: LinkedTypo[] = []
 
@@ -288,6 +288,8 @@ const ProcessorProvider = ({ children }: Props) => {
                 subRuleRef: ruleResult.subRuleRef,
               }
               linksResponse.push(linkedTypo)
+            } else {
+              console.log("_MSG: ", ruleResult.id.split("@")[0])
             }
 
             // USE 'typoResult' for the typology
@@ -609,8 +611,11 @@ const ProcessorProvider = ({ children }: Props) => {
     updatedRules.map((rule: Rule) => {
       rule.result = null
     })
-    dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: updatedTypos })
-    dispatch({ type: ACTIONS.UPDATE_RULES_SUCCESS, payload: updatedRules })
+    // tadProcResults
+    dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: [] })
+    dispatch({ type: ACTIONS.UPDATE_RULES_SUCCESS, payload: [] })
+    dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: [] })
+    dispatch({ type: ACTIONS.CLEAR_LINKED_TYPOLOGIES })
     resetAllLights()
   }
 

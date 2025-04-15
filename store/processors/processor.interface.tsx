@@ -28,6 +28,7 @@ export interface Rule {
   result: any
   wght: number
   linkedTypologies: LinkedTypo[]
+  displayLinkedTypo: string[]
   ruleBands: RuleBand[]
 }
 

@@ -223,6 +223,7 @@ export const getNetworkMap = async (config: DBConfig) => {
             wght: 0,
             linkedTypologies: [],
             ruleBands: [],
+            displayLinkedTypo: [],
           }
           if (rule.id.toString() === "EFRuP@1.0.0") {
             let typoEFRuP: TypoEFRuP = {
@@ -332,12 +333,12 @@ export const getNetworkMap = async (config: DBConfig) => {
     }
   })
 
-  let temp = finalRules.filter((item, index) => finalRules.indexOf(item) === index)
+  let ruleRes: Rule[] = finalRules.filter((item, index) => finalRules.indexOf(item) === index)
   finalRules.sort((a, b) => a.title - b.title)
   typologiesRes.sort((a, b) => a.title - b.title)
 
   let tfr = [...finalRules]
-
+  console.log("_BUILD: ", typologiesRes)
   let fin: number | undefined = undefined
   tfr.map((itm, index) => {
     if (itm.title === "EFRuP") {
@@ -348,9 +349,43 @@ export const getNetworkMap = async (config: DBConfig) => {
     finalRules.splice(fin, 1)
     finalRules.push(tfr[fin])
   }
+  interface LinkListItem {
+    rule: string
+    linkedTypos: string[]
+  }
+  let ruleLinks: LinkListItem[] = []
+  typologiesRes.map((typo: Typology) => {
+    typo.linkedRules.map((linkedRule: string) => {
+      let exists: LinkListItem | undefined = ruleLinks.find((link: LinkListItem) => {
+        return link.rule === linkedRule
+      })
+      if (exists) {
+        exists.linkedTypos.push(typo.title)
+      } else {
+        let ruleLink: LinkListItem = {
+          rule: linkedRule,
+          linkedTypos: [],
+        }
+        ruleLink.linkedTypos.push(typo.title)
+        ruleLinks.push(ruleLink)
+      }
 
+      // console.log("LINKED_BUILD: ", linkedRule, typo.title)
+    })
+  })
+  console.log("LINK_BUILD: ", ruleLinks)
+
+  ruleLinks.map((link: LinkListItem) => {
+    let exists: Rule | undefined = ruleRes.find((rule: Rule) => {
+      return rule.title === link.rule
+    })
+    if (exists) {
+      exists.displayLinkedTypo = [...link.linkedTypos]
+    }
+  })
+  console.log("RES_BUILD: ", ruleRes)
   return {
-    rules: temp,
+    rules: ruleRes,
     typologies: typologiesRes,
     typologiesEFRuP: typologiesEFRuP,
   }

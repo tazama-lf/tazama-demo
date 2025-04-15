@@ -18,7 +18,7 @@ import RuleResult from "components/RuleResults/RuleResults"
 import TypeResult from "components/TypologyResults/TypologyResults"
 import { iconColour } from "utils/helpers"
 import io from "socket.io-client"
-import { Typology } from "store/processors/processor.interface"
+import { Rule, Typology } from "store/processors/processor.interface"
 import { v4 as uuidv4 } from "uuid"
 
 let socket
@@ -40,12 +40,54 @@ const Web = () => {
   const [flashing, setFlashing] = useState(false)
   const [flashColor, setFlashColor] = useState<"r" | "g">("r")
 
+  useEffect(() => {
+    if (selectedRule) {
+      if (started) {
+        selectedRule.linkedTypologies = []
+      }
+      console.log("SELECTED_RULE: ", selectedRule)
+      let newSelectedRule = processCtx.rules.find((rule: Rule) => {
+        return rule.title === selectedRule.title
+      })
+
+      if (newSelectedRule) {
+        if (selectedRule.linkedTypologies.length !== newSelectedRule.linkedTypologies.length) {
+          console.log("FIND_RULE: ", newSelectedRule)
+          setHoveredRule(null)
+          setSelectedRule(newSelectedRule)
+        }
+      } else {
+        setHoveredRule(null)
+        setSelectedRule(null)
+      }
+    }
+  }, [started, selectedRule, processCtx.rules])
+
+  // useEffect(() => {
+  //   console.log("STARTED")
+  // }, [started])
+
+  useEffect(() => {
+    console.log("HOVERED", hoveredRule)
+  }, [hoveredRule])
+  useEffect(() => {
+    console.log(selectedRules)
+  }, [selectedRules])
+  useEffect(() => {
+    console.log(hoverRules)
+  }, [hoverRules])
+
   const handleRuleMouseEnter = (type: any) => {
     setHoveredType(null) // fallback if stats is stuck
     setHoveredRule(type)
+    // setHoverTypes([
+    //   ...type.linkedTypologies.map((t: any) => {
+    //     return t.typology
+    //   }),
+    // ])
     setHoverTypes([
-      ...type.linkedTypologies.map((t: any) => {
-        return t.typology
+      ...type.displayLinkedTypo.map((t: any) => {
+        return t
       }),
     ])
   }
@@ -57,12 +99,18 @@ const Web = () => {
   }
 
   const handleRuleClick = (type: any) => {
+    console.log("HIT_!@#")
     setHoveredType(null) // fallback if stats is stuck
     setSelectedRule(type)
     setSelectedRules([type.title])
+    // setSelectedTypes([
+    //   ...type.linkedTypologies.map((t: any) => {
+    //     return t.typology
+    //   }),
+    // ])
     setSelectedTypes([
-      ...type.linkedTypologies.map((t: any) => {
-        return t.typology
+      ...type.displayLinkedTypo.map((t: any) => {
+        return t
       }),
     ])
   }
@@ -70,6 +118,7 @@ const Web = () => {
   const handleRuleClickClose = () => {
     setHoveredType(null) // fallback if stats is stuck
     setSelectedRule(null)
+    setSelectedRules([])
     setSelectedTypes([])
   }
 
@@ -180,6 +229,11 @@ const Web = () => {
     }
   }, [])
 
+  useEffect(() => {
+    console.log("CHANGE_PAGE: ", processCtx.linkedTypologies)
+    console.log("SELECTED_PAGE: ", selectedRule)
+  }, [hoverRules, selectedRule, processCtx.rules, processCtx.linkedTypologies])
+
   if (loading) return <Loader />
   if (error) return <p>Error: {error}</p>
 
@@ -239,13 +293,18 @@ const Web = () => {
         <button
           className="content-right-center ml-auto rounded-md bg-gradient-to-b from-gray-100 to-gray-200 p-2 shadow-lg"
           onClick={() => {
-            entityCtx.clearUIData()
-            processCtx.resetAllLights()
-            processCtx.clearResults()
             setSelectedRule(null)
             setSelectedRules([])
             setSelectedType(null)
             setSelectedTypes([])
+            setHoverRules([])
+            setHoveredRule(null)
+            setHoverTypes([])
+            setHoveredType(null)
+            processCtx.clearLinkedTypologies()
+            entityCtx.clearUIData()
+            processCtx.resetAllLights()
+            processCtx.clearResults()
           }}
         >
           Clear All
@@ -548,7 +607,7 @@ const Web = () => {
               <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
                 Rules
               </h2>
-              <div className="grid grid-cols-12">
+              <div className="grid grid-cols-12 pb-2">
                 <div className="col-span-6">
                   <div className="grid grid-cols-3 gap-1 px-5">
                     {processCtx.rulesLoading ? (
@@ -599,10 +658,12 @@ const Web = () => {
                   <RuleResult
                     setSelectedRule={setSelectedRule}
                     setSelectedTypes={setSelectedTypes}
+                    setHoveredRule={setHoveredRule}
                     hoveredRule={hoveredRule}
                     selectedRule={selectedRule}
                     hoveredTypes={hoveredType}
                     selectedTypes={selectedTypes}
+                    handleClose={handleRuleClickClose}
                   />
                 </div>
               </div>
@@ -646,6 +707,7 @@ const Web = () => {
                 <div
                   className="col-span-6 px-5"
                   onClick={() => {
+                    console.log("HIT_!@#1")
                     handleTypeClickClose()
                   }}
                 >
