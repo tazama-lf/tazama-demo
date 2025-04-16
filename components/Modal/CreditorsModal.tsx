@@ -750,9 +750,9 @@ const CreditorModal = ({ ...props }: Props) => {
                 entity_type="creditor"
                 activeDetails={
                   processCtx.creditorActiveSection !== "Accounts"
-                    ? customEntity!.Cdtr.Nm
+                    ? customEntity?.Cdtr.Nm || "Name"
                     : customAccounts[entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex || 0]?.CdtrAcct.Nm ||
-                      "Name"
+                      "Account"
                 }
               />
             )}
@@ -768,9 +768,9 @@ const CreditorModal = ({ ...props }: Props) => {
                 activeSection={processCtx.creditorActiveSection}
                 activeDetails={
                   processCtx.creditorActiveSection !== "Accounts"
-                    ? customEntity!.Cdtr.Nm
+                    ? customEntity?.Cdtr.Nm || "Name"
                     : customAccounts[entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex || 0]?.CdtrAcct.Nm ||
-                      "Name"
+                      "Account"
                 }
               />
             )}
