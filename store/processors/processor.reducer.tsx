@@ -113,6 +113,22 @@ const ProcessorReducer = (state: any, action: any) => {
         conditionsError: action.payload,
       }
 
+    case ACTIONS.CLEAR_CONDITIONS:
+      return {
+        ...state,
+        conditionsList: [],
+        conditionsDataDebtor: {
+          conditions: [],
+          activeConditions: [],
+        },
+        conditionsDataCreditor: {
+          conditions: [...state.conditionsDataCreditor.conditions],
+          activeConditions: [...state.conditionsDataCreditor.activeConditions],
+        },
+        conditionsLoading: false,
+        conditionsError: "",
+      }
+
     case ACTIONS.ADD_GET_DEBTOR_CONDITIONS_LOADING:
       return {
         ...state,

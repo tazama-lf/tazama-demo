@@ -748,6 +748,12 @@ const CreditorModal = ({ ...props }: Props) => {
                   processCtx.setShowCreditorConditionsCreate(true)
                 }}
                 entity_type="creditor"
+                activeDetails={
+                  processCtx.creditorActiveSection !== "Accounts"
+                    ? customEntity!.Cdtr.Nm
+                    : customAccounts[entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex || 0]?.CdtrAcct.Nm ||
+                      "Name"
+                }
               />
             )}
             {processCtx.showCreditorConditionsCreate && (
@@ -760,6 +766,12 @@ const CreditorModal = ({ ...props }: Props) => {
                 newCondition={newCondition}
                 setNewCondition={setNewCondition}
                 activeSection={processCtx.creditorActiveSection}
+                activeDetails={
+                  processCtx.creditorActiveSection !== "Accounts"
+                    ? customEntity!.Cdtr.Nm
+                    : customAccounts[entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex || 0]?.CdtrAcct.Nm ||
+                      "Name"
+                }
               />
             )}
           </div>

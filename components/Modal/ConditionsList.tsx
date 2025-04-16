@@ -5,9 +5,11 @@ import { ListCondition } from "store/processors/processor.interface"
 import { Seperator } from "components/Inputs/Seperator"
 import ExpireModel from "components/Inputs/ExpireModal"
 import ProcessorContext from "store/processors/processor.context"
+import EntityContext from "store/entities/entity.context"
 
 interface Props {
   entity_type: string // debtor or creditor
+  activeDetails: string
   handleClose: () => void
   handleCreate: () => void
   conditions_data: ListCondition[]
@@ -16,8 +18,9 @@ interface Exp {
   idx: number
   expDtTm: string
 }
-const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreate }: Props) => {
+const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClose, handleCreate }: Props) => {
   const processCtx = useContext(ProcessorContext)
+  const entityCtx = useContext(EntityContext)
   const [showExpire, setShowExpire] = useState<boolean>(false)
   const [selectedCondition, setSelectedCondition] = useState<ListCondition | undefined>(undefined)
   const [expDtTm, setExpDtTm] = useState<Exp | undefined>(undefined)
@@ -264,7 +267,10 @@ const ConditionsList = ({ conditions_data, entity_type, handleClose, handleCreat
         </div>
 
         <div className="grid max-w-[1100px] grid-cols-2 content-between items-center pt-5">
-          <p className="ml-2 flex grow p-1 pt-1 text-xl font-medium">Conditions</p>
+          <div className="flex flex-row">
+            <p className="ml-2 flex p-1 pt-1 text-xl font-medium">Conditions</p>
+            <p className="ml-1 flex p-1 pt-1 text-lg font-thin">- {activeDetails}</p>
+          </div>
         </div>
 
         <div className="mt-5 flex h-[560px] flex-col overflow-auto rounded-lg bg-neutral-300">

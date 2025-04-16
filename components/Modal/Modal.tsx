@@ -744,6 +744,12 @@ const DebtorModal = ({ ...props }: Props) => {
                   processCtx.setShowDebtorConditionsCreate(true)
                 }}
                 entity_type="debtor"
+                activeDetails={
+                  processCtx.debtorActiveSection !== "Accounts"
+                    ? customEntity!.Dbtr.Nm
+                    : customAccounts[entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex || 0]?.DbtrAcct.Nm ||
+                      "Name"
+                }
               />
             )}
             {processCtx.showDebtorConditionsCreate && (
@@ -756,6 +762,12 @@ const DebtorModal = ({ ...props }: Props) => {
                 newCondition={newCondition}
                 setNewCondition={setNewCondition}
                 activeSection={processCtx.debtorActiveSection}
+                activeDetails={
+                  processCtx.debtorActiveSection !== "Accounts"
+                    ? customEntity!.Dbtr.Nm
+                    : customAccounts[entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex || 0]?.DbtrAcct.Nm ||
+                      "Name"
+                }
               />
             )}
           </div>

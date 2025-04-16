@@ -17,10 +17,18 @@ interface Props {
   newCondition: NewCondition
   setNewCondition: (data: NewCondition) => void
   activeSection: "Entity" | "Accounts"
+  activeDetails: string
   // conditions_data: Conditions[]
 }
 
-const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisible, activeSection }: Props) => {
+const ConditionsCreate = ({
+  activeDetails,
+  handleClose,
+  newCondition,
+  setNewCondition,
+  setVisible,
+  activeSection,
+}: Props) => {
   const processCtx = useContext(ProcessorContext)
   const [errors, setErrors] = useState<string[]>([])
 
@@ -87,7 +95,10 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
       </div>
 
       <div className="flex grid w-full content-between items-center pt-5">
-        <p className="ml-1 flex grow p-1 pt-1 text-xl font-medium">New Condition</p>
+        <div className="flex flex-row">
+          <p className="ml-1 flex p-1 pt-1 text-xl font-medium">New Condition</p>
+          <p className="ml-1 flex p-1 pt-1 text-lg font-thin">- {activeDetails}</p>
+        </div>
       </div>
 
       <div className="flex h-[560px] flex-col rounded-lg">

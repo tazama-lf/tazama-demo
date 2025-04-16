@@ -616,6 +616,8 @@ const ProcessorProvider = ({ children }: Props) => {
     dispatch({ type: ACTIONS.UPDATE_RULES_SUCCESS, payload: [] })
     dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: [] })
     dispatch({ type: ACTIONS.CLEAR_LINKED_TYPOLOGIES })
+    dispatch({ type: ACTIONS.CLEAR_CONDITIONS })
+
     resetAllLights()
   }
 
