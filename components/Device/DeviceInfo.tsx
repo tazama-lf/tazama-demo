@@ -376,9 +376,9 @@ export function DeviceInfo(props: DeviceProps) {
               >
                 <span className="ml-2 text-white">
                   {creditorEntity?.CreditorEntity?.Cdtr.Nm
-                    ? creditorEntity?.CreditorEntity?.Cdtr.Nm.length >= 21
+                    ? creditorEntity?.CreditorEntity?.Cdtr.Nm.length > 19
                       ? `${creditorEntity?.CreditorEntity?.Cdtr.Nm.substring(0, 17)}...`
-                      : creditorEntity?.CreditorEntity?.Cdtr.Nm.substring(0, 30)
+                      : creditorEntity?.CreditorEntity?.Cdtr.Nm.substring(0, 20)
                     : "Name"}
                 </span>
               </button>
