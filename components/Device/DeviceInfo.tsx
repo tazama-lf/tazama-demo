@@ -79,7 +79,7 @@ export function DeviceInfo(props: DeviceProps) {
         setNttyCredColor("n")
       }
     }
-  }, [entity, nttyCredColor, processCtx.conditionsDataCreditor.conditions])
+  }, [creditorEntity, nttyCredColor, processCtx.conditionsDataCreditor.conditions])
 
   useEffect(() => {
     if (props.isDebtor) {
@@ -95,10 +95,10 @@ export function DeviceInfo(props: DeviceProps) {
         setAcctDebColor("n")
       }
     }
-  }, [acctDebColor, processCtx.conditionsDataDebtor.conditions, accountIndex])
+  }, [entity, acctDebColor, processCtx.conditionsDataDebtor.conditions, accountIndex])
 
   useEffect(() => {
-    if (!props.isDebtor && creditorAccountIndex && creditorEntity) {
+    if (props.isDebtor !== true) {
       let test = processCtx.conditionsDataCreditor.conditions.find((con: Conditions) => {
         let startDate = new Date(con.incptnDtTm).getTime()
         let now = new Date().getTime()
@@ -107,8 +107,8 @@ export function DeviceInfo(props: DeviceProps) {
           con.acct?.id === creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0].Id
         )
       })
+      console.log("TEST2_ACCT: ", test, creditorAccountIndex)
       if (test) {
-        console.log("TEST2_ACCT: ", test, creditorAccountIndex)
         setAcctCredColor("b")
       } else {
         setAcctCredColor("n")
@@ -116,7 +116,7 @@ export function DeviceInfo(props: DeviceProps) {
     } else {
       setAcctCredColor("n")
     }
-  }, [acctCredColor, processCtx.conditionsDataCreditor.conditions, creditorAccountIndex])
+  }, [creditorEntity, acctCredColor, processCtx.conditionsDataCreditor.conditions, creditorAccountIndex])
 
   useEffect(() => {
     setIsTransaction(false)
