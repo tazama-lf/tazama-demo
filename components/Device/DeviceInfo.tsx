@@ -215,9 +215,9 @@ export function DeviceInfo(props: DeviceProps) {
               >
                 <span className="ml-2 text-white">
                   {entity?.Entity?.Dbtr.Nm
-                    ? entity?.Entity?.Dbtr.Nm.length >= 21
-                      ? `${entity?.Entity?.Dbtr.Nm.substring(0, 17)}...`
-                      : entity?.Entity?.Dbtr.Nm.substring(0, 30)
+                    ? entity?.Entity?.Dbtr.Nm.length >= 17
+                      ? `${entity?.Entity?.Dbtr.Nm.substring(0, 16)}...`
+                      : entity?.Entity?.Dbtr.Nm
                     : "Name"}
                 </span>
               </button>
@@ -366,9 +366,9 @@ export function DeviceInfo(props: DeviceProps) {
               >
                 <span className="ml-2 text-white">
                   {creditorEntity?.CreditorEntity?.Cdtr.Nm
-                    ? creditorEntity?.CreditorEntity?.Cdtr.Nm.length > 19
-                      ? `${creditorEntity?.CreditorEntity?.Cdtr.Nm.substring(0, 17)}...`
-                      : creditorEntity?.CreditorEntity?.Cdtr.Nm.substring(0, 20)
+                    ? creditorEntity?.CreditorEntity?.Cdtr.Nm.length >= 17
+                      ? `${creditorEntity?.CreditorEntity?.Cdtr.Nm.substring(0, 16)}...`
+                      : creditorEntity?.CreditorEntity?.Cdtr.Nm
                     : "Name"}
                 </span>
               </button>

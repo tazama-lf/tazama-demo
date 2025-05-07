@@ -1,7 +1,7 @@
 services:
   app:
     container_name: tazama-demo
-    image: tazamaorg/demo-ui:v2.0.9-uat
+    image: tazamaorg/demo-ui:v2.0.11-uat
     build:
       context: ./
       target: dev
@@ -21,6 +21,6 @@ services:
 
 networks:
   network1:
-    name: full-stack-docker-tazama_default
+    name: tazama_default
     external: true
       
