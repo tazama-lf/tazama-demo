@@ -9,37 +9,7 @@ interface Props {
 
 const PerspectiveCheckBoxes = ({ errors, state, onChange }: Props) => {
   const [selected, setSelected] = useState("")
-  useEffect(() => {
-    console.log(selected)
-  }, [selected])
 
-  const handleClick = () => {
-    if (selected === "creditor") {
-      setSelected("both")
-      onChange({
-        ...state,
-        prsptv: "both",
-      })
-    } else if (selected === "both") {
-      setSelected("creditor")
-      onChange({
-        ...state,
-        prsptv: "creditor",
-      })
-    } else if (selected === "debtor") {
-      setSelected("")
-      onChange({
-        ...state,
-        prsptv: "",
-      })
-    } else {
-      setSelected("debtor")
-      onChange({
-        ...state,
-        prsptv: "debtor",
-      })
-    }
-  }
   return (
     <>
       <div className="relative top-10 flex max-w-[380px] flex-col items-start gap-3 pb-2 pt-2">
@@ -112,7 +82,6 @@ const PerspectiveCheckBoxes = ({ errors, state, onChange }: Props) => {
                   })
                 }
               }}
-              //   onChange={() => handleCheck("debtor")}
             />
             <svg
               className="pointer-events-none absolute mt-1 hidden h-5 w-5 stroke-zinc-500 outline-none peer-checked:block"

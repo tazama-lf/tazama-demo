@@ -63,6 +63,9 @@ const Web = () => {
     } else if (selectedType) {
       if (started) {
         setDisplayOverridden(false)
+        if (selectedType.result !== null) {
+          selectedType.result = null
+        }
       }
       const test = processCtx.typologiesEFRuP.find((res: TypoEFRuP) => {
         return res.typology === selectedType.title
@@ -89,16 +92,18 @@ const Web = () => {
     if (selectedRule) {
       if (started) {
         selectedRule.linkedTypologies = []
+        selectedRule.result = null
       }
-      console.log("SELECTED_RULE: ", selectedRule)
+
       let newSelectedRule = processCtx.rules.find((rule: Rule) => {
         return rule.title === selectedRule.title
       })
 
       if (newSelectedRule) {
         if (selectedRule.linkedTypologies.length !== newSelectedRule.linkedTypologies.length) {
-          console.log("FIND_RULE: ", newSelectedRule)
           setHoveredRule(null)
+          setSelectedRule(newSelectedRule)
+        } else {
           setSelectedRule(newSelectedRule)
         }
       } else {
@@ -108,28 +113,9 @@ const Web = () => {
     }
   }, [started, selectedRule, processCtx.rules])
 
-  // useEffect(() => {
-  //   console.log("STARTED")
-  // }, [started])
-
-  useEffect(() => {
-    console.log("HOVERED", hoveredRule)
-  }, [hoveredRule])
-  useEffect(() => {
-    console.log(selectedRules)
-  }, [selectedRules])
-  useEffect(() => {
-    console.log(hoverRules)
-  }, [hoverRules])
-
   const handleRuleMouseEnter = (type: any) => {
     setHoveredType(null) // fallback if stats is stuck
     setHoveredRule(type)
-    // setHoverTypes([
-    //   ...type.linkedTypologies.map((t: any) => {
-    //     return t.typology
-    //   }),
-    // ])
     setHoverTypes([
       ...type.displayLinkedTypo.map((t: any) => {
         return t
@@ -144,15 +130,9 @@ const Web = () => {
   }
 
   const handleRuleClick = (type: any) => {
-    console.log("HIT_!@#")
     setHoveredType(null) // fallback if stats is stuck
     setSelectedRule(type)
     setSelectedRules([type.title])
-    // setSelectedTypes([
-    //   ...type.linkedTypologies.map((t: any) => {
-    //     return t.typology
-    //   }),
-    // ])
     setSelectedTypes([
       ...type.displayLinkedTypo.map((t: any) => {
         return t
@@ -194,11 +174,10 @@ const Web = () => {
   }
 
   const [loading, setLoading] = useState<boolean>(true)
+  const [start, setStart] = useState<boolean>(false)
   const [error, setError] = useState(null)
   const [selectedEntity, setSelectedEntity] = useState<number>(0)
   const [selectedCreditorEntity, setSelectedCreditorEntity] = useState<number>(0)
-
-  // useEffect((): any => socketInitializer(), [])
 
   useEffect(() => {
     const socketInitializer = async () => {
@@ -221,8 +200,6 @@ const Web = () => {
     }
     socketInitializer()
   }, [])
-
-  const [start, setStart] = useState<boolean>(false)
 
   useEffect(() => {
     if (start) {
@@ -273,11 +250,6 @@ const Web = () => {
       setLoading(false)
     }
   }, [])
-
-  useEffect(() => {
-    console.log("CHANGE_PAGE: ", processCtx.linkedTypologies)
-    console.log("SELECTED_PAGE: ", selectedRule)
-  }, [hoverRules, selectedRule, processCtx.rules, processCtx.linkedTypologies])
 
   if (loading) return <Loader />
   if (error) return <p>Error: {error}</p>
@@ -467,6 +439,7 @@ const Web = () => {
                     lights={processCtx.edLights}
                     setLights={processCtx.updateEDLights}
                     resetLights={processCtx.resetAllLights}
+                    started={started}
                     setStarted={setStarted}
                     resetAllLights={() => processCtx.resetAllLights()}
                     setModalVisible={setModal}
@@ -488,7 +461,6 @@ const Web = () => {
                       style={{
                         position: "absolute",
                         zIndex: 1,
-                        // maxWidth: "280px",
                         minWidth: "280px",
                       }}
                       alt="stop"
@@ -701,6 +673,7 @@ const Web = () => {
                   }}
                 >
                   <RuleResult
+                    started={started}
                     setSelectedRule={setSelectedRule}
                     setSelectedTypes={setSelectedTypes}
                     setHoveredRule={setHoveredRule}
@@ -752,7 +725,6 @@ const Web = () => {
                 <div
                   className="col-span-6 px-5"
                   onClick={() => {
-                    console.log("HIT_!@#1")
                     handleTypeClickClose()
                   }}
                 >

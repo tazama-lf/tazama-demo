@@ -15,18 +15,11 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
   let min_date = new Date().toISOString()
   let max_date = new Date(new Date().getTime() + Math.floor(31556952000 * 5)).toISOString()
 
-  useEffect(() => {
-    console.log(startValue)
-  }, [startValue])
-  useEffect(() => {}, [endValue])
-  useEffect(() => {}, [nowChecked])
-
   const handleCheck = () => {
     setErrors([])
     if (nowChecked === false) {
       setStartValue("")
       if ("incptnDtTm" in state) {
-        console.log("TRUE")
         delete state.incptnDtTm
       }
     }
@@ -96,7 +89,6 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                   }
                 }}
                 onChange={(e) => {
-                  console.log("_DEFAULT: ", e)
                   if (e.target.value) {
                     setStartValue(e.target.value)
                     let dateAttempt = new Date(e.target.value).getTime()
@@ -170,7 +162,6 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                     }
                   }}
                   onBlur={(e) => {
-                    console.log("BLUR_DEFAULT: ", e)
                     if (e.target.value) {
                       let dateAttempt = new Date(e.target.value)
                       onChange({
@@ -179,7 +170,6 @@ const DateSelector = ({ errors, state, onChange, setErrors }: Props) => {
                       })
                     } else {
                       if ("xprtnDtTm" in state) {
-                        console.log("TRUE")
                         delete state.xprtnDtTm
                       }
                     }

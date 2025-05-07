@@ -18,7 +18,6 @@ interface Props {
   setNewCondition: (data: NewCondition) => void
   activeSection: "Entity" | "Accounts"
   activeDetails: string
-  // conditions_data: Conditions[]
 }
 
 const ConditionsCreate = ({
@@ -52,7 +51,6 @@ const ConditionsCreate = ({
     if (errorList.length > 0) {
       setErrors(errorList)
     } else {
-      // processCtx.conditionsList.push(newCondition)
       await processCtx.createCondition(newCondition)
       await processCtx.getAllDebtorConditions()
       await processCtx.getAllCreditorConditions()
@@ -65,10 +63,6 @@ const ConditionsCreate = ({
       setVisible()
     }
   }
-
-  useEffect(() => {
-    console.log("Errors: ", errors)
-  }, [errors])
 
   useEffect(() => {
     setErrors([])

@@ -15,8 +15,6 @@ const port = process.env.PORT
 
 const handle = app.getRequestHandler()
 
-// const sc = NATS.StringCodec()
-
 const handleMsg = async (msg, socket, room) => {
   const decodedMessage = frms.default.decode(msg.data)
 
@@ -33,11 +31,6 @@ const handleMsg2 = async (msg, socket, room) => {
 
   await socket.to(room).emit(room, decodedMessage)
 }
-// const messageListener = async (messages, socket) => {
-//   ;(async () => {
-//     for await (const msg of messages) await handleMsg(msg, socket)
-//   })()
-// }
 
 app.prepare().then(() => {
   const server = createServer((req, res) => {
@@ -129,9 +122,6 @@ app.prepare().then(() => {
     ;(async () => {
       for await (const msg of is) await handleMsg2(msg, io, "interdiction-service")
     })()
-    // ;(async () => {
-    //   for await (const msg of all) await handleMsg(msg, io, "stream")
-    // })()
 
     io.to("stream").emit("stream", { message: "Stream Test Message" })
 

@@ -40,8 +40,6 @@ export const newEntityConditionState: NewCondition = {
   evtTp: [],
   condTp: "",
   prsptv: "",
-  // incptnDtTm: "",
-  // xprtnDtTm: null,
   condRsn: "",
   ntty: {
     id: "",
@@ -57,8 +55,6 @@ export const newAccountConditionState: NewCondition = {
   evtTp: [],
   condTp: "",
   prsptv: "",
-  // incptnDtTm: "",
-  // xprtnDtTm: null,
   condRsn: "",
   acct: {
     id: "",

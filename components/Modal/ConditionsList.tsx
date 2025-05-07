@@ -27,11 +27,6 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
   const [expError, setExpError] = useState<boolean>(false)
   let max_date = new Date(new Date().getTime() + Math.floor(31556952000 * 5)).toISOString()
 
-  useEffect(() => {
-    console.log("Condition: ", selectedCondition)
-  }),
-    [selectedCondition]
-
   const handleExpire = (con: ListCondition, newDate?: string) => {
     if (newDate) {
       con.xprtnDtTm = newDate
@@ -114,7 +109,7 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
           <Seperator />
           <p className="flex w-[285px] items-center  pl-1">{con.condRsn}</p>
           <Seperator />
-          {/* <div className="my-1 flex max-w-[5px] border-r-2 border-neutral-400"></div> */}
+
           <p className="m-1 flex max-h-[35px] w-[200px] items-center text-[12px]">
             {con.evtTp.map((item, index) => {
               if (index !== con.evtTp.length - 1 && index !== 3) {
@@ -139,7 +134,6 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
               className="z-99 mt-[7px] flex max-h-[30px] w-[185px] px-1"
               onClick={() => {
                 setSelectedCondition(con)
-                // setShowExpire(true)
               }}
             >
               <input
@@ -170,7 +164,6 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
                       } else {
                         let new_date = new Date().getTime() + 10000
                         setExpDtTm({ idx: index, expDtTm: dateAttempt.toISOString() })
-                        // setExpDtTm(undefined)
                         setExpError(true)
                       }
                     }
@@ -191,9 +184,6 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
                   setSelectedCondition(con)
                   setShowExpire(true)
                 }}
-                //   onClick={() => {
-                //     con.xprtnDtTm = handleAdjustTime(new Date().toISOString())
-                //   }}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -217,9 +207,6 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
                   setSelectedCondition(con)
                   setShowExpire(true)
                 }}
-                //   onClick={() => {
-                //     con.xprtnDtTm = handleAdjustTime(new Date().toISOString())
-                //   }}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -250,7 +237,6 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
         <div className="grid h-[30px] max-w-[1200px] grid-cols-2 content-between">
           <button
             className="absolute right-5 max-w-[40px] rounded-full bg-gradient-to-r from-gray-200 to-gray-100 p-1 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
-            // onClick={handleClose}
             onClick={() => {
               entity_type === "debtor" && processCtx.setShowDebtorConditions(false)
               entity_type === "creditor" && processCtx.setShowCreditorConditions(false)

@@ -88,7 +88,6 @@ export function DeviceInfo(props: DeviceProps) {
         let now = new Date().getTime()
         return startDate <= now && con.acct?.id === entity?.Accounts[accountIndex || 0]?.DbtrAcct.Id.Othr[0].Id
       })
-      console.log("TEST1_ACCT: ", test)
       if (test) {
         setAcctDebColor("b")
       } else {
@@ -107,7 +106,6 @@ export function DeviceInfo(props: DeviceProps) {
           con.acct?.id === creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0].Id
         )
       })
-      console.log("TEST2_ACCT: ", test, creditorAccountIndex)
       if (test) {
         setAcctCredColor("b")
       } else {
@@ -151,7 +149,6 @@ export function DeviceInfo(props: DeviceProps) {
   }
 
   const handleSave = () => {
-    // Implement save logic here
     setIsModalVisible(false)
   }
   const handleEditSave = () => {
@@ -276,14 +273,7 @@ export function DeviceInfo(props: DeviceProps) {
                   }
                 }}
               >
-                <StatusIndicator
-                  // colour={checkIsActiveDebtorAccount(
-                  //   entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex,
-                  //   processCtx.conditionsDataDebtor,
-                  //   entity
-                  // )}
-                  colour={acctDebColor}
-                />
+                <StatusIndicator colour={acctDebColor} />
               </button>
               <button
                 onClick={() => {
@@ -435,24 +425,7 @@ export function DeviceInfo(props: DeviceProps) {
                   }
                 }}
               >
-                <StatusIndicator
-                  // colour={
-                  //   entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex &&
-                  //   "activeConditions" in processCtx.conditionsData &&
-                  //   processCtx.conditionsData.activeConditions &&
-                  //   processCtx.conditionsData.activeConditions.includes(
-                  //     entity.Accounts[entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex].DbtrAcct.Id.Othr[0].Id
-                  //   )
-                  //     ? "b"
-                  //     : "n"
-                  // }
-                  colour={acctCredColor}
-                  // colour={checkIsActiveCreditorAccount(
-                  //   entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex,
-                  //   processCtx.conditionsDataCreditor,
-                  //   creditorEntity
-                  // )}
-                />
+                <StatusIndicator colour={acctCredColor} />
               </button>
               <button
                 onClick={() => {

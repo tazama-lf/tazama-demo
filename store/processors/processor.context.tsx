@@ -62,7 +62,6 @@ interface Context {
   resetAllLights: () => void
   clearResults: () => void
   getUIConfig: () => void
-  // handleTadProc: (msgId: string) => void
   handleTadProcLive: (msg: any) => void
   ruleLightsGreen: () => void
   ruleLightsNeutral: () => void
@@ -123,7 +122,6 @@ const ProcessorContext = createContext<Context>({
   resetAllLights: () => {},
   clearResults: () => {},
   getUIConfig: () => {},
-  // handleTadProc: (msgId: string) => {},
   handleTadProcLive: (msg: any) => {},
   ruleLightsGreen: () => {},
   ruleLightsNeutral: () => {},

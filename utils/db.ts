@@ -21,15 +21,6 @@ const getConfigConnection = (config: DBConfig) => {
   })
 }
 
-// const getTADPROCConnection = (config: any) => {
-//   // establish database connection
-//   return new Database({
-//     url: config.url,
-//     databaseName: "evaluationResults",
-//     auth: { username: config.auth.username, password: config.auth.password },
-//   })
-// }
-
 const getCollection = async (cName: string, db: any) => {
   // get list of collections in database
   try {
@@ -338,7 +329,6 @@ export const getNetworkMap = async (config: DBConfig) => {
   typologiesRes.sort((a, b) => a.title - b.title)
 
   let tfr = [...finalRules]
-  console.log("_BUILD: ", typologiesRes)
   let fin: number | undefined = undefined
   tfr.map((itm, index) => {
     if (itm.title === "EFRuP") {
@@ -369,11 +359,8 @@ export const getNetworkMap = async (config: DBConfig) => {
         ruleLink.linkedTypos.push(typo.title)
         ruleLinks.push(ruleLink)
       }
-
-      // console.log("LINKED_BUILD: ", linkedRule, typo.title)
     })
   })
-  console.log("LINK_BUILD: ", ruleLinks)
 
   ruleLinks.map((link: LinkListItem) => {
     let exists: Rule | undefined = ruleRes.find((rule: Rule) => {
@@ -383,7 +370,7 @@ export const getNetworkMap = async (config: DBConfig) => {
       exists.displayLinkedTypo = [...link.linkedTypos]
     }
   })
-  console.log("RES_BUILD: ", ruleRes)
+
   return {
     rules: ruleRes,
     typologies: typologiesRes,

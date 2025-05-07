@@ -256,7 +256,6 @@ export const handleDateTimeChange = (dateString: string) => {
     const formattedDateTime =
       offsetDate.toISOString().slice(0, 19) + (timezoneOffset === 0 ? "Z" : formatOffset(timezoneOffset))
 
-    // setUTCOffsetDateTime(formattedDateTime);
     UTCOffsetDateTime = formattedDateTime
   }
   return UTCOffsetDateTime
@@ -309,8 +308,6 @@ export const viewLocalTime = (date: string) => {
 
     return `${nDate}T${nTime}.000Z`
   } else if (date.includes("+")) {
-    let offset = date.split("+")[1]?.slice(0, 1)[0]
-    let offsetHours: number = 0
     let hours = getOffsetHours(date)
     let dt = new Date(date).setHours(hours)
     let ndt = new Date(dt).toLocaleString()
@@ -323,14 +320,7 @@ export const viewLocalTime = (date: string) => {
 
     let nDate = `${year}-${month}-${day}`
 
-    // if (offset?.includes("0") && !offset?.includes("10")) {
-    //   offsetHours = parseInt(offset.substring(1, 1))
-    // } else {
-    //   offsetHours = parseInt(offset!.substring(0, 1))
-    // }
-
     return `${nDate}T${nTime}.000Z`
-    // return `${nDate}T${nTime}+${offset}`
   }
 }
 

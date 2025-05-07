@@ -73,17 +73,6 @@ const updateDockerFile = async (buildV) => {
       console.log("Old Docker Image Tag:", currentLine.split(" ")[5])
       console.log("New Docker Image Tag:", newLine.split(" ")[5])
       await updateFile(dockerPath, currentLine, newLine)
-      // const newVersion = []
-      // currentVersion.forEach((item) => {
-      //   let number = parseInt(item)
-      //   newVersion.push(number)
-      // })
-      // newVersion[2]++
-      // console.log("New version:", newVersion.join("."))
-      // newLine = currentLine.replace(oldVersion, `"${newVersion.join(".")}",`)
-      // console.log("Old line:", currentLine)
-      // console.log("New line:", newLine)
-      // await updateFile(currentLine, newLine)
     }
   })
 }

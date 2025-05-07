@@ -70,10 +70,6 @@ const DebtorModal = ({ ...props }: Props) => {
   const [newCondition, setNewCondition] = useState<NewCondition>(newEntityConditionState)
 
   useEffect(() => {
-    console.log("New condition: ", newCondition)
-  }, [newCondition])
-
-  useEffect(() => {
     if (processCtx.showDebtorConditionsCreate) {
       processCtx.setShowDebtorConditions(false)
     }
@@ -103,14 +99,6 @@ const DebtorModal = ({ ...props }: Props) => {
     entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.DbtrAcct.Id.Othr[0].Id,
     entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.Othr[0].Id,
   ])
-
-  // useEffect(() => {
-  //   if (processCtx.conditionsList.length === 0) {
-  //     setCreateConditions(true)
-  //   } else {
-  //     setCreateConditions(false)
-  //   }
-  // }, [processCtx.conditionsList])
 
   function handleClose() {
     if (props.selectedEntity) {
@@ -155,9 +143,6 @@ const DebtorModal = ({ ...props }: Props) => {
       }
     }
   }, [props.entity])
-
-  const accounts = typeof props.selectedEntity === "number" ? entityCtx.entities[props.selectedEntity]?.Accounts : []
-  const accountDetails = accounts ? accounts.map((account: any) => account) : []
 
   const handleAccountChange = (index: number, updatedAccount: DebtorAccount) => {
     const updatedAccounts = [...customAccounts]
@@ -568,7 +553,6 @@ const DebtorModal = ({ ...props }: Props) => {
               )}
               {processCtx.debtorActiveSection === "Accounts" && customAccounts.length > 0 && (
                 <>
-                  {/* <div className={`grid gap-4 ${accountDetails.length >= 3 ? "grid-cols-2" : "grid-cols-1"}`}> */}
                   <div className={"flex grid h-[450px] grid-cols-1 gap-2 overflow-auto"}>
                     {customAccounts.map((accountDetail, index) => (
                       <div

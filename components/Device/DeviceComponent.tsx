@@ -16,15 +16,7 @@ const DeviceComponent = ({ width, height }: Props) => {
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
       >
-        <mask
-          id="mask0_103_25124"
-          //   style="mask-type:alpha"
-          maskUnits="userSpaceOnUse"
-          x="529"
-          y="446"
-          width="8339"
-          height="18060"
-        >
+        <mask id="mask0_103_25124" maskUnits="userSpaceOnUse" x="529" y="446" width="8339" height="18060">
           <path
             d="M7085.4 446.691H7806.73C8393.05 446.691 8867.76 921.842 8867.76 1507.73V17444.9C8867.76 18031.2 8392.61 18505.9 7806.73 18505.9H1590.95C1004.62 18505.9 529.914 18030.8 529.914 17444.9V1507.73C529.914 921.4 1005.06 446.691 1590.95 446.691H7085.4Z"
             fill="url(#pattern0_103_25124)"
@@ -57,12 +49,10 @@ const DeviceComponent = ({ width, height }: Props) => {
           fill="url(#paint2_linear_103_25124)"
         />
         <path
-          //   style="mix-blend-mode:multiply"
           d="M5378.95 1025.45C5378.95 1061.62 5349.39 1091.18 5313.21 1091.18C5277.04 1091.18 5247.48 1061.62 5247.48 1025.45C5247.48 989.27 5276.59 959.711 5313.21 959.711C5349.83 959.711 5378.95 988.829 5378.95 1025.45Z"
           fill="url(#paint3_radial_103_25124)"
         />
         <path
-          //   style="mix-blend-mode:screen"
           d="M5372.56 1059.7C5372.56 1046.91 5361.97 1036.32 5349.18 1036.32C5336.39 1036.32 5325.8 1046.91 5325.8 1059.7C5325.8 1072.5 5336.39 1083.09 5349.18 1083.09C5361.97 1083.09 5372.56 1072.5 5372.56 1059.7Z"
           fill="url(#paint4_radial_103_25124)"
         />

@@ -134,7 +134,6 @@ const ProcessorProvider = ({ children }: Props) => {
 
   useEffect(() => {
     const test = { ...state.tadProcResults }
-    console.log("TADPROC_RULE: ", test)
     if ("results" in test) {
       if (test.results.length > 0) {
         updateTadpLights(state.tadProcResults)
@@ -175,7 +174,6 @@ const ProcessorProvider = ({ children }: Props) => {
             selected: false,
           }
           eventTypesRes.push(option)
-          // return (item = item.split("'")[1])
         })
         setEventTypes(eventTypesRes)
 
@@ -196,18 +194,6 @@ const ProcessorProvider = ({ children }: Props) => {
       }
     }
   }, [uiConfig])
-
-  useEffect(() => {
-    console.log("CONDITION_TYPES", state.conditionTypes)
-  }, [state.conditionTypes])
-
-  useEffect(() => {
-    console.log("REASONS_TYPES", state.conditionReasons)
-  }, [state.conditionReasons])
-
-  useEffect(() => {
-    console.log("EVENT_TYPES", state.eventTypes)
-  }, [state.eventTypes])
 
   useEffect(() => {
     const newSocket: any = io(wsAddress!, {
@@ -269,11 +255,11 @@ const ProcessorProvider = ({ children }: Props) => {
   }, [state.typologies])
 
   const handleLinkedTypologies = async (msg: any) => {
-    const typoResults = msg.report.tadpResult.typologyResult
+    const typoResults: Typology[] = msg.report.tadpResult.typologyResult
     const linksResponse: LinkedTypo[] = []
-
     if (typoResults.length > 0) {
       // MAP THE TYPOLOGY RESULTS
+
       typoResults.map((typoResult: any) => {
         // MAP THE TYPOLOGY RULE RESULTS
         typoResult.ruleResults.map((ruleResult: any) => {
@@ -288,8 +274,6 @@ const ProcessorProvider = ({ children }: Props) => {
                 subRuleRef: ruleResult.subRuleRef,
               }
               linksResponse.push(linkedTypo)
-            } else {
-              console.log("_MSG: ", ruleResult.id.split("@")[0])
             }
 
             // USE 'typoResult' for the typology
@@ -334,13 +318,6 @@ const ProcessorProvider = ({ children }: Props) => {
       console.log("TADPROC ERROR", err)
     }
   }
-
-  // useEffect(() => {
-  //   if (msgId.current !== "") {
-  //     handleTadProc(msgId.current)
-  //     msgId.current = ""
-  //   }
-  // }, [msgId.current])
 
   const getUIConfig = async () => {
     if (localStorage.getItem("UI_CONFIG") !== null) {
@@ -465,7 +442,6 @@ const ProcessorProvider = ({ children }: Props) => {
 
       updatedTypo[index].result = msg.result
 
-      // FIX THIS LOGIC AS PER DOCUMENTATION
       let interThreshold = null
       let alertThreshold = null
 
@@ -476,12 +452,6 @@ const ProcessorProvider = ({ children }: Props) => {
       if (Object.keys(msg.workflow).includes("alertThreshold")) {
         alertThreshold = msg.workflow.alertThreshold
       }
-      // if (msg?.typologyResult?.workflow?.interdictionThreshold !== undefined) {
-
-      // }
-      // if (msg?.typologyResult?.workflow?.interdictionThreshold !== undefined) {
-      //   alertThreshold = msg.typologyResult.workflow.alertThreshold
-      // }
 
       updatedTypo[index].color = "g"
 
@@ -611,7 +581,6 @@ const ProcessorProvider = ({ children }: Props) => {
     updatedRules.map((rule: Rule) => {
       rule.result = null
     })
-    // tadProcResults
     dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: [] })
     dispatch({ type: ACTIONS.UPDATE_RULES_SUCCESS, payload: [] })
     dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: [] })
@@ -1083,7 +1052,6 @@ const ProcessorProvider = ({ children }: Props) => {
         resetAllLights,
         clearResults,
         getUIConfig,
-        // handleTadProc,
         handleTadProcLive,
         getConditions,
         createCondition,
