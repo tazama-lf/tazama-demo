@@ -201,28 +201,29 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
                 </svg>
               </button>
             ) : con.xprtnDtTm && con.xprtnDtTm !== null && new Date(con.xprtnDtTm).getTime() > new Date().getTime() ? (
-              <button
-                className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
-                onClick={() => {
-                  setSelectedCondition(con)
-                  setShowExpire(true)
-                }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="size-4"
-                  width="10px"
-                  height="10px"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+              // <button
+              //   className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
+              //   onClick={() => {
+              //     setSelectedCondition(con)
+              //     setShowExpire(true)
+              //   }}
+              // >
+              //   <svg
+              //     xmlns="http://www.w3.org/2000/svg"
+              //     viewBox="0 0 24 24"
+              //     fill="currentColor"
+              //     className="size-4"
+              //     width="10px"
+              //     height="10px"
+              //   >
+              //     <path
+              //       fillRule="evenodd"
+              //       d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
+              //       clipRule="evenodd"
+              //     />
+              //   </svg>
+              // </button>
+              <div className="align-center flex min-w-[29.5px] justify-center gap-2 rounded-full px-[10px] py-1 text-center drop-shadow-lg"></div>
             ) : (
               <div className="align-center flex min-w-[29.5px] justify-center gap-2 rounded-full px-[10px] py-1 text-center drop-shadow-lg"></div>
             )}
