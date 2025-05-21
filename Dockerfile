@@ -62,4 +62,4 @@ COPY --from=builder /app/yarn.lock ./yarn.lock
 COPY --from=builder /app/public ./public
 
 COPY . .
-CMD yarn start
+CMD ["yarn", "dev"]
