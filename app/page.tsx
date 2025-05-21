@@ -13,7 +13,13 @@ import EntityContext from "store/entities/entity.context"
 import { CdtrEntity, Entity } from "store/entities/entity.interface"
 import ProcessorContext from "store/processors/processor.context"
 import Loader from "./../components/Loader/Loader"
-import { DragDropContext, Draggable, Droppable } from "../node_modules/@hello-pangea/dnd/dist/dnd"
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DroppableProvided,
+  DroppableStateSnapshot,
+} from "../node_modules/@hello-pangea/dnd/dist/dnd"
 import RuleResult from "components/RuleResults/RuleResults"
 import TypeResult from "components/TypologyResults/TypologyResults"
 import { iconColour } from "utils/helpers"
@@ -246,6 +252,12 @@ const Web = () => {
   }, [entityCtx.selectedCreditorEntity.creditorSelectedIndex])
 
   useEffect(() => {
+    console.log("ACCOUNTS: ")
+    processCtx.getAllCreditorConditions()
+    processCtx.getAllDebtorConditions()
+  }, [entityCtx.selectedDebtorEntity.debtorAccountsLength, entityCtx.selectedCreditorEntity.creditorAccountsLength])
+
+  useEffect(() => {
     if (loading) {
       setLoading(false)
     }
@@ -266,41 +278,58 @@ const Web = () => {
     }
 
     if (source.droppableId === "debtorProfiles" && destination.droppableId === "creditorProfiles") {
-      // Clone entity from Debtor to Creditor
-      const clonedEntity = { ...entityCtx.entities[source.index] }
-      const exists = entityCtx.creditorEntities.some(
-        (element: CdtrEntity) => element.CreditorEntity.Cdtr.Nm === clonedEntity?.Entity?.Dbtr?.Nm
-      )
-      if (!exists) {
-        entityCtx.cloneEntity(clonedEntity?.Entity, clonedEntity?.Accounts)
-        entityCtx.selectCreditorEntity(destination.index, 0)
-      } else if (exists) {
-        const index = entityCtx.creditorEntities.findIndex(
-          (value: CdtrEntity) => value.CreditorEntity.Cdtr.Nm === clonedEntity?.Entity?.Dbtr?.Nm
-        )
-        entityCtx.selectCreditorEntity(index, 0)
+      try {
+        // Clone entity from Debtor to Creditor
+        const clonedEntity = { ...entityCtx.entities[source.index] }
+        const exists =
+          entityCtx.creditorEntities.find(
+            (element: CdtrEntity) => element.CreditorEntity.Cdtr.Nm === clonedEntity?.Entity?.Dbtr?.Nm
+          ) !== undefined
+        if (!exists) {
+          entityCtx.cloneEntity(clonedEntity?.Entity, clonedEntity?.Accounts)
+          entityCtx.selectCreditorEntity(destination.index, 0)
+          processCtx.getAllCreditorConditions()
+        } else if (exists) {
+          const index = entityCtx.creditorEntities.findIndex(
+            (value: CdtrEntity) => value.CreditorEntity.Cdtr.Nm === clonedEntity?.Entity?.Dbtr?.Nm
+          )
+          entityCtx.selectCreditorEntity(index, 0)
+          processCtx.getAllCreditorConditions()
+        }
+
+        return
+      } catch (error) {
+        console.log("D to C - ERROR", error)
       }
-      return
     }
 
     if (source.droppableId === "creditorProfiles" && destination.droppableId === "debtorProfiles") {
-      // Clone entity from Creditor to Debtor
-      const clonedCreditorEntity = { ...entityCtx.creditorEntities[source.index] }
+      try {
+        // Clone entity from Creditor to Debtor
+        const clonedCreditorEntity = { ...entityCtx.creditorEntities[source.index] }
+        const exists =
+          entityCtx.entities.find(
+            (element: Entity) => element.Entity.Dbtr.Nm === clonedCreditorEntity?.CreditorEntity?.Cdtr?.Nm
+          ) !== undefined
 
-      const exists =
-        entityCtx.entities.find(
-          (element: Entity) => element.Entity.Dbtr.Nm === clonedCreditorEntity?.CreditorEntity?.Cdtr?.Nm
-        ) !== undefined
-      if (!exists) {
-        entityCtx.cloneCreditorEntity(clonedCreditorEntity?.CreditorEntity, clonedCreditorEntity?.CreditorAccounts)
-        entityCtx.selectDebtorEntity(destination.index, 0)
-      } else if (exists) {
-        const index = entityCtx.entities.findIndex(
-          (value: Entity) => value.Entity.Dbtr.Nm === clonedCreditorEntity?.CreditorEntity?.Cdtr?.Nm
-        )
-        entityCtx.selectDebtorEntity(index, 0)
+        console.log("EXISTS: ", exists)
+        if (!exists) {
+          entityCtx.cloneCreditorEntity(clonedCreditorEntity?.CreditorEntity, clonedCreditorEntity?.CreditorAccounts)
+          entityCtx.selectDebtorEntity(destination.index, 0)
+          processCtx.getAllDebtorConditions()
+        } else if (exists) {
+          const index = entityCtx.entities.findIndex(
+            (value: Entity) => value.Entity.Dbtr.Nm === clonedCreditorEntity?.CreditorEntity?.Cdtr?.Nm
+          )
+          console.log("INDEX: ", index)
+          entityCtx.selectDebtorEntity(index, 0)
+          processCtx.getAllDebtorConditions()
+        }
+
+        return
+      } catch (error) {
+        console.log("C to D - ERROR", error)
       }
-      return
     }
   }
 
@@ -335,94 +364,94 @@ const Web = () => {
               <div className="flex flex-col flex-wrap justify-center rounded-lg py-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
                 <div className="mb-2 text-center text-xl">Debtors</div>
                 <Droppable droppableId="debtorProfiles">
-                  {(provided: any) => (
+                  {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
                     <div ref={provided.innerRef} {...provided.droppableProps} className="min-w-full space-y-2">
-                      <>
-                        <Draggable key={`debtor-0`} draggableId={`debtor-0`} index={0}>
-                          {(provided: any) => (
-                            <div
-                              key={uuidv4().replaceAll("-", "")}
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            >
-                              <Profile
-                                colour={!entityCtx.entities[0] ? "text-gray-300" : iconColour(0)}
-                                entity={entityCtx.entities[0]?.Entity}
-                                accounts={entityCtx.entities[0]?.Accounts}
-                                index={0}
-                                setModalVisible={setModal}
-                                setSelectedEntity={() => setSelectedEntity(0)}
-                                selectedEntity={selectedEntity}
-                                addAccount={async () => {
-                                  await entityCtx.createEntityAccount(0)
-                                  await entityCtx.selectDebtorEntity(0, 0)
-                                }}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
+                      <Draggable key={`debtor-0`} draggableId={`debtor-0`} index={0}>
+                        {(provided: any) => (
+                          <div
+                            key={uuidv4().replaceAll("-", "")}
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            <Profile
+                              colour={!entityCtx.entities[0] ? "text-gray-300" : iconColour(0)}
+                              entity={entityCtx.entities[0]?.Entity}
+                              accounts={entityCtx.entities[0]?.Accounts}
+                              index={0}
+                              setModalVisible={setModal}
+                              setSelectedEntity={() => setSelectedEntity(0)}
+                              selectedEntity={selectedEntity}
+                              addAccount={async () => {
+                                await entityCtx.createEntityAccount(0)
+                                await entityCtx.selectDebtorEntity(0, 0)
+                              }}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
 
-                        <Draggable key={`debtor-1`} draggableId={`debtor-1`} index={1}>
-                          {(provided: any) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                              <Profile
-                                colour={!entityCtx.entities[1] ? "text-gray-300" : iconColour(1)}
-                                entity={entityCtx.entities[1]?.Entity}
-                                accounts={entityCtx.entities[1]?.Accounts}
-                                index={1}
-                                setModalVisible={setModal}
-                                setSelectedEntity={() => setSelectedEntity(1)}
-                                selectedEntity={selectedEntity}
-                                addAccount={async () => {
-                                  await entityCtx.createEntityAccount(1)
-                                  await entityCtx.selectDebtorEntity(1, 0)
-                                }}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
+                      <Draggable key={`debtor-1`} draggableId={`debtor-1`} index={1}>
+                        {(provided: any) => (
+                          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                            <Profile
+                              colour={!entityCtx.entities[1] ? "text-gray-300" : iconColour(1)}
+                              entity={entityCtx.entities[1]?.Entity}
+                              accounts={entityCtx.entities[1]?.Accounts}
+                              index={1}
+                              setModalVisible={setModal}
+                              setSelectedEntity={() => setSelectedEntity(1)}
+                              selectedEntity={selectedEntity}
+                              addAccount={async () => {
+                                await entityCtx.createEntityAccount(1)
+                                await entityCtx.selectDebtorEntity(1, 0)
+                              }}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
 
-                        <Draggable key={`debtor-2`} draggableId={`debtor-2`} index={2}>
-                          {(provided: any) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                              <Profile
-                                colour={!entityCtx.entities[2] ? "text-gray-300" : iconColour(2)}
-                                entity={entityCtx.entities[2]?.Entity}
-                                accounts={entityCtx.entities[2]?.Accounts}
-                                index={2}
-                                setModalVisible={setModal}
-                                setSelectedEntity={() => setSelectedEntity(2)}
-                                selectedEntity={selectedEntity}
-                                addAccount={async () => {
-                                  await entityCtx.createEntityAccount(2)
-                                  await entityCtx.selectDebtorEntity(2, 0)
-                                }}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
+                      <Draggable key={`debtor-2`} draggableId={`debtor-2`} index={2}>
+                        {(provided: any) => (
+                          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                            <Profile
+                              colour={!entityCtx.entities[2] ? "text-gray-300" : iconColour(2)}
+                              entity={entityCtx.entities[2]?.Entity}
+                              accounts={entityCtx.entities[2]?.Accounts}
+                              index={2}
+                              setModalVisible={setModal}
+                              setSelectedEntity={() => setSelectedEntity(2)}
+                              selectedEntity={selectedEntity}
+                              addAccount={async () => {
+                                await entityCtx.createEntityAccount(2)
+                                await entityCtx.selectDebtorEntity(2, 0)
+                              }}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
 
-                        <Draggable key={`debtor-3`} draggableId={`debtor-3`} index={3}>
-                          {(provided: any) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                              <Profile
-                                colour={!entityCtx.entities[3] ? "text-gray-300" : iconColour(3)}
-                                entity={entityCtx.entities[3]?.Entity}
-                                accounts={entityCtx.entities[3]?.Accounts}
-                                index={3}
-                                setModalVisible={setModal}
-                                setSelectedEntity={() => setSelectedEntity(3)}
-                                selectedEntity={selectedEntity}
-                                addAccount={async () => {
-                                  await entityCtx.createEntityAccount(3)
-                                  await entityCtx.selectDebtorEntity(3, 0)
-                                }}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      </>
+                      <Draggable key={`debtor-3`} draggableId={`debtor-3`} index={3}>
+                        {(provided: any) => (
+                          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                            <Profile
+                              colour={!entityCtx.entities[3] ? "text-gray-300" : iconColour(3)}
+                              entity={entityCtx.entities[3]?.Entity}
+                              accounts={entityCtx.entities[3]?.Accounts}
+                              index={3}
+                              setModalVisible={setModal}
+                              setSelectedEntity={() => setSelectedEntity(3)}
+                              selectedEntity={selectedEntity}
+                              addAccount={async () => {
+                                await entityCtx.createEntityAccount(3)
+                                await entityCtx.selectDebtorEntity(3, 0)
+                              }}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+
+                      {provided.placeholder}
                     </div>
                   )}
                 </Droppable>
@@ -507,7 +536,7 @@ const Web = () => {
               <div className="flex flex-col flex-wrap justify-center rounded-lg py-5  shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
                 <div className="mb-2 text-center text-xl">Creditors</div>
                 <Droppable droppableId="creditorProfiles">
-                  {(provided: any) => (
+                  {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
                     <div ref={provided.innerRef} {...provided.droppableProps} className="min-w-full space-y-2">
                       <>
                         <Draggable key={`creditor-0`} draggableId={`creditor-0`} index={0}>
@@ -593,6 +622,7 @@ const Web = () => {
                           )}
                         </Draggable>
                       </>
+                      {provided.placeholder}
                     </div>
                   )}
                 </Droppable>

@@ -820,7 +820,10 @@ const ProcessorProvider = ({ children }: Props) => {
       const entityResponses: any[] = await Promise.all(
         entityUrls.map(async (url) => {
           try {
-            return await axios.get(url)
+            const response = await axios.get(url)
+            if (response.status !== 404) {
+              return response
+            }
           } catch (error) {
             return null
           }
@@ -830,7 +833,10 @@ const ProcessorProvider = ({ children }: Props) => {
       const accountResponses: any[] = await Promise.all(
         accountUrls.map(async (url) => {
           try {
-            return await axios.get(url)
+            const response = await axios.get(url)
+            if (response.status !== 404) {
+              return response
+            }
           } catch (error) {
             return null
           }
@@ -914,7 +920,8 @@ const ProcessorProvider = ({ children }: Props) => {
       const entityResponses: any[] = await Promise.all(
         entityUrls.map(async (url) => {
           try {
-            return await axios.get(url)
+            const response = await axios.get(url)
+            return response
           } catch (error) {
             return null
           }
@@ -924,7 +931,8 @@ const ProcessorProvider = ({ children }: Props) => {
       const accountResponses: any[] = await Promise.all(
         accountUrls.map(async (url) => {
           try {
-            return await axios.get(url)
+            const response = await axios.get(url)
+            return response
           } catch (error) {
             return null
           }
@@ -945,7 +953,7 @@ const ProcessorProvider = ({ children }: Props) => {
       await accountResponses
         .filter((el) => el !== null)
         .map(async (response) => {
-          if (response !== null) {
+          if (response !== null && response !== undefined) {
             if (response.statusText !== "No Content") {
               const accountConditions: ListCondition[] = await handleEntityAccountConditions(response.data)
               accountConditions.map((item) => {
