@@ -37,7 +37,7 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/yarn.lock ./yarn.lock
 COPY --from=builder /app/public ./public
 
-CMD npm start
+CMD ["yarn", "dev"]
 
 FROM base AS dev
 ENV NODE_ENV=development

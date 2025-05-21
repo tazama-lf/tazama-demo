@@ -1,6 +1,6 @@
 {
   "name": "tazama-demo",
-  "version": "2.0.12-uat",
+  "version": "2.0.13-uat",
   "private": true,
   "scripts": {
     "dev": "cross-env FORCE_COLOR=1 nodemon server.js",

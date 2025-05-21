@@ -6,26 +6,18 @@ import { DebtorDevice } from "components/Device/Debtor"
 import CreditorModal from "components/Modal/CreditorsModal"
 import DebtorModal from "components/Modal/Modal"
 import { ProcessIndicator } from "components/ProcessIndicator/ProcessIndicator"
-import { Profile } from "components/Profile/Profile"
-import { CreditorProfile } from "components/ProfileCreditor/ProfileCreditor"
 import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
 import EntityContext from "store/entities/entity.context"
-import { CdtrEntity, Entity } from "store/entities/entity.interface"
 import ProcessorContext from "store/processors/processor.context"
 import Loader from "./../components/Loader/Loader"
-import {
-  DragDropContext,
-  Draggable,
-  Droppable,
-  DroppableProvided,
-  DroppableStateSnapshot,
-} from "../node_modules/@hello-pangea/dnd/dist/dnd"
+import { DragDropContext } from "../node_modules/@hello-pangea/dnd/dist/dnd"
 import RuleResult from "components/RuleResults/RuleResults"
 import TypeResult from "components/TypologyResults/TypologyResults"
-import { iconColour } from "utils/helpers"
 import io from "socket.io-client"
 import { Rule, TypoEFRuP, Typology } from "store/processors/processor.interface"
-import { v4 as uuidv4 } from "uuid"
+import DebtorProfileComponent from "components/DebtorProfileComponent/DebtorProfileComponent"
+import CreditorProfileComponent from "components/CreditorProfileComponent/CreditorProfileComponent"
+import { Entity, CdtrEntity } from "store/entities/entity.interface"
 
 let socket
 const Web = () => {
@@ -288,15 +280,13 @@ const Web = () => {
         if (!exists) {
           entityCtx.cloneEntity(clonedEntity?.Entity, clonedEntity?.Accounts)
           entityCtx.selectCreditorEntity(destination.index, 0)
-          processCtx.getAllCreditorConditions()
         } else if (exists) {
           const index = entityCtx.creditorEntities.findIndex(
             (value: CdtrEntity) => value.CreditorEntity.Cdtr.Nm === clonedEntity?.Entity?.Dbtr?.Nm
           )
           entityCtx.selectCreditorEntity(index, 0)
-          processCtx.getAllCreditorConditions()
         }
-
+        processCtx.getAllCreditorConditions()
         return
       } catch (error) {
         console.log("D to C - ERROR", error)
@@ -316,16 +306,14 @@ const Web = () => {
         if (!exists) {
           entityCtx.cloneCreditorEntity(clonedCreditorEntity?.CreditorEntity, clonedCreditorEntity?.CreditorAccounts)
           entityCtx.selectDebtorEntity(destination.index, 0)
-          processCtx.getAllDebtorConditions()
         } else if (exists) {
           const index = entityCtx.entities.findIndex(
             (value: Entity) => value.Entity.Dbtr.Nm === clonedCreditorEntity?.CreditorEntity?.Cdtr?.Nm
           )
           console.log("INDEX: ", index)
           entityCtx.selectDebtorEntity(index, 0)
-          processCtx.getAllDebtorConditions()
         }
-
+        processCtx.getAllDebtorConditions()
         return
       } catch (error) {
         console.log("C to D - ERROR", error)
@@ -357,104 +345,17 @@ const Web = () => {
         </button>
       </div>
       <div className="bg-slate-300/25 px-3 pb-1 pt-4">
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-12 gap-5">
-            {/* Debtors */}
+        <div className="grid grid-cols-12 gap-5">
+          {/* Debtors */}
+          <DragDropContext onDragEnd={onDragEnd}>
             <div className="col-span-2">
               <div className="flex flex-col flex-wrap justify-center rounded-lg py-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
                 <div className="mb-2 text-center text-xl">Debtors</div>
-                <Droppable droppableId="debtorProfiles">
-                  {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps} className="min-w-full space-y-2">
-                      <Draggable key={`debtor-0`} draggableId={`debtor-0`} index={0}>
-                        {(provided: any) => (
-                          <div
-                            key={uuidv4().replaceAll("-", "")}
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            <Profile
-                              colour={!entityCtx.entities[0] ? "text-gray-300" : iconColour(0)}
-                              entity={entityCtx.entities[0]?.Entity}
-                              accounts={entityCtx.entities[0]?.Accounts}
-                              index={0}
-                              setModalVisible={setModal}
-                              setSelectedEntity={() => setSelectedEntity(0)}
-                              selectedEntity={selectedEntity}
-                              addAccount={async () => {
-                                await entityCtx.createEntityAccount(0)
-                                await entityCtx.selectDebtorEntity(0, 0)
-                              }}
-                            />
-                          </div>
-                        )}
-                      </Draggable>
-
-                      <Draggable key={`debtor-1`} draggableId={`debtor-1`} index={1}>
-                        {(provided: any) => (
-                          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                            <Profile
-                              colour={!entityCtx.entities[1] ? "text-gray-300" : iconColour(1)}
-                              entity={entityCtx.entities[1]?.Entity}
-                              accounts={entityCtx.entities[1]?.Accounts}
-                              index={1}
-                              setModalVisible={setModal}
-                              setSelectedEntity={() => setSelectedEntity(1)}
-                              selectedEntity={selectedEntity}
-                              addAccount={async () => {
-                                await entityCtx.createEntityAccount(1)
-                                await entityCtx.selectDebtorEntity(1, 0)
-                              }}
-                            />
-                          </div>
-                        )}
-                      </Draggable>
-
-                      <Draggable key={`debtor-2`} draggableId={`debtor-2`} index={2}>
-                        {(provided: any) => (
-                          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                            <Profile
-                              colour={!entityCtx.entities[2] ? "text-gray-300" : iconColour(2)}
-                              entity={entityCtx.entities[2]?.Entity}
-                              accounts={entityCtx.entities[2]?.Accounts}
-                              index={2}
-                              setModalVisible={setModal}
-                              setSelectedEntity={() => setSelectedEntity(2)}
-                              selectedEntity={selectedEntity}
-                              addAccount={async () => {
-                                await entityCtx.createEntityAccount(2)
-                                await entityCtx.selectDebtorEntity(2, 0)
-                              }}
-                            />
-                          </div>
-                        )}
-                      </Draggable>
-
-                      <Draggable key={`debtor-3`} draggableId={`debtor-3`} index={3}>
-                        {(provided: any) => (
-                          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                            <Profile
-                              colour={!entityCtx.entities[3] ? "text-gray-300" : iconColour(3)}
-                              entity={entityCtx.entities[3]?.Entity}
-                              accounts={entityCtx.entities[3]?.Accounts}
-                              index={3}
-                              setModalVisible={setModal}
-                              setSelectedEntity={() => setSelectedEntity(3)}
-                              selectedEntity={selectedEntity}
-                              addAccount={async () => {
-                                await entityCtx.createEntityAccount(3)
-                                await entityCtx.selectDebtorEntity(3, 0)
-                              }}
-                            />
-                          </div>
-                        )}
-                      </Draggable>
-
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
+                <DebtorProfileComponent
+                  selectedEntity={selectedEntity}
+                  setModal={setModal}
+                  setSelectedEntity={setSelectedEntity}
+                />
               </div>
             </div>
 
@@ -532,10 +433,11 @@ const Web = () => {
             </div>
 
             {/* Creditors */}
+
             <div className="col-span-2">
               <div className="flex flex-col flex-wrap justify-center rounded-lg py-5  shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
                 <div className="mb-2 text-center text-xl">Creditors</div>
-                <Droppable droppableId="creditorProfiles">
+                {/* <Droppable droppableId="creditorProfiles">
                   {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
                     <div ref={provided.innerRef} {...provided.droppableProps} className="min-w-full space-y-2">
                       <>
@@ -625,222 +527,227 @@ const Web = () => {
                       {provided.placeholder}
                     </div>
                   )}
-                </Droppable>
+                </Droppable> */}
+                <CreditorProfileComponent
+                  setSelectedCreditorEntity={setSelectedCreditorEntity}
+                  setShowCreditorModal={setShowCreditorModal}
+                  selectedCreditorEntity={selectedCreditorEntity}
+                />
+              </div>
+            </div>
+          </DragDropContext>
+        </div>
+
+        <div className="mb-2 grid grid-cols-6 gap-3 pt-8">
+          {/* CRSP */}
+          <div className="col-span-1 rounded-md shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+            <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
+              Event director
+            </h2>
+
+            <div className="relative flex min-h-80 items-center justify-center">
+              <StatusIndicator large={true} colour={processCtx.edLights.ED.color} />
+              {processCtx.edLights.ED.error !== "" && (
+                <div className="absolute bottom-16 flex items-center justify-center text-center">
+                  <p className="mb-5 w-3/4 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 p-2 text-center text-xs uppercase shadow-lg">
+                    {processCtx.edLights.ED.error}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Rules */}
+          <div className="col-span-2 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+            <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
+              Rules
+            </h2>
+            <div className="grid grid-cols-12 pb-2">
+              <div className="col-span-6">
+                <div className="grid grid-cols-3 gap-1 px-5">
+                  {processCtx.rulesLoading ? (
+                    <p className="mb-5 w-80 rounded-t-lg py-5 text-center">Loading</p>
+                  ) : (
+                    processCtx.rules
+                      ?.sort((a, b) => {
+                        return a.title.localeCompare(b.title)
+                      })
+                      .map((rule: any) => (
+                        <div
+                          className={`mb-1  flex cursor-pointer rounded-md px-2 ${
+                            hoverRules && hoverRules.includes(rule.title) && "bg-gray-200 shadow"
+                          } ${
+                            selectedRules ? selectedRules.includes(rule.title) && "bg-gray-400 shadow" : null
+                          } hover:bg-gray-200 hover:shadow`}
+                          key={`r-${rule.id}`}
+                          onMouseEnter={() => {
+                            handleRuleMouseEnter(rule)
+                          }}
+                          onMouseLeave={() => handleRuleMouseLeave()}
+                          onClick={() => {
+                            if (selectedRule === null) {
+                              handleRuleClick(rule)
+                            } else if (selectedRule === rule) {
+                              handleRuleClickClose()
+                            }
+
+                            if (selectedRules.length > 0) {
+                              handleRuleClickClose()
+                              handleRuleClick(rule)
+                            }
+                          }}
+                        >
+                          <StatusIndicator colour={rule.color} /> &nbsp;
+                          {rule.title}
+                        </div>
+                      ))
+                  )}
+                </div>
+              </div>
+              <div
+                className="col-span-6 px-5"
+                onClick={() => {
+                  handleRuleMouseLeave()
+                }}
+              >
+                <RuleResult
+                  started={started}
+                  setSelectedRule={setSelectedRule}
+                  setSelectedTypes={setSelectedTypes}
+                  setHoveredRule={setHoveredRule}
+                  hoveredRule={hoveredRule}
+                  selectedRule={selectedRule}
+                  hoveredTypes={hoveredType}
+                  selectedTypes={selectedTypes}
+                  handleClose={handleRuleClickClose}
+                />
               </div>
             </div>
           </div>
 
-          <div className="mb-2 grid grid-cols-6 gap-3 pt-8">
-            {/* CRSP */}
-            <div className="col-span-1 rounded-md shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-              <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
-                Event director
-              </h2>
+          {/* Typologies */}
+          <div className="col-span-2 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+            <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
+              Typologies
+            </h2>
+            <div className="grid grid-cols-12">
+              <div className="col-span-6">
+                <div className="grid grid-cols-3 gap-1 px-5">
+                  {processCtx.typologies &&
+                    processCtx.typologies
+                      .sort((a, b) => {
+                        return a.title.localeCompare(b.title)
+                      })
+                      .map((type: any) => (
+                        <div
+                          className={`mb-1 flex cursor-pointer rounded-md px-2 ${
+                            hoverTypes && hoverTypes.includes(type.title) && "bg-gray-200 shadow"
+                          } ${
+                            selectedTypes ? selectedTypes.includes(type.title) && "bg-gray-400 shadow" : null
+                          } hover:bg-gray-200 hover:shadow`}
+                          key={`r-${type.id}`}
+                          onMouseEnter={() => {
+                            handleTypeMouseEnter(type)
+                          }}
+                          onMouseLeave={() => handleTypeMouseLeave()}
+                          onClick={() => {
+                            handleTypeClick(type)
+                          }}
+                        >
+                          <StatusIndicator colour={type.color} /> &nbsp;
+                          {type.title}
+                        </div>
+                      ))}
+                </div>
+              </div>
+              <div
+                className="col-span-6 px-5"
+                onClick={() => {
+                  handleTypeClickClose()
+                }}
+              >
+                <TypeResult hoveredType={hoveredType} selectedType={selectedType} overridden={displayOverridden} />
+              </div>
+            </div>
+          </div>
 
-              <div className="relative flex min-h-80 items-center justify-center">
-                <StatusIndicator large={true} colour={processCtx.edLights.ED.color} />
-                {processCtx.edLights.ED.error !== "" && (
+          {/* Tadproc */}
+          <div className="col-span-1 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+            <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
+              Tadproc
+            </h2>
+            <div className="relative flex min-h-80 items-center justify-center">
+              {processCtx.tadpLights.efrup === "override" && processCtx.tadpLights.color === "r" && flashing ? (
+                <StatusIndicator large={true} colour={flashColor} />
+              ) : (
+                <StatusIndicator large={true} colour={processCtx.tadpLights.color} />
+              )}
+
+              {processCtx.tadpLights.color === "y" ||
+                (processCtx.tadpLights.color === "r" && (
                   <div className="absolute bottom-16 flex items-center justify-center text-center">
-                    <p className="mb-5 w-3/4 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 p-2 text-center text-xs uppercase shadow-lg">
-                      {processCtx.edLights.ED.error}
+                    <p className="mb-5 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 px-5 py-2 text-center text-xs uppercase shadow-lg">
+                      {processCtx.tadpLights.status}
                     </p>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Rules */}
-            <div className="col-span-2 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-              <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
-                Rules
-              </h2>
-              <div className="grid grid-cols-12 pb-2">
-                <div className="col-span-6">
-                  <div className="grid grid-cols-3 gap-1 px-5">
-                    {processCtx.rulesLoading ? (
-                      <p className="mb-5 w-80 rounded-t-lg py-5 text-center">Loading</p>
-                    ) : (
-                      processCtx.rules
-                        ?.sort((a, b) => {
-                          return a.title.localeCompare(b.title)
-                        })
-                        .map((rule: any) => (
-                          <div
-                            className={`mb-1  flex cursor-pointer rounded-md px-2 ${
-                              hoverRules && hoverRules.includes(rule.title) && "bg-gray-200 shadow"
-                            } ${
-                              selectedRules ? selectedRules.includes(rule.title) && "bg-gray-400 shadow" : null
-                            } hover:bg-gray-200 hover:shadow`}
-                            key={`r-${rule.id}`}
-                            onMouseEnter={() => {
-                              handleRuleMouseEnter(rule)
-                            }}
-                            onMouseLeave={() => handleRuleMouseLeave()}
-                            onClick={() => {
-                              if (selectedRule === null) {
-                                handleRuleClick(rule)
-                              } else if (selectedRule === rule) {
-                                handleRuleClickClose()
-                              }
-
-                              if (selectedRules.length > 0) {
-                                handleRuleClickClose()
-                                handleRuleClick(rule)
-                              }
-                            }}
-                          >
-                            <StatusIndicator colour={rule.color} /> &nbsp;
-                            {rule.title}
-                          </div>
-                        ))
-                    )}
-                  </div>
-                </div>
-                <div
-                  className="col-span-6 px-5"
-                  onClick={() => {
-                    handleRuleMouseLeave()
-                  }}
-                >
-                  <RuleResult
-                    started={started}
-                    setSelectedRule={setSelectedRule}
-                    setSelectedTypes={setSelectedTypes}
-                    setHoveredRule={setHoveredRule}
-                    hoveredRule={hoveredRule}
-                    selectedRule={selectedRule}
-                    hoveredTypes={hoveredType}
-                    selectedTypes={selectedTypes}
-                    handleClose={handleRuleClickClose}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Typologies */}
-            <div className="col-span-2 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-              <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
-                Typologies
-              </h2>
-              <div className="grid grid-cols-12">
-                <div className="col-span-6">
-                  <div className="grid grid-cols-3 gap-1 px-5">
-                    {processCtx.typologies &&
-                      processCtx.typologies
-                        .sort((a, b) => {
-                          return a.title.localeCompare(b.title)
-                        })
-                        .map((type: any) => (
-                          <div
-                            className={`mb-1 flex cursor-pointer rounded-md px-2 ${
-                              hoverTypes && hoverTypes.includes(type.title) && "bg-gray-200 shadow"
-                            } ${
-                              selectedTypes ? selectedTypes.includes(type.title) && "bg-gray-400 shadow" : null
-                            } hover:bg-gray-200 hover:shadow`}
-                            key={`r-${type.id}`}
-                            onMouseEnter={() => {
-                              handleTypeMouseEnter(type)
-                            }}
-                            onMouseLeave={() => handleTypeMouseLeave()}
-                            onClick={() => {
-                              handleTypeClick(type)
-                            }}
-                          >
-                            <StatusIndicator colour={type.color} /> &nbsp;
-                            {type.title}
-                          </div>
-                        ))}
-                  </div>
-                </div>
-                <div
-                  className="col-span-6 px-5"
-                  onClick={() => {
-                    handleTypeClickClose()
-                  }}
-                >
-                  <TypeResult hoveredType={hoveredType} selectedType={selectedType} overridden={displayOverridden} />
-                </div>
-              </div>
-            </div>
-
-            {/* Tadproc */}
-            <div className="col-span-1 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-              <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
-                Tadproc
-              </h2>
-              <div className="relative flex min-h-80 items-center justify-center">
-                {processCtx.tadpLights.efrup === "override" && processCtx.tadpLights.color === "r" && flashing ? (
-                  <StatusIndicator large={true} colour={flashColor} />
-                ) : (
-                  <StatusIndicator large={true} colour={processCtx.tadpLights.color} />
-                )}
-
-                {processCtx.tadpLights.color === "y" ||
-                  (processCtx.tadpLights.color === "r" && (
-                    <div className="absolute bottom-16 flex items-center justify-center text-center">
-                      <p className="mb-5 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 px-5 py-2 text-center text-xs uppercase shadow-lg">
-                        {processCtx.tadpLights.status}
+                ))}
+              {processCtx.tadpLights.efrup !== undefined && (
+                <div className="absolute bottom-16 flex items-center justify-center text-center">
+                  {processCtx.tadpLights.efrup === "block" ? (
+                    <p className="mb-5 rounded-lg border-[1px] border-red-500 bg-gradient-to-r from-red-100 to-red-200 px-5 py-2 text-center text-xs uppercase text-red-500 shadow-lg">
+                      BLOCKED
+                    </p>
+                  ) : (
+                    processCtx.tadpLights.efrup === "override" &&
+                    processCtx.tadpLights.color === "r" && (
+                      <p className="mb-5 flex max-w-[120px] rounded-lg border-[1px] border-green-500 bg-gradient-to-r from-green-100 to-green-200 px-5 py-2 text-center text-xs uppercase text-green-500 shadow-lg">
+                        INTERDICTION OVERRIDDEN
                       </p>
-                    </div>
-                  ))}
-                {processCtx.tadpLights.efrup !== undefined && (
-                  <div className="absolute bottom-16 flex items-center justify-center text-center">
-                    {processCtx.tadpLights.efrup === "block" ? (
-                      <p className="mb-5 rounded-lg border-[1px] border-red-500 bg-gradient-to-r from-red-100 to-red-200 px-5 py-2 text-center text-xs uppercase text-red-500 shadow-lg">
-                        BLOCKED
-                      </p>
-                    ) : (
-                      processCtx.tadpLights.efrup === "override" &&
-                      processCtx.tadpLights.color === "r" && (
-                        <p className="mb-5 flex max-w-[120px] rounded-lg border-[1px] border-green-500 bg-gradient-to-r from-green-100 to-green-200 px-5 py-2 text-center text-xs uppercase text-green-500 shadow-lg">
-                          INTERDICTION OVERRIDDEN
-                        </p>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
+                    )
+                  )}
+                </div>
+              )}
             </div>
           </div>
+        </div>
 
-          {showModal && (
-            <DebtorModal
-              color={
-                selectedEntity === 0
-                  ? "rgba(68, 114, 196, 1)"
-                  : selectedEntity === 1
-                  ? "rgba(112, 173, 71, 1)"
-                  : selectedEntity === 2
-                  ? "rgba(255, 192, 0, 1)"
-                  : "rgba(237, 125, 49, 1)"
-              }
-              showModal={showModal}
-              setModal={setModal}
-              entity={entityCtx.entities[selectedEntity]?.Entity}
-              selectedEntity={selectedEntity}
-              modalTitle="Update Debtor Entity"
-            />
-          )}
+        {showModal && (
+          <DebtorModal
+            color={
+              selectedEntity === 0
+                ? "rgba(68, 114, 196, 1)"
+                : selectedEntity === 1
+                ? "rgba(112, 173, 71, 1)"
+                : selectedEntity === 2
+                ? "rgba(255, 192, 0, 1)"
+                : "rgba(237, 125, 49, 1)"
+            }
+            showModal={showModal}
+            setModal={setModal}
+            entity={entityCtx.entities[selectedEntity]?.Entity}
+            selectedEntity={selectedEntity}
+            modalTitle="Update Debtor Entity"
+          />
+        )}
 
-          {showCreditorModal && (
-            <CreditorModal
-              color={
-                selectedCreditorEntity === 0
-                  ? "rgba(68, 114, 196, 1)"
-                  : selectedCreditorEntity === 1
-                  ? "rgba(112, 173, 71, 1)"
-                  : selectedCreditorEntity === 2
-                  ? "rgba(255, 192, 0, 1)"
-                  : "rgba(237, 125, 49, 1)"
-              }
-              showModal={showCreditorModal}
-              setModal={setShowCreditorModal}
-              entity={entityCtx.creditorEntities[selectedCreditorEntity]?.CreditorEntity}
-              selectedEntity={selectedCreditorEntity}
-              modalTitle="Update Creditor Entity"
-            />
-          )}
-        </DragDropContext>
+        {showCreditorModal && (
+          <CreditorModal
+            color={
+              selectedCreditorEntity === 0
+                ? "rgba(68, 114, 196, 1)"
+                : selectedCreditorEntity === 1
+                ? "rgba(112, 173, 71, 1)"
+                : selectedCreditorEntity === 2
+                ? "rgba(255, 192, 0, 1)"
+                : "rgba(237, 125, 49, 1)"
+            }
+            showModal={showCreditorModal}
+            setModal={setShowCreditorModal}
+            entity={entityCtx.creditorEntities[selectedCreditorEntity]?.CreditorEntity}
+            selectedEntity={selectedCreditorEntity}
+            modalTitle="Update Creditor Entity"
+          />
+        )}
       </div>
       <p className="absolute top-[65px] flex w-[265px] justify-end text-right text-xs font-light">
         v{processCtx.app_version}
