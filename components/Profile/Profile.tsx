@@ -84,12 +84,13 @@ export const Profile = ({ ...props }: ProfileProps) => {
     await entityCtx.selectDebtorEntity(props.index, 0)
     if (props.accounts && props.accounts.length > 0) {
       await entityCtx.deleteEntity(props.index)
+      entityCtx.selectDebtorEntity(props.index - 1, 0)
     }
   }
 
   return (
     <div
-      className="relative px-[20px]"
+      className="relative min-w-full px-[10px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -232,7 +233,7 @@ export const Profile = ({ ...props }: ProfileProps) => {
       </div>
 
       {isHovered && (
-        <div className="absolute right-[1px] top-[15px]">
+        <div className="absolute right-[-10px] top-[15px]">
           {props?.accounts !== null && props.accounts !== undefined && props?.accounts.length > 0 && (
             <button onClick={handleDeleteEntity}>
               <svg

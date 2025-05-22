@@ -84,12 +84,13 @@ export const CreditorProfile = ({ ...props }: ProfileProps) => {
     await entityCtx.selectCreditorEntity(props.index, 0)
     if (props.creditorAccounts && props.creditorAccounts.length > 0) {
       await entityCtx.deleteCreditorEntity(props.index)
+      entityCtx.selectCreditorEntity(props.index - 1, 0)
     }
   }
 
   return (
     <div
-      className="relative px-[20px]"
+      className="relative min-w-full px-[10px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -237,7 +238,7 @@ export const CreditorProfile = ({ ...props }: ProfileProps) => {
       </div>
 
       {isHovered && (
-        <div className="absolute left-[2px] top-[15px]">
+        <div className="absolute left-[-8px] top-[15px]">
           {props?.creditorAccounts !== null &&
             props.creditorAccounts !== undefined &&
             props?.creditorAccounts.length > 0 && (

@@ -244,7 +244,6 @@ const Web = () => {
   }, [entityCtx.selectedCreditorEntity.creditorSelectedIndex])
 
   useEffect(() => {
-    console.log("ACCOUNTS: ")
     processCtx.getAllCreditorConditions()
     processCtx.getAllDebtorConditions()
   }, [entityCtx.selectedDebtorEntity.debtorAccountsLength, entityCtx.selectedCreditorEntity.creditorAccountsLength])
@@ -258,66 +257,88 @@ const Web = () => {
   if (loading) return <Loader />
   if (error) return <p>Error: {error}</p>
 
-  const onDragEnd = async (result: { destination: any; source: any; draggableId: any }) => {
-    const { destination, source, draggableId } = result
+  function dragstartHandler(ev: React.DragEvent<HTMLElement>) {
+    ev.dataTransfer.setData("text", (ev.target as HTMLElement).id)
+  }
 
-    // No destination (dropped outside of droppable)
-    if (!destination) return
+  function dragoverHandler(ev: React.DragEvent<HTMLElement>) {
+    ev.preventDefault()
+  }
 
-    // If dropped in the same place, do nothing
-    if (destination.droppableId === source.droppableId && destination.index === source.index) {
+  function dropHandler(ev: React.DragEvent<HTMLElement>) {
+    ev.preventDefault()
+    const data = ev.dataTransfer.getData("text")
+    const dropTarget = ev.currentTarget as HTMLElement
+
+    // Determine which list is the drop target
+    const isDropTarget1 = dropTarget.id === "debtorProfiles"
+    const isDropTarget2 = dropTarget.id === "creditorProfiles"
+
+    // Find the dragged item in datalist1 or datalist2
+    const draggedDebtorItem: Entity | undefined = entityCtx.entities.find(
+      (item, index) => index === entityCtx.selectedDebtorEntity.debtorSelectedIndex
+    )
+
+    const draggedCreditorItem: CdtrEntity | undefined = entityCtx.creditorEntities.find(
+      (item, index) => index === entityCtx.selectedCreditorEntity.creditorSelectedIndex
+    )
+
+    if (draggedDebtorItem === undefined && draggedCreditorItem === undefined) return
+
+    // Prevent duplicates in the target list
+
+    if (
+      (isDropTarget1 &&
+        entityCtx.entities.some((item) => item.Entity.Dbtr.Nm === draggedCreditorItem?.CreditorEntity?.Cdtr.Nm)) ||
+      (isDropTarget2 &&
+        entityCtx.creditorEntities.some((item) => item.CreditorEntity.Cdtr.Nm === draggedDebtorItem?.Entity?.Dbtr.Nm))
+    ) {
       return
     }
 
-    if (source.droppableId === "debtorProfiles" && destination.droppableId === "creditorProfiles") {
-      try {
-        // Clone entity from Debtor to Creditor
-        const clonedEntity = { ...entityCtx.entities[source.index] }
-        const exists =
-          entityCtx.creditorEntities.find(
-            (element: CdtrEntity) => element.CreditorEntity.Cdtr.Nm === clonedEntity?.Entity?.Dbtr?.Nm
-          ) !== undefined
-        if (!exists) {
-          entityCtx.cloneEntity(clonedEntity?.Entity, clonedEntity?.Accounts)
-          entityCtx.selectCreditorEntity(destination.index, 0)
-        } else if (exists) {
-          const index = entityCtx.creditorEntities.findIndex(
-            (value: CdtrEntity) => value.CreditorEntity.Cdtr.Nm === clonedEntity?.Entity?.Dbtr?.Nm
-          )
-          entityCtx.selectCreditorEntity(index, 0)
-        }
-        processCtx.getAllCreditorConditions()
-        return
-      } catch (error) {
-        console.log("D to C - ERROR", error)
-      }
-    }
+    // Clone by adding to the target list state (limit 4 items)
+    if (isDropTarget1 && entityCtx.entities.length < 4) {
+      // Clone entity from Creditor to Debtor
+      const exists =
+        entityCtx.entities.find(
+          (element: Entity) => element.Entity.Dbtr.Nm === draggedCreditorItem?.CreditorEntity?.Cdtr?.Nm
+        ) !== undefined
 
-    if (source.droppableId === "creditorProfiles" && destination.droppableId === "debtorProfiles") {
-      try {
-        // Clone entity from Creditor to Debtor
-        const clonedCreditorEntity = { ...entityCtx.creditorEntities[source.index] }
-        const exists =
-          entityCtx.entities.find(
-            (element: Entity) => element.Entity.Dbtr.Nm === clonedCreditorEntity?.CreditorEntity?.Cdtr?.Nm
-          ) !== undefined
-
-        console.log("EXISTS: ", exists)
-        if (!exists) {
-          entityCtx.cloneCreditorEntity(clonedCreditorEntity?.CreditorEntity, clonedCreditorEntity?.CreditorAccounts)
-          entityCtx.selectDebtorEntity(destination.index, 0)
-        } else if (exists) {
-          const index = entityCtx.entities.findIndex(
-            (value: Entity) => value.Entity.Dbtr.Nm === clonedCreditorEntity?.CreditorEntity?.Cdtr?.Nm
-          )
-          console.log("INDEX: ", index)
-          entityCtx.selectDebtorEntity(index, 0)
-        }
-        processCtx.getAllDebtorConditions()
-        return
-      } catch (error) {
-        console.log("C to D - ERROR", error)
+      if (!exists) {
+        entityCtx.cloneCreditorEntity(draggedCreditorItem?.CreditorEntity, draggedCreditorItem?.CreditorAccounts)
+        const index = entityCtx.entities.findIndex(
+          (value: Entity) => value.Entity.Dbtr.Nm === draggedCreditorItem?.CreditorEntity?.Cdtr?.Nm
+        )
+        entityCtx.selectDebtorEntity(index, 0)
+      } else if (exists) {
+        const index = entityCtx.entities.findIndex(
+          (value: Entity) => value.Entity.Dbtr.Nm === draggedCreditorItem?.CreditorEntity?.Cdtr?.Nm
+        )
+        entityCtx.selectDebtorEntity(index, 0)
       }
+      processCtx.getAllDebtorConditions()
+      return
+    } else if (isDropTarget2 && entityCtx.creditorEntities.length < 4) {
+      // Clone entity from Debtor to Creditor
+      const exists =
+        entityCtx.creditorEntities.find(
+          (element: CdtrEntity) => element.CreditorEntity.Cdtr.Nm === draggedDebtorItem?.Entity.Dbtr.Nm
+        ) !== undefined
+
+      if (!exists) {
+        entityCtx.cloneEntity(draggedDebtorItem?.Entity, draggedDebtorItem?.Accounts)
+        const index = entityCtx.creditorEntities.findIndex(
+          (value: CdtrEntity) => value.CreditorEntity.Cdtr.Nm === draggedDebtorItem?.Entity?.Dbtr?.Nm
+        )
+        entityCtx.selectCreditorEntity(index, 0)
+      } else if (exists) {
+        const index = entityCtx.creditorEntities.findIndex(
+          (value: CdtrEntity) => value.CreditorEntity.Cdtr.Nm === draggedDebtorItem?.Entity?.Dbtr?.Nm
+        )
+        entityCtx.selectCreditorEntity(index, 0)
+      }
+      processCtx.getAllCreditorConditions()
+      return
     }
   }
 
@@ -347,42 +368,61 @@ const Web = () => {
       <div className="bg-slate-300/25 px-3 pb-1 pt-4">
         <div className="grid grid-cols-12 gap-5">
           {/* Debtors */}
-          <DragDropContext onDragEnd={onDragEnd}>
-            <div className="col-span-2">
-              <div className="flex flex-col flex-wrap justify-center rounded-lg py-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-                <div className="mb-2 text-center text-xl">Debtors</div>
-                <DebtorProfileComponent
+          {/* <DragDropContext onDragEnd={onDragEnd}> */}
+          <div className="col-span-2">
+            <div className="flex flex-col flex-wrap justify-center rounded-lg py-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+              <div className="mb-2 w-full text-center text-xl">Debtors</div>
+              <DebtorProfileComponent
+                selectedEntity={selectedEntity}
+                setModal={setModal}
+                setSelectedEntity={setSelectedEntity}
+                onDragOver={dragoverHandler}
+                onDragStart={dragstartHandler}
+                onDrop={dropHandler}
+              />
+            </div>
+          </div>
+
+          {/* Device transactions */}
+          <div className="col-span-8">
+            <div className="grid grid-cols-12 gap-1">
+              <div className="col-span-4">
+                <DebtorDevice
                   selectedEntity={selectedEntity}
-                  setModal={setModal}
-                  setSelectedEntity={setSelectedEntity}
+                  isDebtor={true}
+                  lights={processCtx.edLights}
+                  setLights={processCtx.updateEDLights}
+                  resetLights={processCtx.resetAllLights}
+                  started={started}
+                  setStarted={setStarted}
+                  resetAllLights={() => processCtx.resetAllLights()}
+                  setModalVisible={setModal}
+                  setCreateModalVisible={processCtx.setShowDebtorConditionsCreate}
                 />
               </div>
-            </div>
-
-            {/* Device transactions */}
-            <div className="col-span-8">
-              <div className="grid grid-cols-12 gap-1">
-                <div className="col-span-4">
-                  <DebtorDevice
-                    selectedEntity={selectedEntity}
-                    isDebtor={true}
-                    lights={processCtx.edLights}
-                    setLights={processCtx.updateEDLights}
-                    resetLights={processCtx.resetAllLights}
-                    started={started}
-                    setStarted={setStarted}
-                    resetAllLights={() => processCtx.resetAllLights()}
-                    setModalVisible={setModal}
-                    setCreateModalVisible={processCtx.setShowDebtorConditionsCreate}
+              <div className="relative col-span-4 flex items-center justify-between px-5">
+                <ProcessIndicator
+                  started={started}
+                  stop={processCtx.tadpLights.stop}
+                  efrup={processCtx.tadpLights.efrup}
+                />
+                {processCtx.tadpLights.efrup === "block" ? (
+                  <Image
+                    src="/stop.png"
+                    width="250"
+                    height="250"
+                    className="absolute inset-0 m-auto"
+                    style={{
+                      position: "absolute",
+                      zIndex: 1,
+                      minWidth: "280px",
+                    }}
+                    alt="stop"
+                    priority={true}
                   />
-                </div>
-                <div className="relative col-span-4 flex items-center justify-between px-5">
-                  <ProcessIndicator
-                    started={started}
-                    stop={processCtx.tadpLights.stop}
-                    efrup={processCtx.tadpLights.efrup}
-                  />
-                  {processCtx.tadpLights.efrup === "block" ? (
+                ) : (
+                  processCtx.tadpLights.stop &&
+                  processCtx.tadpLights.efrup !== "override" && (
                     <Image
                       src="/stop.png"
                       width="250"
@@ -391,151 +431,47 @@ const Web = () => {
                       style={{
                         position: "absolute",
                         zIndex: 1,
+                        // maxWidth: "280px",
                         minWidth: "280px",
                       }}
                       alt="stop"
                       priority={true}
                     />
-                  ) : (
-                    processCtx.tadpLights.stop &&
-                    processCtx.tadpLights.efrup !== "override" && (
-                      <Image
-                        src="/stop.png"
-                        width="250"
-                        height="250"
-                        className="absolute inset-0 m-auto"
-                        style={{
-                          position: "absolute",
-                          zIndex: 1,
-                          // maxWidth: "280px",
-                          minWidth: "280px",
-                        }}
-                        alt="stop"
-                        priority={true}
-                      />
-                    )
-                  )}
-                </div>
-                <div className="col-span-4">
-                  <DebtorDevice
-                    selectedEntity={selectedCreditorEntity}
-                    isDebtor={false}
-                    lights={processCtx.edLights}
-                    setLights={processCtx.updateEDLights}
-                    resetLights={processCtx.resetAllLights}
-                    setStarted={setStarted}
-                    resetAllLights={() => processCtx.resetAllLights()}
-                    setModalVisible={setShowCreditorModal}
-                    setCreateModalVisible={processCtx.setShowCreditorConditionsCreate}
-                  />
-                </div>
+                  )
+                )}
               </div>
-            </div>
-
-            {/* Creditors */}
-
-            <div className="col-span-2">
-              <div className="flex flex-col flex-wrap justify-center rounded-lg py-5  shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-                <div className="mb-2 text-center text-xl">Creditors</div>
-                {/* <Droppable droppableId="creditorProfiles">
-                  {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps} className="min-w-full space-y-2">
-                      <>
-                        <Draggable key={`creditor-0`} draggableId={`creditor-0`} index={0}>
-                          {(provided: any) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                              <CreditorProfile
-                                colour={!entityCtx.creditorEntities[0] ? "text-gray-300" : "text-blue-500"}
-                                reverse={true}
-                                entity={entityCtx.creditorEntities[0]?.CreditorEntity}
-                                creditorAccounts={entityCtx.creditorEntities[0]?.CreditorAccounts}
-                                setModalVisible={setShowCreditorModal}
-                                setSelectedEntity={() => setSelectedCreditorEntity(0)}
-                                index={0}
-                                selectedEntity={selectedCreditorEntity}
-                                addAccount={async () => {
-                                  await entityCtx.createCreditorEntityAccount(0)
-                                  await entityCtx.selectCreditorEntity(0, 0)
-                                }}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                        <Draggable key={`creditor-1`} draggableId={`creditor-1`} index={1}>
-                          {(provided: any) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                              <CreditorProfile
-                                colour={!entityCtx.creditorEntities[1] ? "text-gray-300" : "text-green-500"}
-                                reverse={true}
-                                entity={entityCtx.creditorEntities[1]?.CreditorEntity}
-                                creditorAccounts={entityCtx.creditorEntities[1]?.CreditorAccounts}
-                                setModalVisible={setShowCreditorModal}
-                                index={1}
-                                setSelectedEntity={() => setSelectedCreditorEntity(1)}
-                                selectedEntity={selectedCreditorEntity}
-                                addAccount={async () => {
-                                  await entityCtx.createCreditorEntityAccount(1)
-                                  await entityCtx.selectCreditorEntity(1, 0)
-                                }}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-
-                        <Draggable key={`creditor-2`} draggableId={`creditor-2`} index={2}>
-                          {(provided: any) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                              <CreditorProfile
-                                colour={!entityCtx.creditorEntities[2] ? "text-gray-300" : "text-yellow-400"}
-                                reverse={true}
-                                entity={entityCtx.creditorEntities[2]?.CreditorEntity}
-                                creditorAccounts={entityCtx.creditorEntities[2]?.CreditorAccounts}
-                                setModalVisible={setShowCreditorModal}
-                                setSelectedEntity={() => setSelectedCreditorEntity(2)}
-                                index={2}
-                                selectedEntity={selectedCreditorEntity}
-                                addAccount={async () => {
-                                  await entityCtx.createCreditorEntityAccount(2)
-                                  await entityCtx.selectCreditorEntity(2, 0)
-                                }}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-
-                        <Draggable key={`creditor-3`} draggableId={`creditor-3`} index={3}>
-                          {(provided: any) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                              <CreditorProfile
-                                colour={!entityCtx.creditorEntities[3] ? "text-gray-300" : "text-orange-500"}
-                                reverse={true}
-                                entity={entityCtx.creditorEntities[3]?.CreditorEntity}
-                                creditorAccounts={entityCtx.creditorEntities[3]?.CreditorAccounts}
-                                setModalVisible={setShowCreditorModal}
-                                setSelectedEntity={() => setSelectedCreditorEntity(3)}
-                                index={3}
-                                selectedEntity={selectedCreditorEntity}
-                                addAccount={async () => {
-                                  await entityCtx.createCreditorEntityAccount(3)
-                                  await entityCtx.selectCreditorEntity(3, 0)
-                                }}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      </>
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable> */}
-                <CreditorProfileComponent
-                  setSelectedCreditorEntity={setSelectedCreditorEntity}
-                  setShowCreditorModal={setShowCreditorModal}
-                  selectedCreditorEntity={selectedCreditorEntity}
+              <div className="col-span-4">
+                <DebtorDevice
+                  selectedEntity={selectedCreditorEntity}
+                  isDebtor={false}
+                  lights={processCtx.edLights}
+                  setLights={processCtx.updateEDLights}
+                  resetLights={processCtx.resetAllLights}
+                  setStarted={setStarted}
+                  resetAllLights={() => processCtx.resetAllLights()}
+                  setModalVisible={setShowCreditorModal}
+                  setCreateModalVisible={processCtx.setShowCreditorConditionsCreate}
                 />
               </div>
             </div>
-          </DragDropContext>
+          </div>
+
+          {/* Creditors */}
+
+          <div className="col-span-2">
+            <div className="flex flex-col flex-wrap justify-center rounded-lg py-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+              <div className="mb-2 w-full text-center text-xl">Creditors</div>
+              <CreditorProfileComponent
+                setSelectedCreditorEntity={setSelectedCreditorEntity}
+                setShowCreditorModal={setShowCreditorModal}
+                selectedCreditorEntity={selectedCreditorEntity}
+                onDragOver={dragoverHandler}
+                onDragStart={dragstartHandler}
+                onDrop={dropHandler}
+              />
+            </div>
+          </div>
+          {/* </DragDropContext> */}
         </div>
 
         <div className="mb-2 grid grid-cols-6 gap-3 pt-8">
