@@ -10,12 +10,7 @@ interface Props {
 
 const Dropzone = ({ id, children, onDragOver, onDrop }: Props) => {
   return (
-    <div
-      id={id}
-      className="m-2 flex flex-col rounded-md border-2 border-dashed border-gray-400"
-      onDrop={onDrop}
-      onDragOver={onDragOver}
-    >
+    <div id={id} className="ml-[-5px] flex flex-col" onDrop={onDrop} onDragOver={onDragOver}>
       {children}
     </div>
   )
