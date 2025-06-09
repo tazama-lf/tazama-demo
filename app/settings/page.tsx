@@ -55,8 +55,230 @@ const Settings = () => {
   }
 
   return (
-    <div className=" bg-slate-300/25 p-10" style={{ minHeight: `calc(100vh - 81px)` }}>
+    <div
+      className="align-center flex flex-col bg-slate-300/25 px-10 pt-[5%]"
+      style={{ minHeight: `calc(100vh - 81px)` }}
+    >
       <div className="grid grid-cols-12 gap-5">
+        <h1 className="col-span-full text-center text-2xl">UI Configuration</h1>
+        <div className="col-span-2"></div>
+
+        <div className="col-span-4">
+          <div className="col-span-full">
+            <label htmlFor="tms_id">TMS API Host URL</label>
+            <div className="my-2">
+              <input
+                id="tms_id"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.tmsServerUrl || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      tmsServerUrl: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="col-span-full">
+            <hr className="mb-2 mt-3 border-black" />
+          </div>
+          <div className="col-span-full">
+            <label htmlFor="cms_host">NATS Hosting</label>
+            <div className="my-2">
+              <input
+                id="tms_key"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.cmsNatsHosting || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      cmsNatsHosting: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="col-span-full">
+            <label htmlFor="cms_usr">Name</label>
+            <div className="my-2">
+              <input
+                id="tms_key"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.natsUsername || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      natsUsername: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="col-span-full">
+            <label htmlFor="cms_pwd">Password</label>
+            <div className="my-2">
+              <input
+                id="tms_key"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.natsPassword || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      natsPassword: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="col-span-full">
+            <hr className="mb-2 mt-3 border-black" />
+          </div>
+          <div className="col-span-full">
+            <label htmlFor="cms_pwd">Admin Service Host URL</label>
+            <div className="my-2">
+              <input
+                id="tms_key"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.adminServiceUrl || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      adminServiceUrl: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="col-span-4">
+          <div className="col-span-full">
+            <label htmlFor="argo_host">Arango DB hosting</label>
+            <div className="my-2">
+              <input
+                id="tms_key"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.arangoDBHosting || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      arangoDBHosting: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="col-span-full">
+            <label htmlFor="argo_usr">Name</label>
+            <div className="my-2">
+              <input
+                id="tms_key"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.dbUser || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      dbUser: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="col-span-full">
+            <label htmlFor="argo_pwd">Password</label>
+            <div className="my-2">
+              <input
+                id="tms_key"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.dbPassword || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      dbPassword: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="col-span-full">
+            <hr className="mb-2 mt-2 border-black" />
+          </div>
+          <div className="col-span-full">
+            <label htmlFor="argo_pwd">Websocket IP Address</label>
+            <div className="my-2">
+              <input
+                id="ip_address"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.wsIpAddress || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      wsIpAddress: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="col-span-4"></div>
+        <div className="col-span-4 mt-10">
+          <div className="flex flex-row justify-center gap-5">
+            <input
+              className="w-full rounded-lg py-3 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
+              type="button"
+              value="Cancel Update"
+              onClick={handleConfigUpdateCancel}
+            />
+            <input
+              className="w-full rounded-lg py-3 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
+              type="button"
+              value="Update"
+              onClick={() => setShowConfigModal(true)}
+            />
+          </div>
+        </div>
+        <div className="col-span-2"></div>
+        <div className="col-span-2 mt-10">
+          <button
+            className="w-full rounded-lg py-3 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
+            type="button"
+            onClick={() => setShowModal(true)}
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+      {/* <div className="grid grid-cols-12 gap-5">
         <div className="col-span-4"></div>
         <div className="col-span-4">
           <h1 className="text-center">UI Configuration</h1>
@@ -74,6 +296,26 @@ const Settings = () => {
                     setConfig({
                       ...config,
                       tmsServerUrl: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="col-span-full">
+            <label htmlFor="cms_pwd">Admin Service Host URL</label>
+            <div className="my-2">
+              <input
+                id="tms_key"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.natsPassword || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      natsPassword: e.target.value,
                     })
                   }
                 }}
@@ -257,7 +499,7 @@ const Settings = () => {
             Reset
           </button>
         </div>
-      </div>
+      </div> */}
 
       <div className="absolute bottom-[2%] flex justify-start gap-2 opacity-70">
         <span style={{ textShadow: "1px 1px white" }}> Powered by</span>

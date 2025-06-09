@@ -86,7 +86,10 @@ const ProcessorProvider = ({ children }: Props) => {
   const msgId: any = useRef("")
 
   useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_ADMIN_SERVICE_HOSTING
+    const uiConfigStorage = localStorage.getItem("UI_CONFIG")
+    const uiConfig: any = uiConfigStorage ? JSON.parse(uiConfigStorage) : null
+    const url = uiConfig ? uiConfig.adminServiceUrl : process.env.NEXT_PUBLIC_ADMIN_SERVICE_HOSTING
+    // const url = localStorage.getItem()
     if (adminServiceUrl === "") {
       if (url) {
         setAdminServiceUrl(url)
