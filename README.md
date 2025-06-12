@@ -82,19 +82,25 @@ yarn install --frozen-lockfile
 
 ```text
 NODE_ENV=development
-NEXT_PUBLIC_URL="http://localhost:3001"
+NEXT_PUBLIC_URL="http://{server_ip_address}:3001"
 PORT="3001"
-NEXT_PUBLIC_TMS_SERVER_URL="http://localhost:5000"
-NEXT_PUBLIC_TMS_KEY="no_key_set"
-NEXT_PUBLIC_CMS_NATS_HOSTING="nats://localhost:14222"
+NEXT_PUBLIC_TMS_SERVER_URL="http://{server_ip_address}:5000"
+NEXT_PUBLIC_TMS_KEY=""
+NEXT_PUBLIC_CMS_NATS_HOSTING="nats://nats:4222"
 NEXT_PUBLIC_NATS_USERNAME=""
 NEXT_PUBLIC_NATS_PASSWORD=""
-NEXT_PUBLIC_ARANGO_DB_HOSTING="http://localhost:18529"
+NEXT_PUBLIC_ARANGO_DB_HOSTING="http://{server_ip_address}:18529"
 NEXT_PUBLIC_DB_USER="root"
 NEXT_PUBLIC_DB_PASSWORD=""
-NEXT_PUBLIC_WS_URL="http://localhost:3001"
+NEXT_PUBLIC_WS_URL="http://{your_machines_ip_address}:3001"
 
 NEXT_PUBLIC_NATS_SUBSCRIPTIONS="['connection', '>', 'typology-999@1.0.0']"
+
+NEXT_PUBLIC_ADMIN_SERVICE_HOSTING="http://{server_ip_address}:5100"
+NEXT_PUBLIC_CONDITION_TYPES="['non-overridable-block', 'overridable-block', 'override']"
+NEXT_PUBLIC_EVENT_TYPES="['pacs.008.001.10', 'pacs.002.001.12', 'pain.001.001.11', 'pain.013.001.09']"
+NEXT_PUBLIC_CONDITION_REASONS="['Suspicion of Money Laundering', 'Violation of KYC/AML Requirements', 'Suspicion of Terrorist Financing', 'Tax Evasion Concerns', 'Regulatory Reporting Thresholds', 'Unusual Transaction Patterns', 'High-Risk Countries', 'Multiple Failed Login Attempts', 'Fraudulent Activity', 'Phishing or Account Takeover', 'Suspicious Beneficiaries', 'System Errors', 'Exceeding Limits', 'Legal Holds or Court Orders', 'Adverse media reports', 'Dormant or Inactive Accounts', 'Internal Bank Policies']"
+
 ```
 
 5. Run the development server:
@@ -114,8 +120,8 @@ yarn dev
 
 ```yaml
 demo:
-    image: tazamaorg/demo-ui:v1.0.16
-    env_file:
+    image: tazamaorg/demo-ui:v2.1.0
+        env_file:
       - path: ./env/demo.env
         required: true
     restart: always
@@ -155,8 +161,6 @@ NEXT_PUBLIC_ADMIN_SERVICE_HOSTING="http://{server_ip_address}:5100"
 NEXT_PUBLIC_CONDITION_TYPES="['non-overridable-block', 'overridable-block', 'override']"
 NEXT_PUBLIC_EVENT_TYPES="['pacs.008.001.10', 'pacs.002.001.12', 'pain.001.001.11', 'pain.013.001.09']"
 NEXT_PUBLIC_CONDITION_REASONS="['Suspicion of Money Laundering', 'Violation of KYC/AML Requirements', 'Suspicion of Terrorist Financing', 'Tax Evasion Concerns', 'Regulatory Reporting Thresholds', 'Unusual Transaction Patterns', 'High-Risk Countries', 'Multiple Failed Login Attempts', 'Fraudulent Activity', 'Phishing or Account Takeover', 'Suspicious Beneficiaries', 'System Errors', 'Exceeding Limits', 'Legal Holds or Court Orders', 'Adverse media reports', 'Dormant or Inactive Accounts', 'Internal Bank Policies']"
-
-
   ```
 
 4. From the **[Full-Stack-Tazama-Docker](https://github.com/tazama-lf/Full-Stack-Docker-Tazama)** directory run:
@@ -212,7 +216,7 @@ NEXT_PUBLIC_CONDITION_REASONS="['Suspicion of Money Laundering', 'Violation of K
 
 ### Versioning
 
-> Format: v1.0.16
+> Format: v2.1.0
 > 
 > Given a version number MAJOR.MINOR.PATCH, increment the:
 >
@@ -289,18 +293,26 @@ If the build fails run the following script to revert changes made to the `docke
 4. To use the Docker Image in the **[Full-Stack-Tazama-Docker](https://github.com/tazama-lf/Full-Stack-Docker-Tazama)** stack, update the following:
 
     ```yaml
-    demo:
-      image: tazamaorg/demo-ui:{version}-dev
-      env_file:
-        - path: ./env/demo.env
-          required: true
-      restart: always
-      depends_on:
-        - tms
-        - arango
-        - nats
-      ports:
-        - '3001:3001'
+    services:
+      app:
+        container_name: tazama-demo
+        image: tazamaorg/demo-ui:v2.1.0
+        env_file:
+          - .env
+        volumes:
+            - .:/app
+            - /app/node_modules
+            - /app/.next
+        ports:
+          - "3001:3001"
+        restart: always
+        networks:
+          - network1
+
+    networks:
+      network1:
+        name: tazama_default
+        external: true
     ```
 
     > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v1.0.16*
