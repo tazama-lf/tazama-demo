@@ -134,7 +134,7 @@ demo:
 ```
 
 > **Note* - Make sure to update the image to the most recent version
-> tazamaorg/demo-ui:`{current_version}` eg: `v1.0.16`
+> tazamaorg/demo-ui:`{current_version}` eg: `v2.1.0`
 
 3. Navigate to the `env` directory in the **[Full-Stack-Tazama-Docker](https://github.com/tazama-lf/Full-Stack-Docker-Tazama)** folder:
 
@@ -279,7 +279,7 @@ If the build fails run the following script to revert changes made to the `docke
    docker tag tazamaorg/demo-ui:{version} tazamaorg/demo-ui:{version}-dev
    ```
 
-   > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v1.0.16*
+   > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.1.0*
 3. Push the image to docker hub
 
    If you want to push the Docker image to Dockerhub for a distribution and testing:
@@ -288,7 +288,7 @@ If the build fails run the following script to revert changes made to the `docke
    docker push tazamaorg/demo-ui:{version}-dev
    ```
 
-   > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v1.0.16*
+   > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.1.0*
 
 4. To use the Docker Image in the **[Full-Stack-Tazama-Docker](https://github.com/tazama-lf/Full-Stack-Docker-Tazama)** stack, update the following:
 
