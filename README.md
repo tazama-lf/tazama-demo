@@ -315,7 +315,7 @@ If the build fails run the following script to revert changes made to the `docke
         external: true
     ```
 
-    > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v1.0.16*
+    > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.1.0*
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
 
