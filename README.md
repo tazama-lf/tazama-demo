@@ -4,6 +4,9 @@
 
 # Tazama Demo Application</br>
 
+> [!Important]
+> **[`Tazama`](https://tazama.org/index.html)** This repo is not intended for end users. Please refer to  **[Full-Stack-Tazama-Docker](https://github.com/tazama-lf/Full-Stack-Docker-Tazama)** repo.
+
 > [!NOTE]
 > **[`Tazama`](https://tazama.org/index.html)** Open Source Real-Time Transaction Monitoring Software for Fraud and Money Laundering Detection
 
@@ -116,72 +119,7 @@ yarn dev
 ### Network Setup
 
 1. Follow the **[Full-Stack-Tazama-Docker](https://github.com/tazama-lf/Full-Stack-Docker-Tazama)** setup guide.
-2. Add the following to the **[Full-Stack-Tazama-Docker](https://github.com/tazama-lf/Full-Stack-Docker-Tazama)** docker-compose.yaml found in the root directory
-
-```yaml
-demo:
-    image: tazamaorg/demo-ui:v2.1.0
-        env_file:
-      - path: ./env/demo.env
-        required: true
-    restart: always
-    depends_on:
-      - tms
-      - arango
-      - nats
-    ports:
-      - '3001:3001'
-```
-
-> **Note* - Make sure to update the image to the most recent version
-> tazamaorg/demo-ui:`{current_version}` eg: `v2.1.0`
-
-3. Navigate to the `env` directory in the **[Full-Stack-Tazama-Docker](https://github.com/tazama-lf/Full-Stack-Docker-Tazama)** folder:
-
-  ```text
-  demo.env file:
-# SPDX-License-Identifier: Apache-2.0
-
-NODE_ENV=development
-NEXT_PUBLIC_URL="http://{server_ip_address}:3001"
-PORT="3001"
-NEXT_PUBLIC_TMS_SERVER_URL="http://{server_ip_address}:5000"
-NEXT_PUBLIC_TMS_KEY=""
-NEXT_PUBLIC_CMS_NATS_HOSTING="nats://nats:4222"
-NEXT_PUBLIC_NATS_USERNAME=""
-NEXT_PUBLIC_NATS_PASSWORD=""
-NEXT_PUBLIC_ARANGO_DB_HOSTING="http://{server_ip_address}:18529"
-NEXT_PUBLIC_DB_USER="root"
-NEXT_PUBLIC_DB_PASSWORD=""
-NEXT_PUBLIC_WS_URL="http://{your_machines_ip_address}:3001"
-
-NEXT_PUBLIC_NATS_SUBSCRIPTIONS="['connection', '>', 'typology-999@1.0.0']"
-
-NEXT_PUBLIC_ADMIN_SERVICE_HOSTING="http://{server_ip_address}:5100"
-NEXT_PUBLIC_CONDITION_TYPES="['non-overridable-block', 'overridable-block', 'override']"
-NEXT_PUBLIC_EVENT_TYPES="['pacs.008.001.10', 'pacs.002.001.12', 'pain.001.001.11', 'pain.013.001.09']"
-NEXT_PUBLIC_CONDITION_REASONS="['Suspicion of Money Laundering', 'Violation of KYC/AML Requirements', 'Suspicion of Terrorist Financing', 'Tax Evasion Concerns', 'Regulatory Reporting Thresholds', 'Unusual Transaction Patterns', 'High-Risk Countries', 'Multiple Failed Login Attempts', 'Fraudulent Activity', 'Phishing or Account Takeover', 'Suspicious Beneficiaries', 'System Errors', 'Exceeding Limits', 'Legal Holds or Court Orders', 'Adverse media reports', 'Dormant or Inactive Accounts', 'Internal Bank Policies']"
-  ```
-
-4. From the **[Full-Stack-Tazama-Docker](https://github.com/tazama-lf/Full-Stack-Docker-Tazama)** directory run:
-
-   ```bash
-   docker compose pull demo
-   ```
-
-   then:
-   ```bash
-   docker compose up demo -d
-   ```
-
-5. Navigate to: [http://localhost:3001](http://localhost:3001)
-
-6. To bring the demo container down run:
-
-   ```bash
-   docker compose down demo --remove-orphans
-   ```
-
+2. Do not deploy the demo ui from Full-Stack-Tazama-Docker. Run demo ui locally `yarn dev`
 <a><div align="right">[Top](#table-of-contents)</div></a>
 
 ### Setup UI
