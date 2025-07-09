@@ -7,7 +7,7 @@ const { Server } = require("socket.io")
 const { createServer } = require("http")
 const { parse } = require("url")
 
-const app = next({ dev: process.env.NODE_ENV !== "production", customServer: true, quiet: true, turbo: true })
+const app = next({ dev: process.env.NODE_ENV !== "production", customServer: true, quiet: false, turbo: true })
 
 let natsUrl = { url: null }
 
@@ -15,18 +15,22 @@ const port = process.env.PORT
 
 const handle = app.getRequestHandler()
 
-// const sc = NATS.StringCodec()
-
 const handleMsg = async (msg, socket, room) => {
   const decodedMessage = frms.default.decode(msg.data)
+
+  await socket.to(room).emit(room, decodedMessage)
+}
+const handleMsg1 = async (msg, socket, room) => {
+  const decodedMessage = frms.default.decode(msg.data)
+
   await socket.to(room).emit(room, decodedMessage)
 }
 
-// const messageListener = async (messages, socket) => {
-//   ;(async () => {
-//     for await (const msg of messages) await handleMsg(msg, socket)
-//   })()
-// }
+const handleMsg2 = async (msg, socket, room) => {
+  const decodedMessage = frms.default.decode(msg.data)
+
+  await socket.to(room).emit(room, decodedMessage)
+}
 
 app.prepare().then(() => {
   const server = createServer((req, res) => {
@@ -51,6 +55,8 @@ app.prepare().then(() => {
     "tadProc",
     "stream",
     "ui_config",
+    "cms",
+    "interdiction-service",
   ]
 
   io.on("connection", async (socket) => {
@@ -103,17 +109,18 @@ app.prepare().then(() => {
     console.log("NATS Server Info: ", nc.info)
 
     const connected = nc.subscribe("connection")
-    const all = nc.subscribe(">", { queue: "MONITORING1" })
+    // const all = nc.subscribe(">", { queue: "MONITORING1" })
     const cms = nc.subscribe("cms", { queue: "MONITORING_CMS" })
+    const is = nc.subscribe("interdiction-service", { queue: "MONITORING_IS" })
 
     ;(async () => {
       for await (const msg of connected) await handleMsg(msg, io, "connection")
     })()
     ;(async () => {
-      for await (const msg of all) await handleMsg(msg, io, "stream")
+      for await (const msg of cms) await handleMsg1(msg, io, "tadProc")
     })()
     ;(async () => {
-      for await (const msg of cms) await handleMsg(msg, io, "tadProc")
+      for await (const msg of is) await handleMsg2(msg, io, "interdiction-service")
     })()
 
     io.to("stream").emit("stream", { message: "Stream Test Message" })

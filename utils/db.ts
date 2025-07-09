@@ -1,3 +1,4 @@
+import { TypoEFRuP } from "./../store/processors/processor.interface"
 import {
   DBConfig,
   Rule,
@@ -12,21 +13,10 @@ import {
 const { Database, aql } = require("arangojs")
 require("dotenv").config()
 
-// PASS ALL .ENV VARIABLES INTO THE FUNCTIONS FROM THE FE THAT COMES FROM THE LOCAL STORAGE
-
 const getConfigConnection = (config: DBConfig) => {
   return new Database({
     url: config.url,
     databaseName: "configuration",
-    auth: { username: config.auth.username, password: config.auth.password },
-  })
-}
-
-const getTADPROCConnection = (config: any) => {
-  // establish database connection
-  return new Database({
-    url: config.url,
-    databaseName: "evaluationResults",
     auth: { username: config.auth.username, password: config.auth.password },
   })
 }
@@ -110,23 +100,18 @@ export const getTypologyDescriptions = async (config: DBConfig) => {
   return result
 }
 
-export const getTADPROCResult = async (transactionID: string, config: DBConfig) => {
-  const db = getTADPROCConnection(config)
-  await getCollection("transactions", db)
+export const handleTadProcResults = async (msg: any) => {
+  let result: any[] = []
 
-  let result = []
   try {
-    const results = await db.query(aql`FOR c IN transactions FILTER c.transactionID == ${transactionID} RETURN c`)
-    for await (let transaction of results) {
-      result.push(transaction)
-    }
-    // db.close()
+    result.push(msg)
     if (result.length > 0) {
       let response: TADPROC = {
         status: result[0]?.report?.status,
         stop: false,
         color: "n",
         results: [],
+        efrupResults: [],
       }
       // DOUBLE CHECK THIS LOGIC
       if (result[0]?.report?.status === "NALT") {
@@ -143,15 +128,24 @@ export const getTADPROCResult = async (transactionID: string, config: DBConfig) 
           let typoResult: TADPROC_RESULT = {
             cfg: typoRes.cfg,
             result: typoRes.result,
+            efrup: undefined,
             workflow: {
               alertThreshold: null,
               interdictionThreshold: null,
             },
             ruleResults: [],
           }
-          // #################################################################################################
+
           // modify result object
           typoRes.ruleResults.forEach((result: RuleResult) => {
+            if (result.id === "EFRuP@1.0.0") {
+              typoResult.efrup = result.subRuleRef
+              let typoEFRuP: TypoEFRuP = {
+                typology: typoRes.cfg.split("@")[0],
+                efrupResult: result.subRuleRef,
+              }
+              response.efrupResults.push(typoEFRuP)
+            }
             typoResult.ruleResults.push(result)
           })
 
@@ -161,7 +155,9 @@ export const getTADPROCResult = async (transactionID: string, config: DBConfig) 
 
           typoResult.workflow.alertThreshold = typoRes.workflow.alertThreshold ? typoRes.workflow.alertThreshold : null
 
-          // Add this somewhere else...
+          if (typoResult.efrup !== undefined) {
+            response.efrup = typoResult.efrup
+          }
 
           if (typoResult.workflow.interdictionThreshold !== null) {
             if (typoRes.result >= typoResult.workflow.interdictionThreshold) {
@@ -172,31 +168,10 @@ export const getTADPROCResult = async (transactionID: string, config: DBConfig) 
           response.results.push(typoResult)
         })
       }
-
       return response
     }
   } catch (err) {
     console.log("TadProc Results Error: ", err)
-  }
-}
-
-const getTypologyDetails = async (cfg: string, config: DBConfig) => {
-  const db = getConfigConnection(config)
-  await getCollection("typologyConfiguration", db)
-  let result = []
-
-  try {
-    const results = await db.query(aql`FOR typo IN typologyConfiguration FILTER typo.cfg == ${cfg} RETURN typo`)
-
-    for await (let typo of results) {
-      result.push(typo)
-    }
-
-    await db.close()
-
-    return result
-  } catch (err) {
-    console.log("Typology Details Error: ", err)
   }
 }
 
@@ -213,6 +188,7 @@ export const getNetworkMap = async (config: DBConfig) => {
 
   const typologiesRes: any[] = []
   const rulesRes: any[] = []
+  const typologiesEFRuP: TypoEFRuP[] = []
 
   if (result.length > 0) {
     result[0].messages.forEach((element: any) => {
@@ -238,22 +214,26 @@ export const getNetworkMap = async (config: DBConfig) => {
             wght: 0,
             linkedTypologies: [],
             ruleBands: [],
+            displayLinkedTypo: [],
           }
-          rulesRes.push(newRule)
-
-          rulesRes.map(async (r) => {
-            if (r.id === rule.id) {
-              r.linkedTypologies.push(typology.cfg.split("@")[0])
+          if (rule.id.toString() === "EFRuP@1.0.0") {
+            let typoEFRuP: TypoEFRuP = {
+              typology: typology.cfg.split("@")[0],
+              efrupResult: undefined,
             }
-          })
-
+            typologiesEFRuP.push(typoEFRuP)
+            let exists = rulesRes.filter((rule: Rule) => rule.title === "EFRuP")
+            exists.length === 0 && rulesRes.push(newRule)
+          } else {
+            rulesRes.push(newRule)
+          }
           newTypology.linkedRules.push(newRule.title)
         })
         typologiesRes.push(newTypology)
       })
     })
   }
-  const finalRules = []
+  const finalRules: any[] = []
   for (let i = 0; i < rulesRes.length; i++) {
     let rule = rulesRes[i]
     let found = false
@@ -277,45 +257,47 @@ export const getNetworkMap = async (config: DBConfig) => {
   finalRules.forEach(async (rule) => {
     const resRule = await ruleData.find((r) => r.id === rule.rule)
     if (result.length > 0) {
-      rule.ruleDescription = resRule.desc
-      if (resRule.config.hasOwnProperty("bands")) {
-        resRule.config.bands.forEach((band: RuleBand) => {
-          let newBand = {
-            subRuleRef: band.subRuleRef,
-            lowerLimit: band.lowerLimit ? band.lowerLimit : null,
-            upperLimit: band.upperLimit ? band.upperLimit : null,
-            reason: band.reason,
-          }
-          rule.ruleBands.push(newBand)
-        })
-      } else if (resRule.config.hasOwnProperty("cases")) {
-        resRule.config.cases.forEach((item: RuleBand) => {
-          let newBand: RuleBand = {
-            subRuleRef: item.subRuleRef,
-            lowerLimit: item.lowerLimit ? item.lowerLimit : null,
-            upperLimit: item.upperLimit ? item.upperLimit : null,
-            reason: item.reason,
-          }
-          rule.ruleBands.push(newBand)
-        })
-      }
-      if (resRule.config.hasOwnProperty("exitConditions")) {
-        resRule.config.exitConditions.forEach((item: RuleBand) => {
-          let newCondition: RuleBand = {
-            subRuleRef: item.subRuleRef,
-            lowerLimit: item.lowerLimit ? item.lowerLimit : null,
-            upperLimit: item.upperLimit ? item.upperLimit : null,
-            reason: item.reason,
-          }
-          rule.ruleBands.push(newCondition)
-        })
-      }
+      const resRule1 = await ruleData.find((r) => r.rule === rule.rule)
 
-      typologiesRes.forEach(async (typology) => {
-        if (typology.linkedRules.includes(rule.title)) {
-          rule.linkedTypologies.push(typology.title)
+      if (rule.title === "EFRuP") {
+        rule.id = "EFRuP@1.0.0"
+        rule.title = "EFRuP"
+        rule.ruleDescription = "Event Flow Rule Processor"
+      } else {
+        rule.ruleDescription = resRule.desc
+        if (resRule.config.hasOwnProperty("bands")) {
+          resRule.config.bands.forEach((band: RuleBand) => {
+            let newBand = {
+              subRuleRef: band.subRuleRef,
+              lowerLimit: band.lowerLimit ? band.lowerLimit : null,
+              upperLimit: band.upperLimit ? band.upperLimit : null,
+              reason: band.reason,
+            }
+            rule.ruleBands.push(newBand)
+          })
+        } else if (resRule.config.hasOwnProperty("cases")) {
+          resRule.config.cases.forEach((item: RuleBand) => {
+            let newBand: RuleBand = {
+              subRuleRef: item.subRuleRef,
+              lowerLimit: item.lowerLimit ? item.lowerLimit : null,
+              upperLimit: item.upperLimit ? item.upperLimit : null,
+              reason: item.reason,
+            }
+            rule.ruleBands.push(newBand)
+          })
         }
-      })
+        if (resRule.config.hasOwnProperty("exitConditions")) {
+          resRule.config.exitConditions.forEach((item: RuleBand) => {
+            let newCondition: RuleBand = {
+              subRuleRef: item.subRuleRef,
+              lowerLimit: item.lowerLimit ? item.lowerLimit : null,
+              upperLimit: item.upperLimit ? item.upperLimit : null,
+              reason: item.reason,
+            }
+            rule.ruleBands.push(newCondition)
+          })
+        }
+      }
     }
   })
 
@@ -330,7 +312,7 @@ export const getNetworkMap = async (config: DBConfig) => {
 
   typologiesRes.forEach(async (typology) => {
     const typo = await typoData.find((t) => t.cfg === typology.id)
-    // let typo: any[] | undefined = await getTypologyDetails(typology.id, config)
+
     if (typo !== undefined) {
       typology.typoDescription = typo.desc
       typology.workflow.interdictionThreshold = typo.workflow.hasOwnProperty("interdictionThreshold")
@@ -341,11 +323,57 @@ export const getNetworkMap = async (config: DBConfig) => {
         : null
     }
   })
+
+  let ruleRes: Rule[] = finalRules.filter((item, index) => finalRules.indexOf(item) === index)
   finalRules.sort((a, b) => a.title - b.title)
   typologiesRes.sort((a, b) => a.title - b.title)
 
+  let tfr = [...finalRules]
+  let fin: number | undefined = undefined
+  tfr.map((itm, index) => {
+    if (itm.title === "EFRuP") {
+      fin = index
+    }
+  })
+  if (fin !== undefined) {
+    finalRules.splice(fin, 1)
+    finalRules.push(tfr[fin])
+  }
+  interface LinkListItem {
+    rule: string
+    linkedTypos: string[]
+  }
+  let ruleLinks: LinkListItem[] = []
+  typologiesRes.map((typo: Typology) => {
+    typo.linkedRules.map((linkedRule: string) => {
+      let exists: LinkListItem | undefined = ruleLinks.find((link: LinkListItem) => {
+        return link.rule === linkedRule
+      })
+      if (exists) {
+        exists.linkedTypos.push(typo.title)
+      } else {
+        let ruleLink: LinkListItem = {
+          rule: linkedRule,
+          linkedTypos: [],
+        }
+        ruleLink.linkedTypos.push(typo.title)
+        ruleLinks.push(ruleLink)
+      }
+    })
+  })
+
+  ruleLinks.map((link: LinkListItem) => {
+    let exists: Rule | undefined = ruleRes.find((rule: Rule) => {
+      return rule.title === link.rule
+    })
+    if (exists) {
+      exists.displayLinkedTypo = [...link.linkedTypos]
+    }
+  })
+
   return {
-    rules: finalRules,
+    rules: ruleRes,
     typologies: typologiesRes,
+    typologiesEFRuP: typologiesEFRuP,
   }
 }

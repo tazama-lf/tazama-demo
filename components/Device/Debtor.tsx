@@ -7,6 +7,8 @@ import EntityContext from "store/entities/entity.context"
 import { sentanceCase } from "utils/helpers"
 import { DeviceInfo } from "./DeviceInfo"
 import ProcessorContext from "store/processors/processor.context"
+import DeviceComponent from "./DeviceComponent"
+import { Rule, Typology } from "store/processors/processor.interface"
 
 dotenv.config()
 
@@ -24,16 +26,19 @@ interface DebtorProps {
   selectedEntity: number
   isDebtor?: boolean
   lights: LightsManager
+  started?: boolean
+  setModalVisible: (option: boolean) => void
   setLights: (data: LightsManager) => void
   resetAllLights: () => void
   resetLights: (data: boolean) => void
   setStarted: (data: boolean) => void
+  setCreateModalVisible: (option: boolean) => void
 }
 
 export function DebtorDevice(props: DebtorProps) {
   const [tmsUrl, setTmsUrl] = useState(process.env.NEXT_PUBLIC_TMS_SERVER_URL)
-  const entityCtx: any = useContext(EntityContext)
-  const procCtx: any = useContext(ProcessorContext)
+  const entityCtx = useContext(EntityContext)
+  const procCtx = useContext(ProcessorContext)
 
   const entity = entityCtx.entities
 
@@ -46,8 +51,6 @@ export function DebtorDevice(props: DebtorProps) {
       setTmsUrl(parsedConfig.tmsServerUrl)
     })()
   }, [])
-
-  // const tmsUrl = process.env.NEXT_PUBLIC_TMS_SERVER_URL
 
   const postPacs002 = async () => {
     try {
@@ -127,7 +130,6 @@ export function DebtorDevice(props: DebtorProps) {
           props.setLights(newData)
         }
         setTimeout(async () => {
-          await procCtx.ruleLightsGreen()
           await postPacs002()
         }, 800)
       }
@@ -146,28 +148,25 @@ export function DebtorDevice(props: DebtorProps) {
       setTimeout(async () => {
         props.setStarted(false)
       }, 1000)
-      // alert(`Error sending PACS008 request. ${JSON.stringify(errMsg.errorMessage)}`)
     }
   }
   return (
-    <div className="relative col-span-4" style={{ height: "505px", width: "auto" }}>
-      <Image
-        src="/device.svg"
-        width={250}
-        height={505}
-        className="absolute inset-x-0 mx-auto h-auto"
-        alt="device info"
-        priority={true}
-      />
+    <div className="relative col-span-4" style={{ height: "485px", width: "auto" }}>
+      <DeviceComponent width={250} height={505} />
 
       <div className="absolute inset-x-0 mx-auto break-words" style={{ width: "222px", top: "15px" }}>
         <TimeComponent />
 
-        <DeviceInfo selectedEntity={props.selectedEntity} isDebtor={props.isDebtor} />
+        <DeviceInfo
+          selectedEntity={props.selectedEntity}
+          isDebtor={props.isDebtor}
+          setModalVisible={props.setModalVisible}
+          setCreateModalVisible={props.setCreateModalVisible}
+        />
       </div>
 
       {props.isDebtor ? (
-        <div className="absolute inset-x-0 mx-auto" style={{ width: "222px", bottom: "25px" }}>
+        <div className="absolute inset-x-0 mx-auto" style={{ width: "222px", bottom: "5px" }}>
           <div
             className={`ml-5 w-4/5 rounded-lg bg-black text-white ${
               entity.length === 0 || creditorEntity.length === 0 ? " pointer-events-none opacity-30" : ""
@@ -177,7 +176,22 @@ export function DebtorDevice(props: DebtorProps) {
             <button
               className="w-full rounded-lg border border-white p-1"
               onClick={async () => {
+                if (props.started) {
+                  procCtx.rules.map((rule: Rule) => {
+                    if (rule.title === "EFRuP") {
+                      if (rule.result === "block" || rule.result === "override") {
+                        rule.result = null
+                        rule.linkedTypologies = []
+                      }
+                    }
+                  })
+                  procCtx.typologies.map((typology: Typology) => {
+                    console.log("_TEST: ", typology)
+                  })
+                }
+
                 props.resetAllLights()
+
                 props.setLights({
                   ED: {
                     pacs008: false,

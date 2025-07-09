@@ -5,6 +5,20 @@ export interface RuleBand {
   reason: string
 }
 
+export interface LinkedTypo {
+  typology: string
+  typologyResult: number
+  ruleId: string
+  rule: string
+  subRuleRef: string
+  ruleResult: number
+}
+
+export interface TypoEFRuP {
+  typology: string
+  efrupResult: string | undefined
+}
+
 export interface Rule {
   id: number
   title: string
@@ -13,7 +27,8 @@ export interface Rule {
   color: "r" | "g" | "y" | "n"
   result: any
   wght: number
-  linkedTypologies: string[]
+  linkedTypologies: LinkedTypo[]
+  displayLinkedTypo: string[]
   ruleBands: RuleBand[]
 }
 
@@ -46,13 +61,16 @@ export interface TADPROC_RESULT {
     interdictionThreshold: number | null
   }
   ruleResults: RuleResult[]
+  efrup?: string | undefined
 }
 
 export interface TADPROC {
   status: string
   stop: boolean
   color: "r" | "g" | "y" | "n"
+  efrup?: string | undefined
   results: TADPROC_RESULT[]
+  efrupResults: TypoEFRuP[]
 }
 
 export interface EDLightsManager {
@@ -81,6 +99,9 @@ export interface UI_CONFIG {
   dbUser: string
   dbPassword: string
   dbName: string
+  conditionTypes: string
+  eventTypes: string
+  adminServiceUrl: string
 }
 
 export interface DBConfig {
@@ -115,7 +136,7 @@ export interface Conditions {
   condTp: string
   prsptv: string
   incptnDtTm: string
-  xprtnDtTm: string | null
+  xprtnDtTm: string | null | undefined
   condRsn: string
   acct?: Acct
   ntty?: Ntty
@@ -127,8 +148,8 @@ export interface NewCondition {
   evtTp: string[]
   condTp: string
   prsptv: string
-  incptnDtTm: string
-  xprtnDtTm: string | null
+  incptnDtTm?: string | null | undefined
+  xprtnDtTm?: string | null | undefined
   condRsn: string
   ntty?: Ntty
   acct?: Acct
@@ -141,4 +162,26 @@ export interface GetConditionsProps {
   type: string // entity or account
   accountId?: string | undefined
   entityId?: string | undefined
+  agt?: string | undefined
+  schmeNm?: string | undefined
+}
+
+export interface ListCondition extends Conditions {
+  creDtTm: string
+  condId: string
+}
+
+export interface ExpireProps {
+  type: string
+  accountId?: string
+  entityId?: string
+  schmeNm: string
+  agt?: string
+  xprtnDtTm?: string | undefined
+  condId: string
+}
+
+export interface ConditionStructure {
+  conditions: ListCondition[]
+  activeConditions: string[]
 }

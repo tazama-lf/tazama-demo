@@ -1,5 +1,11 @@
 import { ACTIONS } from "./processor.actions"
-import { defaultEDLights, defaultTadProcLights } from "./processor.initialState"
+import {
+  defaultConditionsData,
+  defaultEDLights,
+  defaultTadProcLights,
+  ruleInitialState,
+  typologiesInitialState,
+} from "./processor.initialState"
 
 const ProcessorReducer = (state: any, action: any) => {
   switch (action.type) {
@@ -39,26 +45,189 @@ const ProcessorReducer = (state: any, action: any) => {
         typologies: [],
       }
 
-    case ACTIONS.GET_CONDITIONS_LOADING:
+    case ACTIONS.GET_DEBTOR_CONDITIONS_LOADING:
       return {
         ...state,
         conditionsList: [],
+        conditionsDataDebtor: {
+          conditions: [],
+          activeConditions: [],
+        },
         conditionsLoading: true,
         conditionsError: "",
       }
-    case ACTIONS.GET_CONDITIONS_SUCCESS:
+    case ACTIONS.GET_DEBTOR_CONDITIONS_SUCCESS:
       return {
         ...state,
         conditionsList: action.payload,
+        conditionsDataDebtor: {
+          conditions: action.payload,
+          activeConditions: [],
+        },
         conditionsLoading: false,
         conditionsError: "",
       }
-    case ACTIONS.GET_CONDITIONS_FAIL:
+    case ACTIONS.GET_DEBTOR_CONDITIONS_FAIL:
       return {
         ...state,
         conditionsList: [],
+        conditionsDataDebtor: {
+          conditions: [],
+          activeConditions: [],
+        },
         conditionsLoading: false,
         conditionsError: action.payload,
+      }
+
+    case ACTIONS.GET_CREDITOR_CONDITIONS_LOADING:
+      return {
+        ...state,
+        conditionsList: [],
+        conditionsDataCreditor: {
+          conditions: [],
+          activeConditions: [],
+        },
+        conditionsLoading: true,
+        conditionsError: "",
+      }
+    case ACTIONS.GET_CREDITOR_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsList: action.payload,
+        conditionsDataCreditor: {
+          conditions: action.payload,
+          activeConditions: [],
+        },
+        conditionsLoading: false,
+        conditionsError: "",
+      }
+    case ACTIONS.GET_CREDITOR_CONDITIONS_FAIL:
+      return {
+        ...state,
+        conditionsList: [],
+        conditionsDataCreditor: {
+          conditions: [],
+          activeConditions: [],
+        },
+        conditionsLoading: false,
+        conditionsError: action.payload,
+      }
+
+    case ACTIONS.CLEAR_CONDITIONS:
+      return {
+        ...state,
+        conditionsList: [],
+        conditionsDataDebtor: {
+          conditions: [],
+          activeConditions: [],
+        },
+        conditionsDataCreditor: {
+          conditions: [...state.conditionsDataCreditor.conditions],
+          activeConditions: [...state.conditionsDataCreditor.activeConditions],
+        },
+        conditionsLoading: false,
+        conditionsError: "",
+      }
+
+    case ACTIONS.ADD_GET_DEBTOR_CONDITIONS_LOADING:
+      return {
+        ...state,
+        conditionsDataDebtor: {
+          conditions: [...state.conditionsDataDebtor.conditions],
+          activeConditions: [...state.conditionsDataDebtor.activeConditions],
+        },
+        conditionsLoading: true,
+        conditionsError: "",
+      }
+    case ACTIONS.ADD_GET_DEBTOR_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsDataDebtor: {
+          conditions: [...state.conditionsDataDebtor.conditions],
+          activeConditions: [...action.payload],
+        },
+        conditionsLoading: false,
+        conditionsError: "",
+      }
+    case ACTIONS.ADD_GET_DEBTOR_CONDITIONS_FAIL:
+      return {
+        ...state,
+        conditionsDataDebtor: {
+          conditions: [...state.conditionsDataDebtor.conditions],
+          activeConditions: [...state.conditionsDataDebtor.activeConditions],
+        },
+        conditionsLoading: false,
+        conditionsError: action.payload,
+      }
+    // --------------------------------------------------------------------------------
+    case ACTIONS.ADD_GET_CREDITOR_CONDITIONS_LOADING:
+      return {
+        ...state,
+        conditionsDataCreditor: {
+          conditions: [...state.conditionsDataCreditor.conditions],
+          activeConditions: [...state.conditionsDataCreditor.activeConditions],
+        },
+        conditionsLoading: true,
+        conditionsError: "",
+      }
+    case ACTIONS.ADD_GET_CREDITOR_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsDataCreditor: {
+          conditions: [...state.conditionsDataCreditor.conditions],
+          activeConditions: [...action.payload],
+        },
+        conditionsLoading: false,
+        conditionsError: "",
+      }
+    case ACTIONS.ADD_GET_CREDITOR_CONDITIONS_FAIL:
+      return {
+        ...state,
+        conditionsDataCreditor: {
+          conditions: [...state.conditionsDataCreditor.conditions],
+          activeConditions: [...state.conditionsDataCreditor.activeConditions],
+        },
+        conditionsLoading: false,
+        conditionsError: action.payload,
+      }
+    // --------------------------------------------------------------------------------
+    case ACTIONS.CREATE_CONDITIONS_LOADING:
+      return {
+        ...state,
+        createConLoading: true,
+        createConError: null,
+      }
+    case ACTIONS.CREATE_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsList: action.payload,
+        createConLoading: false,
+        createConError: null,
+        entityEventType: [],
+      }
+    case ACTIONS.CREATE_CONDITIONS_FAIL:
+      return {
+        ...state,
+        createConLoading: false,
+        createConError: action.payload,
+        entityEventType: [],
+      }
+
+    case ACTIONS.EXPIRE_CONDITIONS_LOADING:
+      return {
+        ...state,
+        expireConError: undefined,
+      }
+    case ACTIONS.EXPIRE_CONDITIONS_SUCCESS:
+      return {
+        ...state,
+        conditionsList: action.payload,
+        expireConError: undefined,
+      }
+    case ACTIONS.EXPIRE_CONDITIONS_FAIL:
+      return {
+        ...state,
+        expireConError: action.payload,
       }
 
     case ACTIONS.UPDATE_RULES_LOADING:
@@ -153,7 +322,14 @@ const ProcessorReducer = (state: any, action: any) => {
     case ACTIONS.RESET_TADPROC_RESULTS:
       return {
         ...state,
-        // tadProcResults: defaultTadProcLights,
+        tadProcResults: defaultTadProcLights,
+        typologiesEFRuP: [],
+      }
+    case ACTIONS.CLEAR_RESULTS:
+      return {
+        ...state,
+        tadProcResults: defaultTadProcLights,
+        typologiesEFRuP: [],
       }
     case ACTIONS.SET_TADPROC_RESULTS:
       return {
@@ -166,6 +342,12 @@ const ProcessorReducer = (state: any, action: any) => {
       return {
         ...state,
         rules: state.rules.map((rule: any) => ({ ...rule, color: "g" })),
+      }
+
+    case ACTIONS.TURN_RULE_LIGHTS_NEUTRAL:
+      return {
+        ...state,
+        rules: state.rules.map((rule: any) => ({ ...rule, color: "n" })),
       }
 
     case ACTIONS.UPDATE_ENTITY_EVENT_TYPE:
@@ -189,6 +371,86 @@ const ProcessorReducer = (state: any, action: any) => {
         edLights: defaultEDLights,
         tadProcResults: defaultTadProcLights,
       }
+
+    case ACTIONS.UPDATE_DEBTOR_ACTIVE_SECTION:
+      return {
+        ...state,
+        debtorActiveSection: action.payload,
+      }
+
+    case ACTIONS.UPDATE_CREDITOR_ACTIVE_SECTION:
+      return {
+        ...state,
+        creditorActiveSection: action.payload,
+      }
+
+    case ACTIONS.SET_SHOW_DEBTOR_CONDITIONS:
+      return {
+        ...state,
+        showDebtorConditions: action.payload,
+      }
+    case ACTIONS.SET_SHOW_CREDITOR_CONDITIONS:
+      return {
+        ...state,
+        showCreditorConditions: action.payload,
+      }
+
+    case ACTIONS.SET_SHOW_DEBTOR_CONDITIONS_CREATE:
+      return {
+        ...state,
+        showDebtorConditionsCreate: action.payload,
+      }
+    case ACTIONS.SET_SHOW_CREDITOR_CONDITIONS_CREATE:
+      return {
+        ...state,
+        showCreditorConditionsCreate: action.payload,
+      }
+    case ACTIONS.SET_APPLICATION_VERSION:
+      return {
+        ...state,
+        app_version: action.payload,
+      }
+
+    case ACTIONS.SET_LINKED_TYPOLOGIES:
+      return {
+        ...state,
+        linkedTypologies: action.payload,
+      }
+    case ACTIONS.CREATE_TYPO_EFRUP_SUCCESS:
+      return {
+        ...state,
+        typologiesEFRuP: action.payload,
+      }
+
+    case ACTIONS.SET_TYPO_EFRUP_SUCCESS:
+      return {
+        ...state,
+        typologiesEFRuP: action.payload,
+      }
+
+    case ACTIONS.CLEAR_LINKED_TYPOLOGIES:
+      return {
+        ...state,
+        linkedTypologies: [],
+      }
+    case ACTIONS.SET_CONDITION_TYPES: {
+      return {
+        ...state,
+        conditionTypes: action.payload,
+      }
+    }
+    case ACTIONS.SET_EVENT_TYPES: {
+      return {
+        ...state,
+        eventTypes: action.payload,
+      }
+    }
+    case ACTIONS.SET_CONDITION_REASONS: {
+      return {
+        ...state,
+        conditionReasons: action.payload,
+      }
+    }
   }
 }
 

@@ -1,15 +1,18 @@
 "use client"
 
+import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
 import React, { useContext, useState } from "react"
 import EntityContext from "store/entities/entity.context"
 import { DebtorAccount, DebtorEntity } from "store/entities/entity.interface"
+import ProcessorContext from "store/processors/processor.context"
+import { checkActiveDebtorEntity, checkIsActiveDebtorAccount } from "utils/helpers"
 import { v4 as uuidv4 } from "uuid"
 
 export interface ProfileProps {
   reverse?: boolean
   colour?: string
   entity?: DebtorEntity
-  accounts?: Array<DebtorAccount>
+  accounts?: DebtorAccount[]
   selectedEntity: number
   index: number
   setModalVisible: (value: boolean) => void
@@ -68,6 +71,7 @@ const AccountsComponent = ({ index, setSelected, selectedEntityIndex, setSelecte
 
 export const Profile = ({ ...props }: ProfileProps) => {
   const entityCtx = useContext(EntityContext)
+  const processCtx = useContext(ProcessorContext)
   const [selectedAccountIndex, setSelectedAccountIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
 
@@ -80,12 +84,13 @@ export const Profile = ({ ...props }: ProfileProps) => {
     await entityCtx.selectDebtorEntity(props.index, 0)
     if (props.accounts && props.accounts.length > 0) {
       await entityCtx.deleteEntity(props.index)
+      entityCtx.selectDebtorEntity(props.index - 1, 0)
     }
   }
 
   return (
     <div
-      className="relative px-[20px]"
+      className="relative min-w-full px-[10px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -99,6 +104,10 @@ export const Profile = ({ ...props }: ProfileProps) => {
             if (props.entity !== undefined) {
               props.setSelectedEntity(props.index) // Ensure the entity is selected
               await entityCtx.selectDebtorEntity(props.index, 0) // Select the first account for the entity (or modify as needed)
+              await processCtx.getAllDebtorConditions()
+              processCtx.setShowDebtorConditionsCreate(false)
+              processCtx.setShowDebtorConditions(false)
+              processCtx.update_debtor_active_section("Entity")
               props.setModalVisible(true) // Open the modal
             }
           }}
@@ -121,27 +130,47 @@ export const Profile = ({ ...props }: ProfileProps) => {
         </button>
 
         {/* Profile Button */}
-        <button style={props.entity !== undefined ? { cursor: "grab" } : { cursor: "default" }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
-            <path
-              fillRule="evenodd"
-              d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z"
-              clipRule="evenodd"
+        <div className="mt-1 flex flex-col items-center justify-center gap-1">
+          <button style={props.entity !== undefined ? { cursor: "grab" } : { cursor: "default" }}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+              <path
+                fillRule="evenodd"
+                d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+          {entityCtx.entities[props.index]?.Entity ? (
+            <StatusIndicator
+              customSize={12}
+              colour={checkActiveDebtorEntity(processCtx.conditionsDataDebtor, entityCtx.entities[props.index])}
             />
-          </svg>
-        </button>
+          ) : (
+            <div className="h-[10px] w-[10px]"></div>
+          )}
+        </div>
 
         {props?.accounts?.map((account, index) => {
           if (account !== null && account !== undefined) {
             return (
-              <AccountsComponent
-                key={uuidv4().replaceAll("-", "")}
-                index={index}
-                selected={selectedAccountIndex}
-                setSelected={setSelectedAccountIndex}
-                selectedEntityIndex={props.index}
-                setSelectedEntity={props.setSelectedEntity}
-              />
+              <div key={uuidv4().replaceAll("-", "")} className="mt-1 flex flex-col items-center justify-center gap-1">
+                <AccountsComponent
+                  key={uuidv4().replaceAll("-", "")}
+                  index={index}
+                  selected={selectedAccountIndex}
+                  setSelected={setSelectedAccountIndex}
+                  selectedEntityIndex={props.index}
+                  setSelectedEntity={props.setSelectedEntity}
+                />
+                <StatusIndicator
+                  customSize={12}
+                  colour={checkIsActiveDebtorAccount(
+                    index,
+                    processCtx.conditionsDataDebtor,
+                    entityCtx.entities[props.index]
+                  )}
+                />
+              </div>
             )
           } else {
             return null
@@ -166,6 +195,7 @@ export const Profile = ({ ...props }: ProfileProps) => {
         <button
           onClick={async () => {
             props.setSelectedEntity(props.index)
+
             if (!props.entity && entityCtx.entities.length < 4) {
               // Create a new entity and select it
               await entityCtx.createEntity()
@@ -203,7 +233,7 @@ export const Profile = ({ ...props }: ProfileProps) => {
       </div>
 
       {isHovered && (
-        <div className="absolute right-[1px] top-[15px]">
+        <div className="absolute right-[-10px] top-[15px]">
           {props?.accounts !== null && props.accounts !== undefined && props?.accounts.length > 0 && (
             <button onClick={handleDeleteEntity}>
               <svg

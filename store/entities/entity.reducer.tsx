@@ -96,25 +96,6 @@ const EntityReducer = (state: any, action: any) => {
         entities: [],
       }
 
-    // case ACTIONS.DELETE_DEBTOR_ACCOUNT_LOADING:
-    //   return {
-    //     ...state,
-    //     deleteAccountLoading: true,
-    //     entities: [],
-    //   }
-    // case ACTIONS.DELETE_DEBTOR_ACCOUNT_SUCCESS:
-    //   return {
-    //     ...state,
-    //     deleteAccountLoading: false,
-    //     entities: action.payload,
-    //   }
-    // case ACTIONS.DELETE_DEBTOR_ACCOUNT_FAIL:
-    //   return {
-    //     ...state,
-    //     deleteAccountLoading: false,
-    //     entities: [],
-    //   }
-
     case ACTIONS.RESET_ENTITY_LOADING:
       return {
         ...state,
@@ -266,25 +247,6 @@ const EntityReducer = (state: any, action: any) => {
         updateCreditorAccountLoading: false,
         creditorEntities: [],
       }
-
-    // case ACTIONS.DELETE_CREDITOR_ACCOUNT_LOADING:
-    //   return {
-    //     ...state,
-    //     deleteCreditorAccountLoading: true,
-    //     creditorEntities: [],
-    //   }
-    // case ACTIONS.DELETE_CREDITOR_ACCOUNT_SUCCESS:
-    //   return {
-    //     ...state,
-    //     deleteCreditorAccountLoading: false,
-    //     creditorEntities: action.payload,
-    //   }
-    // case ACTIONS.DELETE_CREDITOR_ACCOUNT_FAIL:
-    //   return {
-    //     ...state,
-    //     deleteCreditorAccountLoading: false,
-    //     creditorEntities: [],
-    //   }
 
     case ACTIONS.SET_DEBTOR_PACS008_LOADING:
       return {

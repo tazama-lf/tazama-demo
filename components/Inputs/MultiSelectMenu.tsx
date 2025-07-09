@@ -21,6 +21,10 @@ interface MultiSelectProps {
 const MultiSelect = ({ errors, state, options, onChange }: MultiSelectProps) => {
   const processCtx = useContext(ProcessorContext)
 
+  useEffect(() => {
+    processCtx.updateEntityAllChecked(false)
+  }, [])
+
   const handleSelect = (option: Item) => {
     let tmpSelectedItems: string[] = processCtx.entityEventType
     if (processCtx.entityAllChecked === true) {
@@ -133,7 +137,7 @@ const MultiSelect = ({ errors, state, options, onChange }: MultiSelectProps) => 
                     processCtx.entityEventType.includes(option.option) && "font-semibold"
                   } "pointer hover:pointer py-1" col-span-7 px-1`}
                 >
-                  {sentanceCase(option.option)}
+                  {option.option}
                 </p>
               </div>
             ))}

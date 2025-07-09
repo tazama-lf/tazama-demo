@@ -39,7 +39,6 @@ import {
   RandomSurname,
 } from "./entity.utils"
 import { v4 as uuidv4 } from "uuid"
-import { ACTION } from "next/dist/client/components/app-router-headers"
 
 interface Props {
   children: ReactNode
@@ -141,8 +140,6 @@ const EntityProvider = ({ children }: Props) => {
           state.selectedDebtorEntity.debtorAccountSelectedIndex
         )
       }
-
-      // await generateTransaction()
     } catch (error) {
       console.log("ERROR happened on Debtor Change", error)
     }
@@ -561,39 +558,6 @@ const EntityProvider = ({ children }: Props) => {
     }
   }
 
-  // const deleteCreditorAccount = async (entityIndex: number) => {
-  //   try {
-  //     dispatch({ type: ACTIONS.DELETE_CREDITOR_ACCOUNT_LOADING });
-
-  //     let accountsList: Array<CreditorAccount> = state.creditorEntities[entityIndex].CreditorAccounts;
-
-  //     if (accountsList.length > 0) {
-  //       accountsList.pop();
-
-  //       if (accountsList.length === 0) {
-  //         await deleteCreditorEntity(entityIndex);
-  //       } else {
-
-  //         let updatedEntityAccounts: CdtrEntity = {
-  //           CreditorEntity: state.creditorEntities[entityIndex]?.CreditorEntity,
-  //           CreditorAccounts: accountsList,
-  //         };
-
-  //         let entitiesList: Array<CdtrEntity> = [...state.creditorEntities];
-  //         entitiesList[entityIndex] = updatedEntityAccounts;
-
-  //         dispatch({ type: ACTIONS.DELETE_CREDITOR_ACCOUNT_SUCCESS, payload: entitiesList });
-
-  //         localStorage.setItem("CREDITOR_ENTITIES", JSON.stringify(entitiesList));
-  //       }
-  //     }
-
-  //   } catch (error) {
-  //     // Dispatch failure action if an error occurs
-  //     dispatch({ type: ACTIONS.DELETE_CREDITOR_ACCOUNT_FAIL });
-  //   }
-  // };
-
   const setDebtorPacs008 = async (entityIndex: number) => {
     try {
       dispatch({ type: ACTIONS.SET_DEBTOR_PACS008_LOADING })
@@ -601,7 +565,6 @@ const EntityProvider = ({ children }: Props) => {
       const setPacs008: PACS008 = state.pacs008
 
       // TO BE SET WHEN THE BUTTON SEND IS CLICKED!!!
-      // Move to a send function TODO!!!
       setPacs008.FIToFICstmrCdtTrf.GrpHdr.MsgId = uuidv4().replaceAll("-", "")
       setPacs008.FIToFICstmrCdtTrf.GrpHdr.CreDtTm = new Date().toISOString()
 

@@ -1,12 +1,24 @@
 import { createContext } from "react"
 import {
+  defaultConditionsData,
   defaultEDLights,
   defaultEntityEventType,
   defaultTadProcLights,
   ruleInitialState,
 } from "./processor.initialState"
-import { Conditions, EDLightsManager, GetConditionsProps, Rule, TADPROC, Typology } from "./processor.interface"
-import { mock_con } from "./dummy_data"
+import {
+  ConditionStructure,
+  EDLightsManager,
+  ExpireProps,
+  GetConditionsProps,
+  LinkedTypo,
+  ListCondition,
+  NewCondition,
+  Rule,
+  TADPROC,
+  TypoEFRuP,
+  Typology,
+} from "./processor.interface"
 
 interface Context {
   rulesLoading: boolean
@@ -21,7 +33,24 @@ interface Context {
   msgId: string | undefined
   entityEventType: string[]
   entityAllChecked: boolean
-  conditionsList: Conditions[]
+  expireConError: string | undefined
+  conditionsList: ListCondition[]
+  conditionsDataDebtor: ConditionStructure
+  conditionsDataCreditor: ConditionStructure
+  debtorActiveSection: "Entity" | "Accounts"
+  creditorActiveSection: "Entity" | "Accounts"
+  showDebtorConditions: boolean
+  showCreditorConditions: boolean
+  showDebtorConditionsCreate: boolean
+  showCreditorConditionsCreate: boolean
+  uiconfig: any
+  app_version: string
+  linkedTypologies: LinkedTypo[]
+  typologiesEFRuP: TypoEFRuP[]
+  conditionTypes: any[]
+  eventTypes: any[]
+  conditionReasons: any[]
+  createConError: any
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -31,10 +60,24 @@ interface Context {
   updateTadpLights: (data: TADPROC) => void
   updateEDLights: (data: EDLightsManager) => void
   resetAllLights: () => void
+  clearResults: () => void
   getUIConfig: () => void
-  handleTadProc: (msgId: string) => void
+  handleTadProcLive: (msg: any) => void
   ruleLightsGreen: () => void
-  getConditions: ({ entityType, type, accountId, entityId }: GetConditionsProps) => void
+  ruleLightsNeutral: () => void
+  getConditions: ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => void
+  createCondition: (condition: NewCondition) => void
+  expireCondition: ({ type, accountId, entityId, xprtnDtTm, schmeNm, agt }: ExpireProps) => void
+  getAllDebtorConditions: () => void
+  getAllCreditorConditions: () => void
+  update_debtor_active_section: (section: "Entity" | "Accounts") => void
+  update_creditor_active_section: (section: "Entity" | "Accounts") => void
+  setShowDebtorConditions: (option: boolean) => void
+  setShowCreditorConditions: (option: boolean) => void
+  setShowDebtorConditionsCreate: (option: boolean) => void
+  setShowCreditorConditionsCreate: (option: boolean) => void
+  setLinkedTypologies: (linkedTypos: LinkedTypo[]) => void
+  clearLinkedTypologies: () => void
 }
 
 const ProcessorContext = createContext<Context>({
@@ -50,7 +93,24 @@ const ProcessorContext = createContext<Context>({
   msgId: "",
   entityEventType: defaultEntityEventType,
   entityAllChecked: false,
-  conditionsList: [...mock_con],
+  conditionsList: [],
+  expireConError: undefined,
+  conditionsDataDebtor: defaultConditionsData,
+  conditionsDataCreditor: defaultConditionsData,
+  debtorActiveSection: "Entity",
+  creditorActiveSection: "Entity",
+  showDebtorConditions: false,
+  showCreditorConditions: false,
+  showDebtorConditionsCreate: false,
+  showCreditorConditionsCreate: false,
+  uiconfig: null,
+  app_version: "",
+  linkedTypologies: [],
+  typologiesEFRuP: [],
+  conditionTypes: [],
+  eventTypes: [],
+  conditionReasons: [],
+  createConError: undefined,
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
@@ -60,10 +120,24 @@ const ProcessorContext = createContext<Context>({
   updateEDLights: (data: EDLightsManager) => {},
   updateTadpLights: () => {},
   resetAllLights: () => {},
+  clearResults: () => {},
   getUIConfig: () => {},
-  handleTadProc: (msgId: string) => {},
+  handleTadProcLive: (msg: any) => {},
   ruleLightsGreen: () => {},
-  getConditions: async ({ entityType, type, accountId, entityId }: GetConditionsProps) => {},
+  ruleLightsNeutral: () => {},
+  getConditions: async ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => {},
+  createCondition: async (condition: NewCondition) => {},
+  expireCondition: async (data: ExpireProps) => {},
+  getAllDebtorConditions: () => {},
+  getAllCreditorConditions: () => {},
+  update_debtor_active_section: (section: "Entity" | "Accounts") => {},
+  update_creditor_active_section: (section: "Entity" | "Accounts") => {},
+  setShowDebtorConditions: (option: boolean) => {},
+  setShowCreditorConditions: (option: boolean) => {},
+  setShowDebtorConditionsCreate: (option: boolean) => {},
+  setShowCreditorConditionsCreate: (option: boolean) => {},
+  setLinkedTypologies: (linkedTypos: LinkedTypo[]) => {},
+  clearLinkedTypologies: () => {},
 })
 
 export default ProcessorContext

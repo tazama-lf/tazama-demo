@@ -8,24 +8,39 @@ import PerspectiveCheckBoxes from "components/Inputs/PerspectiveCheckBoxes"
 import CancelModel from "components/Inputs/ExpireModal"
 import { ValidateCondition } from "utils/helpers"
 import DateSelector from "components/Inputs/DateSelector"
+import { newAccountConditionState, newEntityConditionState } from "store/processors/processor.initialState"
+import EntityContext from "store/entities/entity.context"
 
 interface Props {
   handleClose: () => void
   setVisible: () => void
   newCondition: NewCondition
   setNewCondition: (data: NewCondition) => void
-  // conditions_data: Conditions[]
+  activeSection: "Entity" | "Accounts"
+  activeDetails: string
 }
 
-const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisible }: Props) => {
+const ConditionsCreate = ({
+  activeDetails,
+  handleClose,
+  newCondition,
+  setNewCondition,
+  setVisible,
+  activeSection,
+}: Props) => {
   const processCtx = useContext(ProcessorContext)
   const [errors, setErrors] = useState<string[]>([])
-  const [showCancel, setShowCancel] = useState<boolean>(false)
 
   const handleCancel = () => {
     // Need to bring some state in to handle this
     processCtx.updateEntityEventType([])
     processCtx.updateEntityAllChecked(false)
+
+    if (activeSection === "Entity") {
+      setNewCondition(newEntityConditionState)
+    } else if (activeSection === "Accounts") {
+      setNewCondition(newAccountConditionState)
+    }
     setVisible()
   }
 
@@ -36,14 +51,18 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
     if (errorList.length > 0) {
       setErrors(errorList)
     } else {
-      processCtx.conditionsList.push(newCondition)
+      await processCtx.createCondition(newCondition)
+      await processCtx.getAllDebtorConditions()
+      await processCtx.getAllCreditorConditions()
+      if (activeSection === "Entity") {
+        setNewCondition(newEntityConditionState)
+      } else if (activeSection === "Accounts") {
+        setNewCondition(newAccountConditionState)
+      }
+
       setVisible()
     }
   }
-
-  useEffect(() => {
-    console.log("Errors: ", errors)
-  }, [errors])
 
   useEffect(() => {
     setErrors([])
@@ -70,7 +89,10 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
       </div>
 
       <div className="flex grid w-full content-between items-center pt-5">
-        <p className="ml-1 flex grow p-1 pt-1 text-xl font-medium">New Condition</p>
+        <div className="flex flex-row">
+          <p className="ml-1 flex p-1 pt-1 text-xl font-medium">New Condition</p>
+          <p className="ml-1 flex p-1 pt-1 text-lg font-thin">- {activeDetails}</p>
+        </div>
       </div>
 
       <div className="flex h-[560px] flex-col rounded-lg">
@@ -83,24 +105,14 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
 
         <DropdownList
           errors={errors}
-          options={[
-            { id: 0, option: "Please select condition type...", visible: false },
-            { id: 1, option: "non-overridable-block", visible: true },
-            { id: 2, option: "overridable-block", visible: true },
-            { id: 3, option: "override", visible: true },
-          ]}
+          options={processCtx.conditionTypes}
           state={newCondition}
           onChange={(data: NewCondition) => setNewCondition(data)}
         />
 
         <MultiSelect
           errors={errors}
-          options={[
-            { id: 1, option: "pacs.008.001.10", selected: false },
-            { id: 2, option: "pacs.002.001.12", selected: false },
-            { id: 3, option: "pain.001.001.13", selected: false },
-            { id: 4, option: "pain.013.001.09", selected: false },
-          ]}
+          options={processCtx.eventTypes}
           state={newCondition}
           onChange={(data: NewCondition) => {
             setErrors([])
@@ -116,35 +128,21 @@ const ConditionsCreate = ({ handleClose, newCondition, setNewCondition, setVisib
           }}
         />
 
-        <DateSelector state={newCondition} errors={errors} onChange={(data: NewCondition) => setNewCondition(data)} />
+        <DateSelector
+          state={newCondition}
+          errors={errors}
+          onChange={(data: NewCondition) => setNewCondition(data)}
+          setErrors={setErrors}
+        />
 
         <div className="relative mt-5 flex w-[700px] flex-col">
-          <label className="flex w-full cursor-pointer items-center pb-5" htmlFor="all-check">
+          <label className="mt-1 flex w-full cursor-pointer items-center pb-3" htmlFor="all-check">
             Reason:
             {errors.includes("condRsn") && <div className="pl-5 text-sm text-red-500">* Please select a Reason</div>}
           </label>
 
           <DropdownListWide
-            options={[
-              { id: 0, option: "Please select a reason...", visible: false },
-              { id: 1, option: "Suspicion of Money Laundering", visible: true },
-              { id: 2, option: "Violation of KYC/AML Requirements", visible: true },
-              { id: 3, option: "Suspicion of Terrorist Financing", visible: true },
-              { id: 4, option: "Tax Evasion Concerns", visible: true },
-              { id: 5, option: "Regulatory Reporting Thresholds", visible: true },
-              { id: 6, option: "Unusual Transaction Patterns", visible: true },
-              { id: 7, option: "High-Risk Countries", visible: true },
-              { id: 8, option: "Multiple Failed Login Attempts", visible: true },
-              { id: 9, option: "Fraudulent Activity", visible: true },
-              { id: 10, option: "Phishing or Account Takeover", visible: true },
-              { id: 11, option: "Suspicious Beneficiaries", visible: true },
-              { id: 12, option: "System Errors", visible: true },
-              { id: 13, option: "Exceeding Limits", visible: true },
-              { id: 14, option: "Legal Holds or Court Orders", visible: true },
-              { id: 15, option: "Adverse media reports", visible: true },
-              { id: 16, option: "Dormant or Inactive Accounts", visible: true },
-              { id: 17, option: "Internal Bank Policies", visible: true },
-            ]}
+            options={processCtx.conditionReasons}
             state={newCondition}
             onChange={(data: NewCondition) => setNewCondition(data)}
           />
