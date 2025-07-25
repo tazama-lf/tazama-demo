@@ -118,7 +118,7 @@ const ProcessorProvider = ({ children }: Props) => {
         if (rule.title !== "EFRuP") {
           let links = state.linkedTypologies.filter((link: LinkedTypo) => {
             if (link.rule === rule.title) {
-              if (link.ruleResult !== null && link.ruleResult > 0) {
+              if (link.ruleResult !== null && link.ruleResult >= 0) {
                 return link
               }
             }
