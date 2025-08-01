@@ -60,6 +60,7 @@ const EntityProvider = ({ children }: Props) => {
     pacs002: pacs002InitialState,
     uiConfig: uiConfigInitialState,
     ruleLights: rulesLightsInitialState,
+    currentMsgId: undefined,
   }
   const [state, dispatch] = useReducer(EntityReducer, initialEntityState)
 
@@ -108,6 +109,11 @@ const EntityProvider = ({ children }: Props) => {
     }
   }, [])
 
+  useEffect(() => {
+    if (state.pacs002.FIToFIPmtSts.GrpHdr.MsgId !== undefined) {
+      console.log(state.pacs002.FIToFIPmtSts.GrpHdr.MsgId)
+    }
+  }, [state.pacs002.FIToFIPmtSts.GrpHdr.MsgId])
   const reset = async () => {
     localStorage.clear()
   }
@@ -191,6 +197,7 @@ const EntityProvider = ({ children }: Props) => {
       pacs002Payload.FIToFIPmtSts.TxInfAndSts.TxSts = pacs002Payload.FIToFIPmtSts.TxInfAndSts.TxSts || "ACCC"
       pacs002Payload.FIToFIPmtSts.TxInfAndSts.AccptncDtTm = new Date().toISOString()
       dispatch({ type: ACTIONS.GENERATE_PACS002_SUCCESS, payload: pacs002Payload })
+      localStorage.setItem("current_msg_id", state.pacs002.FIToFIPmtSts.GrpHdr.MsgId)
       localStorage.setItem("PACS002", JSON.stringify(state.pacs002))
     } catch (error) {
       dispatch({ type: ACTIONS.GENERATE_PACS002_FAIL })
@@ -897,6 +904,7 @@ const EntityProvider = ({ children }: Props) => {
         selectedCreditorEntity: state.selectedCreditorEntity,
         uiConfig: state.uiConfig,
         ruleLights: state.ruleLights,
+        currentMsgId: state.currentMsgId,
         selectDebtorEntity,
         selectCreditorEntity,
         createEntity,

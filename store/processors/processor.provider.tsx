@@ -73,6 +73,7 @@ const ProcessorProvider = ({ children }: Props) => {
     eventTypes: [],
     conditionReasons: [],
     createConError: undefined,
+    txId: null,
   }
   const [state, dispatch] = useReducer(ProcessorReducer, initialProcessorState)
   const nttyCtx = useContext(EntityContext)
@@ -238,20 +239,24 @@ const ProcessorProvider = ({ children }: Props) => {
   useEffect(() => {
     if (socket !== undefined) {
       socket.on("tadProc", (msg) => {
-        const typoResult = Object.keys(msg.report.tadpResult).includes("typologyResult")
-        if (typoResult) {
-          msg.report.tadpResult.typologyResult.map((tpRes: any) => {
-            setTimeout(
-              async () => {
-                await updateTypologies(tpRes)
-              },
-              Math.floor(Math.random() * (500 - 200)) + 200
-            )
+        const currentMsgId = localStorage.getItem("current_msg_id")
+        if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
+          console.log("HIT THIS!!", msgId, "MSG: ", msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId)
+          const typoResult = Object.keys(msg.report.tadpResult).includes("typologyResult")
+          if (typoResult) {
+            msg.report.tadpResult.typologyResult.map((tpRes: any) => {
+              setTimeout(
+                async () => {
+                  await updateTypologies(tpRes)
+                },
+                Math.floor(Math.random() * (500 - 200)) + 200
+              )
 
-            if (msgId.current !== msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId) {
-              msgId.current = msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
-            }
-          })
+              if (msgId.current !== msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId) {
+                msgId.current = msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
+              }
+            })
+          }
         }
       })
     }
@@ -297,28 +302,32 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const handleTadProcLive = async (msg: any) => {
-    try {
-      let results: TADPROC | undefined = undefined
-      let linkedTypologies: LinkedTypo[] | undefined = undefined
-      clearLinkedTypologies()
-      // INSERT CLEAR PREVIOUS EFRuP RESULTS HERE...
+    const currentMsgId = localStorage.getItem("current_msg_id")
+    console.log("LIVE: ", msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId)
+    if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
       try {
-        linkedTypologies = await handleLinkedTypologies(msg)
-        if (linkedTypologies) {
-          setLinkedTypologies(linkedTypologies)
+        let results: TADPROC | undefined = undefined
+        let linkedTypologies: LinkedTypo[] | undefined = undefined
+        clearLinkedTypologies()
+        // INSERT CLEAR PREVIOUS EFRuP RESULTS HERE...
+        try {
+          linkedTypologies = await handleLinkedTypologies(msg)
+          if (linkedTypologies) {
+            setLinkedTypologies(linkedTypologies)
+          }
+        } catch (err: any) {
+          console.log("ERROR_MSG: ", err)
         }
-      } catch (err: any) {
-        console.log("ERROR_MSG: ", err)
+        while (results === undefined && linkedTypologies !== undefined) {
+          results = await handleTadProcResults(msg)
+        }
+        if (results !== undefined) {
+          dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: results })
+          dispatch({ type: ACTIONS.SET_TYPO_EFRUP_SUCCESS, payload: results.efrupResults })
+        }
+      } catch (err) {
+        console.log("TADPROC ERROR", err)
       }
-      while (results === undefined && linkedTypologies !== undefined) {
-        results = await handleTadProcResults(msg)
-      }
-      if (results !== undefined) {
-        dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: results })
-        dispatch({ type: ACTIONS.SET_TYPO_EFRUP_SUCCESS, payload: results.efrupResults })
-      }
-    } catch (err) {
-      console.log("TADPROC ERROR", err)
     }
   }
 
