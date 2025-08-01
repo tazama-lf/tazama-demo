@@ -451,6 +451,11 @@ const EntityReducer = (state: any, action: any) => {
         ...state,
         pacs002Loading: false,
       }
+    case ACTIONS.SET_CURRENT_MESSAGE_ID:
+      return {
+        ...state,
+        currentMsgId: action.payload,
+      }
     case ACTIONS.CLEAR_UI_DATA:
       return {
         ...state,

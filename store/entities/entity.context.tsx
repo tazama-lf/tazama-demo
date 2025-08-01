@@ -44,6 +44,7 @@ interface Context {
   selectedCreditorEntity: SelectedCreditor
   uiConfig: UIConfiguration
   ruleLights: Array<any>
+  currentMsgId: string | undefined
   selectDebtorEntity: (index: number, accountIndex: number) => void
   selectCreditorEntity: (index: number, accountIndex: number) => void
   createEntity: () => void
@@ -99,6 +100,7 @@ const EntityContext = createContext<Context>({
   selectedDebtorEntity: debtorInitialState,
   selectedCreditorEntity: creditorInitialState,
   uiConfig: uiConfigInitialState,
+  currentMsgId: undefined,
   ruleLights: [],
   selectDebtorEntity: () => {},
   selectCreditorEntity: () => {},
@@ -107,7 +109,6 @@ const EntityContext = createContext<Context>({
   deleteEntity: () => {},
   createEntityAccount: () => {},
   updateAccounts: () => {},
-
   createCreditorEntity: () => {},
   updateCreditorEntity: () => {},
   deleteCreditorEntity: () => {},
