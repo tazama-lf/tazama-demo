@@ -154,7 +154,7 @@ yarn dev
 
 ### Versioning
 
-> Format: v2.1.0
+> Format: v2.2.0
 > 
 > Given a version number MAJOR.MINOR.PATCH, increment the:
 >
@@ -217,7 +217,7 @@ If the build fails run the following script to revert changes made to the `docke
    docker tag tazamaorg/demo-ui:{version} tazamaorg/demo-ui:{version}-dev
    ```
 
-   > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.1.0*
+   > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.2.0*
 3. Push the image to docker hub
 
    If you want to push the Docker image to Dockerhub for a distribution and testing:
@@ -226,7 +226,7 @@ If the build fails run the following script to revert changes made to the `docke
    docker push tazamaorg/demo-ui:{version}-dev
    ```
 
-   > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.1.0*
+   > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.2.0*
 
 4. To use the Docker Image in the **[Full-Stack-Tazama-Docker](https://github.com/tazama-lf/Full-Stack-Docker-Tazama)** stack, update the following:
 
@@ -234,7 +234,7 @@ If the build fails run the following script to revert changes made to the `docke
     services:
       app:
         container_name: tazama-demo
-        image: tazamaorg/demo-ui:v2.1.0
+        image: tazamaorg/demo-ui:v2.2.0
         env_file:
           - .env
         volumes:
@@ -253,7 +253,7 @@ If the build fails run the following script to revert changes made to the `docke
         external: true
     ```
 
-    > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.1.0*
+    > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.2.0*
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
 

@@ -38,13 +38,7 @@ const DebtorProfileComponent = ({
       //   className="min-w-full space-y-2"
       >
         <Dragger key={`debtor-0`} id={`debtor-0`} onDragStart={onDragStart} onDoubleClick={() => {}}>
-          <div
-            key={uuidv4().replaceAll("-", "")}
-            className="flex max-h-[60px] w-full"
-            onMouseDown={() => {
-              setSelectedEntity(0)
-            }}
-          >
+          <div key={uuidv4().replaceAll("-", "")} className="flex max-h-[60px] w-full">
             <Profile
               colour={!entityCtx.entities[0] ? "text-gray-300" : iconColour(0)}
               entity={entityCtx.entities[0]?.Entity}
