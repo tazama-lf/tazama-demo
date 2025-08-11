@@ -23,8 +23,6 @@
     "coupling-graph": "npx madge --extensions js,jsx,ts,tsx,css,md,mdx ./ --exclude '.next|tailwind.config.js|reset.d.ts|prettier.config.js|postcss.config.js|playwright.config.ts|next.config.js|next-env.d.ts|instrumentation.ts|e2e/|README.md|.storybook/|.eslintrc.js' --image graph.svg"
   },
   "dependencies": {
-    "@frmscoe/frms-coe-lib": "4.0.0",
-    "@frmscoe/frms-coe-startup-lib": "2.2.0",
     "@headlessui/react": "^2.2.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@next/bundle-analyzer": "^14.2.3",
@@ -51,6 +49,7 @@
     "@semantic-release/npm": "^12.0.1",
     "@semantic-release/release-notes-generator": "^13.0.0",
     "@t3-oss/env-nextjs": "^0.10.1",
+    "@tazama-lf/frms-coe-lib": "^5.1.1-rc.0",
     "arangojs": "^9.0.0",
     "axios": "^1.7.3",
     "class-variance-authority": "^0.7.0",

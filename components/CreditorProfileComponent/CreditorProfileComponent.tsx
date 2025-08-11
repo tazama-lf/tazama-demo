@@ -35,7 +35,13 @@ const CreditorProfileComponent = ({
   return (
     <Dropzone id="creditorProfiles" onDrop={onDrop} onDragOver={onDragOver}>
       <div>
-        <Dragger key={`creditor-0`} id={`creditor-0`} onDragStart={onDragStart} onDoubleClick={() => {}}>
+        <Dragger
+          dragKey={`creditor-0`}
+          key={`creditor-0`}
+          id={`creditor-0`}
+          onDragStart={onDragStart}
+          onDoubleClick={() => {}}
+        >
           <div key={uuidv4().replaceAll("-", "")} className="flex max-h-[60px] w-full">
             <CreditorProfile
               colour={!entityCtx.creditorEntities[0] ? "text-gray-300" : "text-blue-500"}
@@ -53,7 +59,13 @@ const CreditorProfileComponent = ({
             />
           </div>
         </Dragger>
-        <Dragger key={`creditor-1`} id={`creditor-1`} onDragStart={onDragStart} onDoubleClick={() => {}}>
+        <Dragger
+          dragKey={`creditor-1`}
+          key={`creditor-1`}
+          id={`creditor-1`}
+          onDragStart={onDragStart}
+          onDoubleClick={() => {}}
+        >
           <div key={uuidv4().replaceAll("-", "")} className="flex max-h-[60px] w-full">
             <CreditorProfile
               colour={!entityCtx.creditorEntities[1] ? "text-gray-300" : "text-green-500"}
@@ -72,7 +84,13 @@ const CreditorProfileComponent = ({
           </div>
         </Dragger>
 
-        <Dragger key={`creditor-2`} id={`creditor-2`} onDragStart={onDragStart} onDoubleClick={() => {}}>
+        <Dragger
+          dragKey={`creditor-2`}
+          key={`creditor-2`}
+          id={`creditor-2`}
+          onDragStart={onDragStart}
+          onDoubleClick={() => {}}
+        >
           <div key={uuidv4().replaceAll("-", "")} className="flex max-h-[60px] w-full">
             <CreditorProfile
               colour={!entityCtx.creditorEntities[2] ? "text-gray-300" : "text-yellow-400"}
@@ -91,7 +109,13 @@ const CreditorProfileComponent = ({
           </div>
         </Dragger>
 
-        <Dragger key={`creditor-3`} id={`creditor-3`} onDragStart={onDragStart} onDoubleClick={() => {}}>
+        <Dragger
+          dragKey={`creditor-3`}
+          key={`creditor-3`}
+          id={`creditor-3`}
+          onDragStart={onDragStart}
+          onDoubleClick={() => {}}
+        >
           <div key={uuidv4().replaceAll("-", "")} className="flex max-h-[60px] w-full">
             <CreditorProfile
               colour={!entityCtx.creditorEntities[3] ? "text-gray-300" : "text-orange-500"}
