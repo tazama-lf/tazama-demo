@@ -6,6 +6,8 @@ services:
       context: ./
       target: dev
       dockerfile: Dockerfile
+      platforms:
+        - linux/amd64 
     env_file:
       - .env
     volumes:
