@@ -241,7 +241,6 @@ const ProcessorProvider = ({ children }: Props) => {
       socket.on("tadProc", (msg) => {
         const currentMsgId = localStorage.getItem("current_msg_id")
         if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
-          console.log("HIT THIS!!", msgId, "MSG: ", msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId)
           const typoResult = Object.keys(msg.report.tadpResult).includes("typologyResult")
           if (typoResult) {
             msg.report.tadpResult.typologyResult.map((tpRes: any) => {

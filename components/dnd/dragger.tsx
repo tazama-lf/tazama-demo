@@ -3,7 +3,7 @@ import React, { useContext } from "react"
 import EntityContext from "store/entities/entity.context"
 
 interface Props {
-  key: string
+  dragKey: string
   id: string
   onDragStart: (ev: React.DragEvent<HTMLElement>) => void
   onDoubleClick: () => void
@@ -11,11 +11,11 @@ interface Props {
   children: React.ReactNode
 }
 
-const Dragger = ({ id, key, children, onDragStart, onDoubleClick }: Props) => {
+const Dragger = ({ id, dragKey, children, onDragStart, onDoubleClick }: Props) => {
   const entityCtx = useContext(EntityContext)
   return (
     <div
-      key={key}
+      key={dragKey}
       id={id}
       className="align-center m-1 flex w-full cursor-pointer flex-row justify-between rounded-md p-2"
       draggable={true}

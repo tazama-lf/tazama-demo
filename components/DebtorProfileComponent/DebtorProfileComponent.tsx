@@ -37,7 +37,13 @@ const DebtorProfileComponent = ({
       <div
       //   className="min-w-full space-y-2"
       >
-        <Dragger key={`debtor-0`} id={`debtor-0`} onDragStart={onDragStart} onDoubleClick={() => {}}>
+        <Dragger
+          dragKey={`debtor-0`}
+          key={`debtor-0`}
+          id={`debtor-0`}
+          onDragStart={onDragStart}
+          onDoubleClick={() => {}}
+        >
           <div key={uuidv4().replaceAll("-", "")} className="flex max-h-[60px] w-full">
             <Profile
               colour={!entityCtx.entities[0] ? "text-gray-300" : iconColour(0)}
@@ -55,7 +61,13 @@ const DebtorProfileComponent = ({
           </div>
         </Dragger>
 
-        <Dragger key={`debtor-1`} id={`debtor-1`} onDragStart={onDragStart} onDoubleClick={() => {}}>
+        <Dragger
+          dragKey={`debtor-1`}
+          key={`debtor-1`}
+          id={`debtor-1`}
+          onDragStart={onDragStart}
+          onDoubleClick={() => {}}
+        >
           <div key={uuidv4().replaceAll("-", "")} className="flex max-h-[60px] w-full">
             <Profile
               colour={!entityCtx.entities[1] ? "text-gray-300" : iconColour(1)}
@@ -73,7 +85,13 @@ const DebtorProfileComponent = ({
           </div>
         </Dragger>
 
-        <Dragger key={`debtor-2`} id={`debtor-2`} onDragStart={onDragStart} onDoubleClick={() => {}}>
+        <Dragger
+          dragKey={`debtor-2`}
+          key={`debtor-2`}
+          id={`debtor-2`}
+          onDragStart={onDragStart}
+          onDoubleClick={() => {}}
+        >
           <div key={uuidv4().replaceAll("-", "")} className="flex max-h-[60px] w-full">
             <Profile
               colour={!entityCtx.entities[2] ? "text-gray-300" : iconColour(2)}
@@ -91,7 +109,13 @@ const DebtorProfileComponent = ({
           </div>
         </Dragger>
 
-        <Dragger key={`debtor-3`} id={`debtor-3`} onDragStart={onDragStart} onDoubleClick={() => {}}>
+        <Dragger
+          dragKey={`debtor-3`}
+          key={`debtor-3`}
+          id={`debtor-3`}
+          onDragStart={onDragStart}
+          onDoubleClick={() => {}}
+        >
           <div key={uuidv4().replaceAll("-", "")} className="flex max-h-[60px] w-full">
             <Profile
               colour={!entityCtx.entities[3] ? "text-gray-300" : iconColour(3)}

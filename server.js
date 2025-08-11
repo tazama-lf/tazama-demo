@@ -1,4 +1,4 @@
-const frms = require("@frmscoe/frms-coe-lib/lib/helpers/protobuf")
+const frms = require("@tazama-lf/frms-coe-lib/lib/helpers/protobuf")
 const NATS = require("nats")
 const next = require("next")
 require("dotenv").config()
@@ -22,13 +22,13 @@ const handleMsg = async (msg, socket, room) => {
 }
 const handleMsg1 = async (msg, socket, room) => {
   const decodedMessage = frms.default.decode(msg.data)
-
+  console.log("TADPROC: ", decodedMessage)
   await socket.to(room).emit(room, decodedMessage)
 }
 
 const handleMsg2 = async (msg, socket, room) => {
   const decodedMessage = frms.default.decode(msg.data)
-
+  console.log("INT_SRVC: ", decodedMessage)
   await socket.to(room).emit(room, decodedMessage)
 }
 
@@ -84,6 +84,7 @@ app.prepare().then(() => {
 
     socket.on("tadProc", (message) => {
       // Emit message to all subscribed clients
+      console.log("TADPROC_RESULT: ", message)
       io.to("tadProc").emit("tadProc", message)
     })
 
@@ -110,8 +111,8 @@ app.prepare().then(() => {
 
     const connected = nc.subscribe("connection")
     // const all = nc.subscribe(">", { queue: "MONITORING1" })
-    const cms = nc.subscribe("cms", { queue: "MONITORING_CMS" })
-    const is = nc.subscribe("interdiction-service", { queue: "MONITORING_IS" })
+    const cms = nc.subscribe("cms", { queue: "MONITORING_CMS1" })
+    const int_service = nc.subscribe("interdiction-service", { queue: "MONITORING_IS1" })
 
     ;(async () => {
       for await (const msg of connected) await handleMsg(msg, io, "connection")
@@ -120,7 +121,7 @@ app.prepare().then(() => {
       for await (const msg of cms) await handleMsg1(msg, io, "tadProc")
     })()
     ;(async () => {
-      for await (const msg of is) await handleMsg2(msg, io, "interdiction-service")
+      for await (const msg of int_service) await handleMsg2(msg, io, "interdiction-service")
     })()
 
     io.to("stream").emit("stream", { message: "Stream Test Message" })
