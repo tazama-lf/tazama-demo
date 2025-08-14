@@ -1,0 +1,28 @@
+services:
+  app:
+    container_name: tazama-demo
+    image: tazamaorg/demo-ui:v2.2.0
+    build:
+      context: ./
+      target: dev
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64 
+    env_file:
+      - .env
+    volumes:
+        - .:/app
+        - /app/node_modules
+        - /app/.next
+    ports:
+      - "3001:3001"
+    restart: always
+    networks:
+      - network1
+
+
+networks:
+  network1:
+    name: tazama_default
+    external: true
+      
