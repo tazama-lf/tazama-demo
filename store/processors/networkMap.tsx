@@ -1,20 +1,10 @@
 import { useContext, useEffect, useState } from "react"
-import { getNetworkMap } from "utils/db"
 
 async function getNetworkMapSetup() {
-  const uiConfig: any = await localStorage.getItem("UI_CONFIG")
-
-  let conf: any = uiConfig
-  let con: any = JSON.parse(conf)
-
-  const config: any = {
-    url: con.arangoDBHosting,
-    databaseName: "configuration",
-    auth: { username: con.dbUser, password: con.dbPassword },
-  }
-  const res = await getNetworkMap(config)
-
-  return res
+  // Fetch network map from the API route
+  const res = await fetch("/api/network-map")
+  const data = await res.json()
+  return data
 }
 
 export default getNetworkMapSetup

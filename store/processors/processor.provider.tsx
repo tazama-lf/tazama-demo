@@ -5,7 +5,6 @@ import dotenv from "dotenv"
 import React, { ReactNode, useEffect, useReducer, useRef, useState, useContext } from "react"
 import { io } from "socket.io-client"
 import { uiConfigInitialState } from "store/entities/entity.initialState"
-import { handleTadProcResults } from "utils/db"
 import { ACTIONS } from "./processor.actions"
 import ProcessorContext from "./processor.context"
 
@@ -35,6 +34,7 @@ import ProcessorReducer from "./processor.reducer"
 import { Socket } from "socket.io"
 import getNetworkMapSetup from "./networkMap"
 import EntityContext from "store/entities/entity.context"
+import { handleTadProcResults } from "utils/tadProcUtils"
 
 dotenv.config()
 
@@ -292,7 +292,7 @@ const ProcessorProvider = ({ children }: Props) => {
       })
       // SORT BY TYPOLOGY
       linksResponse.sort((a: LinkedTypo, b: LinkedTypo) => {
-        return a.typology.localeCompare(b.typology)
+        return a.typology?.localeCompare(b.typology)
       })
       return linksResponse
     } else {
@@ -355,14 +355,21 @@ const ProcessorProvider = ({ children }: Props) => {
     try {
       const configData = await getNetworkMapSetup()
 
-      if (configData.rules) {
-        dispatch({ type: ACTIONS.CREATE_RULES_SUCCESS, payload: configData.rules })
+      // Type assertion to ensure configData is not unknown
+      const typedConfigData = configData as {
+        rules?: any
+        typologies?: any
+        typologiesEFRuP?: any
       }
-      if (configData.typologies) {
-        dispatch({ type: ACTIONS.CREATE_TYPO_SUCCESS, payload: configData.typologies })
+
+      if (typedConfigData.rules) {
+        dispatch({ type: ACTIONS.CREATE_RULES_SUCCESS, payload: typedConfigData.rules })
       }
-      if (configData.typologiesEFRuP) {
-        dispatch({ type: ACTIONS.CREATE_TYPO_EFRUP_SUCCESS, payload: configData.typologiesEFRuP })
+      if (typedConfigData.typologies) {
+        dispatch({ type: ACTIONS.CREATE_TYPO_SUCCESS, payload: typedConfigData.typologies })
+      }
+      if (typedConfigData.typologiesEFRuP) {
+        dispatch({ type: ACTIONS.CREATE_TYPO_EFRUP_SUCCESS, payload: typedConfigData.typologiesEFRuP })
       }
     } catch (err) {
       console.log("ERROR CREATING RULES: ", err)

@@ -10,14 +10,16 @@ import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
 import EntityContext from "store/entities/entity.context"
 import ProcessorContext from "store/processors/processor.context"
 import Loader from "./../components/Loader/Loader"
-import { DragDropContext } from "../node_modules/@hello-pangea/dnd/dist/dnd"
 import RuleResult from "components/RuleResults/RuleResults"
 import TypeResult from "components/TypologyResults/TypologyResults"
 import io from "socket.io-client"
 import { Rule, TypoEFRuP, Typology } from "store/processors/processor.interface"
+import { CdtrEntity, Entity } from "store/entities/entity.interface"
 import DebtorProfileComponent from "components/DebtorProfileComponent/DebtorProfileComponent"
 import CreditorProfileComponent from "components/CreditorProfileComponent/CreditorProfileComponent"
-import { Entity, CdtrEntity } from "store/entities/entity.interface"
+import { mapRules } from "utils/mapRules"
+import { mapTypologies } from "utils/mapTypologies"
+import { linkRulesToTypologies } from "utils/linkRulesToTypologies"
 
 let socket
 const Web = () => {
@@ -38,6 +40,7 @@ const Web = () => {
   const [flashing, setFlashing] = useState(false)
   const [flashColor, setFlashColor] = useState<"r" | "g">("r")
   const [displayOverridden, setDisplayOverridden] = useState(false)
+  const [ruleResultPosition, setRuleResultPosition] = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     if (hoveredType) {
@@ -111,28 +114,30 @@ const Web = () => {
     }
   }, [started, selectedRule, processCtx.rules])
 
-  const handleRuleMouseEnter = (type: any) => {
+  const handleRuleMouseEnter = (rule: Rule, event?: React.MouseEvent<HTMLDivElement>) => {
     setHoveredType(null) // fallback if stats is stuck
-    setHoveredRule(type)
+    setHoveredRule(rule)
     setHoverTypes([
-      ...type.displayLinkedTypo.map((t: any) => {
-        return t
-      }),
+      ...(Array.isArray(rule.displayLinkedTypo) ? rule.displayLinkedTypo : []).map((t: string) => t),
     ])
+    if (event) {
+      setRuleResultPosition({ x: event.clientX, y: event.clientY })
+    }
   }
 
   const handleRuleMouseLeave = () => {
     setHoveredRule(null)
     setHoveredType(null) // fallback if stats is stuck
     setHoverTypes([])
+    setRuleResultPosition(null)
   }
 
-  const handleRuleClick = (type: any) => {
+  const handleRuleClick = (type: Rule) => {
     setHoveredType(null) // fallback if stats is stuck
     setSelectedRule(type)
     setSelectedRules([type.title])
     setSelectedTypes([
-      ...type.displayLinkedTypo.map((t: any) => {
+      ...type.displayLinkedTypo.map((t: string) => {
         return t
       }),
     ])
@@ -254,6 +259,29 @@ const Web = () => {
     }
   }, [])
 
+  // Add local state for rules and typologies fetched from the DB
+  const [dbRules, setDbRules] = useState<Rule[]>([])
+  const [dbTypologies, setDbTypologies] = useState<Typology[]>([])
+
+  // Fetch rules and typologies from API routes on mount
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/rules").then((res) => res.json()),
+      fetch("/api/typologies").then((res) => res.json()),
+    ])
+      .then(([rulesData, typologiesData]) => {
+        if (Array.isArray(rulesData) && Array.isArray(typologiesData)) {
+          const mappedRules = mapRules(rulesData)
+          const mappedTypologies = mapTypologies(typologiesData)
+          setDbTypologies(mappedTypologies)
+          setDbRules(linkRulesToTypologies(mappedRules, mappedTypologies))
+        } else {
+          console.error("API returned non-array for rules or typologies", rulesData, typologiesData)
+        }
+      })
+      .catch((err) => console.error("Failed to fetch rules or typologies:", err))
+  }, [])
+
   if (loading) return <Loader />
   if (error) return <p>Error: {error}</p>
 
@@ -343,8 +371,8 @@ const Web = () => {
   }
 
   return (
-    <div className="flex min-h-[100%] w-[100%] flex-col">
-      <div className="z-99 absolute right-[100px] top-5 cursor-pointer">
+    <div className="flex min-h-screen w-full flex-col">
+      <div className="z-99 absolute right-24 top-5 cursor-pointer">
         <button
           className="content-right-center ml-auto rounded-md bg-gradient-to-b from-gray-100 to-gray-200 p-2 shadow-lg"
           onClick={() => {
@@ -365,11 +393,11 @@ const Web = () => {
           Clear All
         </button>
       </div>
-      <div className="bg-slate-300/25 px-3 pb-1 pt-4">
-        <div className="grid grid-cols-12 gap-5">
+      <div className="bg-slate-300/25 px-3 pb-1 pt-4 flex-1">
+        <div className="grid grid-cols-12 gap-5 h-full">
           {/* Debtors */}
           {/* <DragDropContext onDragEnd={onDragEnd}> */}
-          <div className="col-span-2">
+          <div className="col-span-2 flex flex-col h-full">
             <div className="flex flex-col flex-wrap justify-center rounded-lg py-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
               <div className="mb-2 w-full text-center text-xl">Debtors</div>
               <DebtorProfileComponent
@@ -384,9 +412,9 @@ const Web = () => {
           </div>
 
           {/* Device transactions */}
-          <div className="col-span-8">
-            <div className="grid grid-cols-12 gap-1">
-              <div className="col-span-4">
+          <div className="col-span-8 flex flex-col h-full">
+            <div className="grid grid-cols-12 gap-1 h-full">
+              <div className="col-span-4 flex flex-col h-full">
                 <DebtorDevice
                   selectedEntity={selectedEntity}
                   isDebtor={true}
@@ -400,7 +428,7 @@ const Web = () => {
                   setCreateModalVisible={processCtx.setShowDebtorConditionsCreate}
                 />
               </div>
-              <div className="relative col-span-4 flex items-center justify-between px-5">
+              <div className="relative col-span-4 flex items-center justify-between px-5 h-full">
                 <ProcessIndicator
                   started={started}
                   stop={processCtx.tadpLights.stop}
@@ -440,7 +468,7 @@ const Web = () => {
                   )
                 )}
               </div>
-              <div className="col-span-4">
+              <div className="col-span-4 flex flex-col h-full">
                 <DebtorDevice
                   selectedEntity={selectedCreditorEntity}
                   isDebtor={false}
@@ -458,7 +486,7 @@ const Web = () => {
 
           {/* Creditors */}
 
-          <div className="col-span-2">
+          <div className="col-span-2 flex flex-col h-full">
             <div className="flex flex-col flex-wrap justify-center rounded-lg py-5 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
               <div className="mb-2 w-full text-center text-xl">Creditors</div>
               <CreditorProfileComponent
@@ -474,9 +502,9 @@ const Web = () => {
           {/* </DragDropContext> */}
         </div>
 
-        <div className="mb-2 grid grid-cols-6 gap-3 pt-8">
+        <div className="mb-2 grid grid-cols-6 gap-3 pt-8 relative">
           {/* CRSP */}
-          <div className="col-span-1 rounded-md shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+          <div className="col-span-1 rounded-md h-full flex flex-col">
             <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
               Event director
             </h2>
@@ -494,57 +522,124 @@ const Web = () => {
           </div>
 
           {/* Rules */}
-          <div className="col-span-2 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
+          <div className="col-span-2 rounded-lg h-full flex flex-col">
             <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
               Rules
             </h2>
-            <div className="grid grid-cols-12 pb-2">
-              <div className="col-span-6">
-                <div className="grid grid-cols-3 gap-1 px-5">
-                  {processCtx.rulesLoading ? (
-                    <p className="mb-5 w-80 rounded-t-lg py-5 text-center">Loading</p>
-                  ) : (
-                    processCtx.rules
-                      ?.sort((a, b) => {
-                        return a.title.localeCompare(b.title)
-                      })
-                      .map((rule: any) => (
-                        <div
-                          className={`mb-1  flex cursor-pointer rounded-md px-2 ${
-                            hoverRules && hoverRules.includes(rule.title) && "bg-gray-200 shadow"
-                          } ${
-                            selectedRules ? selectedRules.includes(rule.title) && "bg-gray-400 shadow" : null
-                          } hover:bg-gray-200 hover:shadow`}
-                          key={`r-${rule.id}`}
-                          onMouseEnter={() => {
-                            handleRuleMouseEnter(rule)
-                          }}
-                          onMouseLeave={() => handleRuleMouseLeave()}
-                          onClick={() => {
-                            if (selectedRule === null) {
-                              handleRuleClick(rule)
-                            } else if (selectedRule === rule) {
-                              handleRuleClickClose()
-                            }
+            <div className="flex-1 min-h-0">
+              <div className="grid grid-cols-3 gap-2 h-full overflow-auto">
+                {dbRules
+                  .filter((r: Rule) => typeof r.title === "string")
+                  .sort((a: Rule, b: Rule) => a.title.localeCompare(b.title))
+                  .map((rule: Rule, idx: number) => (
+                    <div
+                      key={`rule-${rule.id ?? idx}`}
+                      className={`mb-1 flex cursor-pointer rounded-md px-2
+              ${hoverRules && hoverRules.includes(rule.title) ? "bg-gray-200 shadow" : ""}
+              ${selectedRules && selectedRules.includes(rule.title) ? "bg-gray-400 shadow" : ""}
+              hover:bg-gray-200 hover:shadow`}
+                      onMouseEnter={(e) => handleRuleMouseEnter(rule, e)}
+                      onMouseLeave={handleRuleMouseLeave}
+                      onClick={() => {
+                        if (selectedRule === null) {
+                          handleRuleClick(rule)
+                        } else if (selectedRule === rule) {
+                          handleRuleClickClose()
+                        }
+                        if (selectedRules.length > 0) {
+                          handleRuleClickClose()
+                          handleRuleClick(rule)
+                        }
+                      }}
+                    >
+                      <StatusIndicator colour={rule.color} /> &nbsp;
+                      {rule.title}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
 
-                            if (selectedRules.length > 0) {
-                              handleRuleClickClose()
-                              handleRuleClick(rule)
-                            }
-                          }}
-                        >
-                          <StatusIndicator colour={rule.color} /> &nbsp;
-                          {rule.title}
-                        </div>
-                      ))
+          {/* Typologies */}
+          <div className="col-span-2 rounded-lg h-full flex flex-col">
+            <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
+              Typologies
+            </h2>
+            <div className="flex-1 min-h-0">
+              <div className="grid grid-cols-3 gap-2 px-5 h-full overflow-auto">
+                {dbTypologies
+                  .filter((t: Typology) => typeof t.title === "string")
+                  .sort((a: Typology, b: Typology) => a.title.localeCompare(b.title))
+                  .map((type: Typology, idx: number) => (
+                    <div
+                      key={`typology-${type.id}-${type.cfg ?? idx}`}
+                      className="mb-1 flex items-center cursor-pointer rounded-md px-2 py-1 hover:bg-gray-200 hover:shadow"
+                      style={{ minHeight: "24px", height: "24px" }} // Match rule height
+                      onMouseEnter={() => handleTypeMouseEnter(type)}
+                      onMouseLeave={() => handleTypeMouseLeave()}
+                      onClick={() => handleTypeClick(type)}
+                    >
+                      <StatusIndicator colour={type.color} /> &nbsp;
+                      {type.title}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Tadproc */}
+          <div className="col-span-1 rounded-lg h-full flex flex-col">
+            <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
+              Tadproc
+            </h2>
+            <div className="relative flex min-h-80 items-center justify-center">
+              {processCtx.tadpLights.efrup === "override" && processCtx.tadpLights.color === "r" && flashing ? (
+                <StatusIndicator large={true} colour={flashColor} />
+              ) : (
+                <StatusIndicator large={true} colour={processCtx.tadpLights.color} />
+              )}
+
+              {(processCtx.tadpLights.color === "y" ||
+                processCtx.tadpLights.color === "r") && (
+                  <div className="absolute bottom-16 flex items-center justify-center text-center">
+                    <p className="mb-5 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 px-5 py-2 text-center text-xs uppercase shadow-lg">
+                      {processCtx.tadpLights.status}
+                    </p>
+                  </div>
+                )}
+              {processCtx.tadpLights.efrup !== undefined && (
+                <div className="absolute bottom-16 flex items-center justify-center text-center">
+                  {processCtx.tadpLights.efrup === "block" ? (
+                    <p className="mb-5 rounded-lg border-[1px] border-red-500 bg-gradient-to-r from-red-100 to-red-200 px-5 py-2 text-center text-xs uppercase text-red-500 shadow-lg">
+                      BLOCKED
+                    </p>
+                  ) : (
+                    processCtx.tadpLights.efrup === "override" &&
+                    processCtx.tadpLights.color === "r" ? (
+                      <p className="mb-5 flex max-w-[120px] rounded-lg border-[1px] border-green-500 bg-gradient-to-r from-green-100 to-green-200 px-5 py-2 text-center text-xs uppercase text-green-500 shadow-lg">
+                        INTERDICTION OVERRIDDEN
+                      </p>
+                    ) : null
                   )}
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
+          <div className="absolute flex h-full w-full flex-col pointer-events-none">
+            {/* Rule Result - static left of rules container */}
+            {hoveredRule && (
               <div
-                className="col-span-6 px-5"
-                onClick={() => {
-                  handleRuleMouseLeave()
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  zIndex: 1000,
+                  width: "350px",
+                  background: "#fff", // White background
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
                 }}
+                className="pointer-events-auto"
               >
                 <RuleResult
                   started={started}
@@ -558,94 +653,32 @@ const Web = () => {
                   handleClose={handleRuleClickClose}
                 />
               </div>
-            </div>
-          </div>
+            )}
 
-          {/* Typologies */}
-          <div className="col-span-2 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-            <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
-              Typologies
-            </h2>
-            <div className="grid grid-cols-12">
-              <div className="col-span-6">
-                <div className="grid grid-cols-3 gap-1 px-5">
-                  {processCtx.typologies &&
-                    processCtx.typologies
-                      .sort((a, b) => {
-                        return a.title.localeCompare(b.title)
-                      })
-                      .map((type: any) => (
-                        <div
-                          className={`mb-1 flex cursor-pointer rounded-md px-2 ${
-                            hoverTypes && hoverTypes.includes(type.title) && "bg-gray-200 shadow"
-                          } ${
-                            selectedTypes ? selectedTypes.includes(type.title) && "bg-gray-400 shadow" : null
-                          } hover:bg-gray-200 hover:shadow`}
-                          key={`r-${type.id}`}
-                          onMouseEnter={() => {
-                            handleTypeMouseEnter(type)
-                          }}
-                          onMouseLeave={() => handleTypeMouseLeave()}
-                          onClick={() => {
-                            handleTypeClick(type)
-                          }}
-                        >
-                          <StatusIndicator colour={type.color} /> &nbsp;
-                          {type.title}
-                        </div>
-                      ))}
-                </div>
-              </div>
+            {/* Typology Result - static right of typology container */}
+            {hoveredType && (
               <div
-                className="col-span-6 px-5"
-                onClick={() => {
-                  handleTypeClickClose()
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  zIndex: 1000,
+                  width: "350px",
+                  background: "#fff", // White background
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
                 }}
+                className="pointer-events-auto"
               >
-                <TypeResult hoveredType={hoveredType} selectedType={selectedType} overridden={displayOverridden} />
+                <TypeResult
+                  hoveredType={hoveredType}
+                  selectedType={selectedType}
+                  overridden={displayOverridden}
+                />
               </div>
-            </div>
+            )}
           </div>
-
-          {/* Tadproc */}
-          <div className="col-span-1 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-            <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
-              Tadproc
-            </h2>
-            <div className="relative flex min-h-80 items-center justify-center">
-              {processCtx.tadpLights.efrup === "override" && processCtx.tadpLights.color === "r" && flashing ? (
-                <StatusIndicator large={true} colour={flashColor} />
-              ) : (
-                <StatusIndicator large={true} colour={processCtx.tadpLights.color} />
-              )}
-
-              {processCtx.tadpLights.color === "y" ||
-                (processCtx.tadpLights.color === "r" && (
-                  <div className="absolute bottom-16 flex items-center justify-center text-center">
-                    <p className="mb-5 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 px-5 py-2 text-center text-xs uppercase shadow-lg">
-                      {processCtx.tadpLights.status}
-                    </p>
-                  </div>
-                ))}
-              {processCtx.tadpLights.efrup !== undefined && (
-                <div className="absolute bottom-16 flex items-center justify-center text-center">
-                  {processCtx.tadpLights.efrup === "block" ? (
-                    <p className="mb-5 rounded-lg border-[1px] border-red-500 bg-gradient-to-r from-red-100 to-red-200 px-5 py-2 text-center text-xs uppercase text-red-500 shadow-lg">
-                      BLOCKED
-                    </p>
-                  ) : (
-                    processCtx.tadpLights.efrup === "override" &&
-                    processCtx.tadpLights.color === "r" && (
-                      <p className="mb-5 flex max-w-[120px] rounded-lg border-[1px] border-green-500 bg-gradient-to-r from-green-100 to-green-200 px-5 py-2 text-center text-xs uppercase text-green-500 shadow-lg">
-                        INTERDICTION OVERRIDDEN
-                      </p>
-                    )
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      </div>
 
         {showModal && (
           <DebtorModal
@@ -684,8 +717,10 @@ const Web = () => {
             modalTitle="Update Creditor Entity"
           />
         )}
+
+        
       </div>
-      <p className="absolute top-[65px] flex w-[265px] justify-end text-right text-xs font-light">
+      <p className="absolute top-[65px] right-0 flex w-[265px] justify-end text-right text-xs font-light">
         v{processCtx.app_version}
       </p>
     </div>

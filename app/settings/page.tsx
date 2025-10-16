@@ -12,6 +12,7 @@ import ResetModal from "./ResetModal"
 const Settings = () => {
   const entityCtx = useContext(EntityContext)
   const [config, setConfig] = useState<UIConfiguration>()
+  const [rules, setRules] = useState<any[]>([])
   const [showModal, setShowModal] = useState(false)
   const [showConfigModal, setShowConfigModal] = useState(false)
 
@@ -29,6 +30,14 @@ const Settings = () => {
       }
     }
   }, [entityCtx.uiConfig])
+
+  useEffect(() => {
+    // Fetch rules from the API route instead of DB utility
+    fetch("/api/rules")
+      .then((res) => res.json())
+      .then((data) => setRules(data as any[]))
+      .catch((err) => console.error("Failed to fetch rules:", err))
+  }, [])
 
   const handleReset = async () => {
     await entityCtx.reset()
@@ -91,7 +100,7 @@ const Settings = () => {
             <label htmlFor="cms_host">NATS Hosting</label>
             <div className="my-2">
               <input
-                id="tms_key"
+                id="cms_host"
                 type="text"
                 className="w-full rounded-lg p-2"
                 value={config?.cmsNatsHosting || ""}
@@ -110,7 +119,7 @@ const Settings = () => {
             <label htmlFor="cms_usr">Name</label>
             <div className="my-2">
               <input
-                id="tms_key"
+                id="cms_usr"
                 type="text"
                 className="w-full rounded-lg p-2"
                 value={config?.natsUsername || ""}
@@ -129,7 +138,7 @@ const Settings = () => {
             <label htmlFor="cms_pwd">Password</label>
             <div className="my-2">
               <input
-                id="tms_key"
+                id="cms_pwd"
                 type="text"
                 className="w-full rounded-lg p-2"
                 value={config?.natsPassword || ""}
@@ -149,10 +158,10 @@ const Settings = () => {
             <hr className="mb-2 mt-3 border-black" />
           </div>
           <div className="col-span-full">
-            <label htmlFor="cms_pwd">Admin Service Host URL</label>
+            <label htmlFor="admin_service">Admin Service Host URL</label>
             <div className="my-2">
               <input
-                id="tms_key"
+                id="admin_service"
                 type="text"
                 className="w-full rounded-lg p-2"
                 value={config?.adminServiceUrl || ""}
@@ -170,19 +179,20 @@ const Settings = () => {
         </div>
 
         <div className="col-span-4">
+          {/* PostgreSQL Section */}
           <div className="col-span-full">
-            <label htmlFor="argo_host">Arango DB hosting</label>
+            <label htmlFor="pg_host">PostgreSQL Host</label>
             <div className="my-2">
               <input
-                id="tms_key"
+                id="pg_host"
                 type="text"
                 className="w-full rounded-lg p-2"
-                value={config?.arangoDBHosting || ""}
+                value={config?.pgHost || ""}
                 onChange={(e) => {
                   if (config !== undefined) {
                     setConfig({
                       ...config,
-                      arangoDBHosting: e.target.value,
+                      pgHost: e.target.value,
                     })
                   }
                 }}
@@ -190,18 +200,18 @@ const Settings = () => {
             </div>
           </div>
           <div className="col-span-full">
-            <label htmlFor="argo_usr">Name</label>
+            <label htmlFor="pg_port">PostgreSQL Port</label>
             <div className="my-2">
               <input
-                id="tms_key"
+                id="pg_port"
                 type="text"
                 className="w-full rounded-lg p-2"
-                value={config?.dbUser || ""}
+                value={config?.pgPort || ""}
                 onChange={(e) => {
                   if (config !== undefined) {
                     setConfig({
                       ...config,
-                      dbUser: e.target.value,
+                      pgPort: e.target.value,
                     })
                   }
                 }}
@@ -209,18 +219,56 @@ const Settings = () => {
             </div>
           </div>
           <div className="col-span-full">
-            <label htmlFor="argo_pwd">Password</label>
+            <label htmlFor="pg_user">PostgreSQL User</label>
             <div className="my-2">
               <input
-                id="tms_key"
+                id="pg_user"
                 type="text"
                 className="w-full rounded-lg p-2"
-                value={config?.dbPassword || ""}
+                value={config?.pgUser || ""}
                 onChange={(e) => {
                   if (config !== undefined) {
                     setConfig({
                       ...config,
-                      dbPassword: e.target.value,
+                      pgUser: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="col-span-full">
+            <label htmlFor="pg_password">PostgreSQL Password</label>
+            <div className="my-2">
+              <input
+                id="pg_password"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.pgPassword || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      pgPassword: e.target.value,
+                    })
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="col-span-full">
+            <label htmlFor="pg_database">PostgreSQL Database</label>
+            <div className="my-2">
+              <input
+                id="pg_database"
+                type="text"
+                className="w-full rounded-lg p-2"
+                value={config?.pgDatabase || ""}
+                onChange={(e) => {
+                  if (config !== undefined) {
+                    setConfig({
+                      ...config,
+                      pgDatabase: e.target.value,
                     })
                   }
                 }}
@@ -231,7 +279,7 @@ const Settings = () => {
             <hr className="mb-2 mt-2 border-black" />
           </div>
           <div className="col-span-full">
-            <label htmlFor="argo_pwd">Websocket IP Address</label>
+            <label htmlFor="ip_address">Websocket IP Address</label>
             <div className="my-2">
               <input
                 id="ip_address"
@@ -278,228 +326,6 @@ const Settings = () => {
           </button>
         </div>
       </div>
-      {/* <div className="grid grid-cols-12 gap-5">
-        <div className="col-span-4"></div>
-        <div className="col-span-4">
-          <h1 className="text-center">UI Configuration</h1>
-
-          <div className="col-span-full">
-            <label htmlFor="tms_id">TMS API Host URL</label>
-            <div className="my-2">
-              <input
-                id="tms_id"
-                type="text"
-                className="w-full rounded-lg p-2"
-                value={config?.tmsServerUrl || ""}
-                onChange={(e) => {
-                  if (config !== undefined) {
-                    setConfig({
-                      ...config,
-                      tmsServerUrl: e.target.value,
-                    })
-                  }
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="col-span-full">
-            <label htmlFor="cms_pwd">Admin Service Host URL</label>
-            <div className="my-2">
-              <input
-                id="tms_key"
-                type="text"
-                className="w-full rounded-lg p-2"
-                value={config?.natsPassword || ""}
-                onChange={(e) => {
-                  if (config !== undefined) {
-                    setConfig({
-                      ...config,
-                      natsPassword: e.target.value,
-                    })
-                  }
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="col-span-full">
-            <hr className="mb-2 border-black" />
-          </div>
-
-          <div className="col-span-full">
-            <label htmlFor="cms_host">NATS Hosting</label>
-            <div className="my-2">
-              <input
-                id="tms_key"
-                type="text"
-                className="w-full rounded-lg p-2"
-                value={config?.cmsNatsHosting || ""}
-                onChange={(e) => {
-                  if (config !== undefined) {
-                    setConfig({
-                      ...config,
-                      cmsNatsHosting: e.target.value,
-                    })
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-span-full">
-            <label htmlFor="cms_usr">Name</label>
-            <div className="my-2">
-              <input
-                id="tms_key"
-                type="text"
-                className="w-full rounded-lg p-2"
-                value={config?.natsUsername || ""}
-                onChange={(e) => {
-                  if (config !== undefined) {
-                    setConfig({
-                      ...config,
-                      natsUsername: e.target.value,
-                    })
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-span-full">
-            <label htmlFor="cms_pwd">Password</label>
-            <div className="my-2">
-              <input
-                id="tms_key"
-                type="text"
-                className="w-full rounded-lg p-2"
-                value={config?.natsPassword || ""}
-                onChange={(e) => {
-                  if (config !== undefined) {
-                    setConfig({
-                      ...config,
-                      natsPassword: e.target.value,
-                    })
-                  }
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="col-span-full">
-            <hr className="mb-2 border-black" />
-          </div>
-
-          <div className="col-span-full">
-            <label htmlFor="argo_host">Arango DB hosting</label>
-            <div className="my-2">
-              <input
-                id="tms_key"
-                type="text"
-                className="w-full rounded-lg p-2"
-                value={config?.arangoDBHosting || ""}
-                onChange={(e) => {
-                  if (config !== undefined) {
-                    setConfig({
-                      ...config,
-                      arangoDBHosting: e.target.value,
-                    })
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-span-full">
-            <label htmlFor="argo_usr">Name</label>
-            <div className="my-2">
-              <input
-                id="tms_key"
-                type="text"
-                className="w-full rounded-lg p-2"
-                value={config?.dbUser || ""}
-                onChange={(e) => {
-                  if (config !== undefined) {
-                    setConfig({
-                      ...config,
-                      dbUser: e.target.value,
-                    })
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-span-full">
-            <label htmlFor="argo_pwd">Password</label>
-            <div className="my-2">
-              <input
-                id="tms_key"
-                type="text"
-                className="w-full rounded-lg p-2"
-                value={config?.dbPassword || ""}
-                onChange={(e) => {
-                  if (config !== undefined) {
-                    setConfig({
-                      ...config,
-                      dbPassword: e.target.value,
-                    })
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-span-full">
-            <hr className="mb-2 border-black" />
-          </div>
-          <div className="col-span-full">
-            <label htmlFor="argo_pwd">Websocket IP Address</label>
-            <div className="my-2">
-              <input
-                id="ip_address"
-                type="text"
-                className="w-full rounded-lg p-2"
-                value={config?.wsIpAddress || ""}
-                onChange={(e) => {
-                  if (config !== undefined) {
-                    setConfig({
-                      ...config,
-                      wsIpAddress: e.target.value,
-                    })
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="col-span-4"></div>
-
-        <div className="col-span-4"></div>
-        <div className="col-span-2">
-          <input
-            className="w-full rounded-lg py-3 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
-            type="button"
-            value="Cancel Update"
-            onClick={handleConfigUpdateCancel}
-          />
-        </div>
-        <div className="col-span-2">
-          <input
-            className="w-full rounded-lg py-3 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
-            type="button"
-            value="Update"
-            onClick={() => setShowConfigModal(true)}
-          />
-        </div>
-        <div className="col-span-2"></div>
-        <div className="col-span-2">
-          <button
-            className="w-full rounded-lg py-3 shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]"
-            type="button"
-            onClick={() => setShowModal(true)}
-          >
-            Reset
-          </button>
-        </div>
-      </div> */}
 
       <div className="absolute bottom-[2%] flex justify-start gap-2 opacity-70">
         <span style={{ textShadow: "1px 1px white" }}> Powered by</span>
@@ -515,6 +341,19 @@ const Settings = () => {
         onClose={() => setShowConfigModal(false)}
         onConfirm={() => handleConfigUpdate(config)}
       />
+
+      <div className="col-span-full mt-10">
+        <h2 className="text-center text-xl">Rules</h2>
+        <div className="max-h-[400px] overflow-auto rounded-lg border border-gray-300 bg-white p-5 shadow-md">
+          <ul className="list-disc list-inside">
+            {rules.map((rule, idx) => (
+              <li key={idx} className="my-2">
+                {JSON.stringify(rule)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </div>
   )
 }

@@ -8,9 +8,14 @@ const TMS_KEY = process.env.NEXT_PUBLIC_TMS_KEY
 const CMS_NATS_HOSTING = process.env.NEXT_PUBLIC_CMS_NATS_HOSTING
 const NATS_USERNAME = process.env.NEXT_PUBLIC_NATS_USERNAME
 const NATS_PASSWORD = process.env.NEXT_PUBLIC_NATS_PASSWORD
-const ARANGO_DB_HOSTING = process.env.NEXT_PUBLIC_ARANGO_DB_HOSTING
-const DB_USER = process.env.NEXT_PUBLIC_DB_USER
-const DB_PASSWORD = process.env.NEXT_PUBLIC_DB_PASSWORD
+
+// Use NEXT_PUBLIC_ prefixed env variables for UI config
+const PG_HOST = process.env.NEXT_PUBLIC_PG_HOST
+const PG_PORT = process.env.NEXT_PUBLIC_PG_PORT
+const PG_USER = process.env.NEXT_PUBLIC_PG_USER
+const PG_PASSWORD = process.env.NEXT_PUBLIC_PG_PASSWORD
+const PG_DATABASE = process.env.NEXT_PUBLIC_PG_DATABASE
+
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL
 const ADMIN_SERVICE = process.env.NEXT_PUBLIC_ADMIN_SERVICE_HOSTING
 const CONDITION_TYPES = process.env.NEXT_PUBLIC_CONDITION_TYPES
@@ -229,19 +234,21 @@ export const pacs002InitialState: PACS002 = {
 }
 
 export const uiConfigInitialState: UIConfiguration = {
-  tmsServerUrl: TMS_SERVER_URL !== undefined ? TMS_SERVER_URL : "",
-  tmsKey: TMS_KEY !== undefined ? TMS_KEY : "",
-  cmsNatsHosting: CMS_NATS_HOSTING !== undefined ? CMS_NATS_HOSTING : "",
-  natsUsername: NATS_USERNAME !== undefined ? NATS_USERNAME : "",
-  natsPassword: NATS_PASSWORD !== undefined ? NATS_PASSWORD : "",
-  arangoDBHosting: ARANGO_DB_HOSTING !== undefined ? ARANGO_DB_HOSTING : "",
-  dbUser: DB_USER !== undefined ? DB_USER : "",
-  dbPassword: DB_PASSWORD !== undefined ? DB_PASSWORD : "",
-  wsIpAddress: WS_URL !== undefined ? WS_URL : "",
-  adminServiceUrl: ADMIN_SERVICE !== undefined ? ADMIN_SERVICE : "",
-  conditionTypes: CONDITION_TYPES !== undefined ? CONDITION_TYPES : "",
-  eventTypes: EVENT_TYPES !== undefined ? EVENT_TYPES : "",
-  conditionReasons: CONDITION_REASONS !== undefined ? CONDITION_REASONS : "",
+  tmsServerUrl: TMS_SERVER_URL || "",
+  tmsKey: TMS_KEY || "",
+  cmsNatsHosting: CMS_NATS_HOSTING || "",
+  natsUsername: NATS_USERNAME || "",
+  natsPassword: NATS_PASSWORD || "",
+  pgHost: PG_HOST || "",
+  pgPort: PG_PORT || "",
+  pgUser: PG_USER || "",
+  pgPassword: PG_PASSWORD || "",
+  pgDatabase: PG_DATABASE || "",
+  wsIpAddress: WS_URL || "",
+  adminServiceUrl: ADMIN_SERVICE || "",
+  conditionTypes: CONDITION_TYPES || "",
+  eventTypes: EVENT_TYPES || "",
+  conditionReasons: CONDITION_REASONS || "",
 }
 
 export const rulesLightsInitialState = []

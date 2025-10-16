@@ -92,9 +92,13 @@ NEXT_PUBLIC_TMS_KEY=""
 NEXT_PUBLIC_CMS_NATS_HOSTING="nats://nats:4222"
 NEXT_PUBLIC_NATS_USERNAME=""
 NEXT_PUBLIC_NATS_PASSWORD=""
-NEXT_PUBLIC_ARANGO_DB_HOSTING="http://{server_ip_address}:18529"
-NEXT_PUBLIC_DB_USER="root"
-NEXT_PUBLIC_DB_PASSWORD=""
+
+NEXT_PUBLIC_PG_HOST=localhost
+NEXT_PUBLIC_PG_PORT=5432
+NEXT_PUBLIC_PG_USER=postgres
+NEXT_PUBLIC_PG_PASSWORD=password
+NEXT_PUBLIC_PG_DATABASE=configuration
+
 NEXT_PUBLIC_WS_URL="http://{your_machines_ip_address}:3001"
 
 NEXT_PUBLIC_NATS_SUBSCRIPTIONS="['connection', '>', 'typology-999@1.0.0']"
@@ -142,8 +146,9 @@ yarn dev
   
   > **Check what port number is being used by the NATS server on the docker instance **(Default Port: 4222)***
 
-- Arango DB Hosting: `http://localhost:18529`
-  > **Check what port number is being used by the TMS server on the docker instance **(Default Port: 8529)***
+- PostgreSQL Hosting: `localhost:5432`
+  > **Check what port number is being used by the PostgreSQL server on your instance (Default Port: 5432)***
+
 
 - Websocket IP Address: `http://localhost:3001`
   > **If run locally use `http://localhost:3001` else if run on a network or hosted use `http://{your_ip_address}:3001` **(Default Port: 3001)***
