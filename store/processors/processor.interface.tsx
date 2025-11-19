@@ -34,6 +34,7 @@ export interface Rule {
 
 export interface Typology {
   id: number
+  cfg?: string
   title: string
   color: "r" | "g" | "y" | "n"
   result: any
@@ -41,7 +42,8 @@ export interface Typology {
   workflow: {
     interdictionThreshold: number | null
     alertThreshold: number | null
-  }
+  },
+  rules?: Rule[],
   linkedRules: string[]
 }
 
@@ -89,25 +91,30 @@ export interface RuleConfig {
   bands: RuleBand[]
 }
 
+// Updated UI_CONFIG for PostgreSQL
 export interface UI_CONFIG {
   tmsServerUrl: string
   tmsKey: string
   cmsNatsHosting: string
   natsUsername: string
   natsPassword: string
-  arangoDBHosting: string
-  dbUser: string
-  dbPassword: string
-  dbName: string
+  pgHost: string
+  pgPort: string
+  pgUser: string
+  pgPassword: string
+  pgDatabase: string
   conditionTypes: string
   eventTypes: string
   adminServiceUrl: string
 }
 
+// Updated DBConfig for PostgreSQL
 export interface DBConfig {
-  url: string
-  databaseName: string
-  auth: { username: string; password: string }
+  host: string
+  port: string
+  user: string
+  password: string
+  database: string
 }
 
 interface Ntty {

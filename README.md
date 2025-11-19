@@ -15,6 +15,8 @@
 >
 Welcome to the Tazama Demo Application. This demo app is used to demo the Tazama Open Source Real-Time Transaction Monitoring System built to support any Financial Services Provider (FSP) that requires Transaction Monitoring for Fraud and Money Laundering detection. Whether that FSP is a small provider running one or 2 transactions per day or a national payment switch running at over 3,000 Transactions per second. With Tazama they can implement simple or complex rules, implement Fraud Detection controls or support Anti-Money Laundering activities. 🌍
 
+[Usage Docs](https://github.com/tazama-lf/docs/blob/dev/Guides/demo-ui-guide.md)
+
 ## Requirements
 
 What you need:
@@ -92,9 +94,13 @@ NEXT_PUBLIC_TMS_KEY=""
 NEXT_PUBLIC_CMS_NATS_HOSTING="nats://nats:4222"
 NEXT_PUBLIC_NATS_USERNAME=""
 NEXT_PUBLIC_NATS_PASSWORD=""
-NEXT_PUBLIC_ARANGO_DB_HOSTING="http://{server_ip_address}:18529"
-NEXT_PUBLIC_DB_USER="root"
-NEXT_PUBLIC_DB_PASSWORD=""
+
+NEXT_PUBLIC_PG_HOST=localhost
+NEXT_PUBLIC_PG_PORT=5432
+NEXT_PUBLIC_PG_USER=postgres
+NEXT_PUBLIC_PG_PASSWORD=password
+NEXT_PUBLIC_PG_DATABASE=configuration
+
 NEXT_PUBLIC_WS_URL="http://{your_machines_ip_address}:3001"
 
 NEXT_PUBLIC_NATS_SUBSCRIPTIONS="['connection', '>', 'typology-999@1.0.0']"
@@ -142,8 +148,9 @@ yarn dev
   
   > **Check what port number is being used by the NATS server on the docker instance **(Default Port: 4222)***
 
-- Arango DB Hosting: `http://localhost:18529`
-  > **Check what port number is being used by the TMS server on the docker instance **(Default Port: 8529)***
+- PostgreSQL Hosting: `localhost:5432`
+  > **Check what port number is being used by the PostgreSQL server on your instance (Default Port: 5432)***
+
 
 - Websocket IP Address: `http://localhost:3001`
   > **If run locally use `http://localhost:3001` else if run on a network or hosted use `http://{your_ip_address}:3001` **(Default Port: 3001)***

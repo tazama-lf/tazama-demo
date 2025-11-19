@@ -2,13 +2,16 @@
 
 import axios, { AxiosResponse } from "axios"
 import dotenv from "dotenv"
-import React, { ReactNode, useEffect, useReducer, useRef, useState, useContext } from "react"
+import { ReactNode, useContext, useEffect, useReducer, useRef, useState } from "react"
 import { io } from "socket.io-client"
 import { uiConfigInitialState } from "store/entities/entity.initialState"
-import { handleTadProcResults } from "utils/db"
 import { ACTIONS } from "./processor.actions"
 import ProcessorContext from "./processor.context"
 
+import { Socket } from "socket.io"
+import EntityContext from "store/entities/entity.context"
+import { handleTadProcResults } from "utils/tadProcUtils"
+import getNetworkMapSetup from "./networkMap"
 import {
   defaultConditionsData,
   defaultEDLights,
@@ -28,13 +31,9 @@ import {
   RuleBand,
   TADPROC,
   TADPROC_RESULT,
-  Typology,
-  UI_CONFIG,
+  Typology
 } from "./processor.interface"
 import ProcessorReducer from "./processor.reducer"
-import { Socket } from "socket.io"
-import getNetworkMapSetup from "./networkMap"
-import EntityContext from "store/entities/entity.context"
 
 dotenv.config()
 
@@ -292,7 +291,7 @@ const ProcessorProvider = ({ children }: Props) => {
       })
       // SORT BY TYPOLOGY
       linksResponse.sort((a: LinkedTypo, b: LinkedTypo) => {
-        return a.typology.localeCompare(b.typology)
+        return a.typology?.localeCompare(b.typology)
       })
       return linksResponse
     } else {
@@ -301,6 +300,7 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const handleTadProcLive = async (msg: any) => {
+    debugger;
     const currentMsgId = localStorage.getItem("current_msg_id")
     console.log("LIVE: ", msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId)
     if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
@@ -355,14 +355,23 @@ const ProcessorProvider = ({ children }: Props) => {
     try {
       const configData = await getNetworkMapSetup()
 
-      if (configData.rules) {
-        dispatch({ type: ACTIONS.CREATE_RULES_SUCCESS, payload: configData.rules })
+      // Type assertion to ensure configData is not unknown
+      const typedConfigData = configData as {
+        rules?: any
+        typologies?: any
+        typologiesEFRuP?: any
       }
-      if (configData.typologies) {
-        dispatch({ type: ACTIONS.CREATE_TYPO_SUCCESS, payload: configData.typologies })
+      console.dir(typedConfigData)
+      debugger
+
+      if (typedConfigData.rules) {
+        dispatch({ type: ACTIONS.CREATE_RULES_SUCCESS, payload: typedConfigData.rules })
       }
-      if (configData.typologiesEFRuP) {
-        dispatch({ type: ACTIONS.CREATE_TYPO_EFRUP_SUCCESS, payload: configData.typologiesEFRuP })
+      if (typedConfigData.typologies) {
+        dispatch({ type: ACTIONS.CREATE_TYPO_SUCCESS, payload: typedConfigData.typologies })
+      }
+      if (typedConfigData.typologiesEFRuP) {
+        dispatch({ type: ACTIONS.CREATE_TYPO_EFRUP_SUCCESS, payload: typedConfigData.typologiesEFRuP })
       }
     } catch (err) {
       console.log("ERROR CREATING RULES: ", err)
@@ -399,6 +408,9 @@ const ProcessorProvider = ({ children }: Props) => {
 
   const updateRules = async (msg: any) => {
     try {
+      console.log('Rule hit - Message Received:')
+      console.dir(msg)
+      console.log('Disecting Rule Status.')
       dispatch({ type: ACTIONS.UPDATE_RULES_LOADING })
       let index: number = 0
       const updatedRules: any[] = [...state.rules]
@@ -519,9 +531,20 @@ const ProcessorProvider = ({ children }: Props) => {
     try {
       dispatch({ type: ACTIONS.UPDATE_TADPROC_LOADING })
       await data.results.forEach(async (result) => {
+        debugger;
+
         result.ruleResults.map(async (ruleResult) => {
           if (ruleResult.id === "EFRuP@1.0.0") {
             const index = await state.rules.findIndex((r: Rule) => r.rule === ruleResult.id)
+
+            debugger;
+            
+            if (!state.rules[index]){
+              console.log('Missing rule');
+              console.dir(state.rules);
+              return
+            }
+
             if (ruleResult.subRuleRef === "override") {
               state.rules[index].color = "g"
             } else if (ruleResult.subRuleRef === "block") {
@@ -531,6 +554,7 @@ const ProcessorProvider = ({ children }: Props) => {
             }
             state.rules[index].result = ruleResult.subRuleRef
           } else {
+            debugger;
             const index = await state.rules.findIndex((r: Rule) => r.title === ruleResult.id.split("@")[0])
             if (index !== -1) {
               if (ruleResult.wght > 0) {

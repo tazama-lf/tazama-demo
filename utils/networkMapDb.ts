@@ -1,189 +1,15 @@
-import { TypoEFRuP } from "./../store/processors/processor.interface"
-import {
-  DBConfig,
-  Rule,
-  RuleBand,
-  RuleConfig,
-  RuleResult,
-  TADPROC,
-  TADPROC_RESULT,
-  Typology,
-} from "store/processors/processor.interface"
+import { Rule, RuleBand, TypoEFRuP, Typology } from "store/processors/processor.interface"
+import { pool } from "./pool"
+import { getRulesDescriptions } from "./rulesDb"
+import { getTypologyDescriptions } from "./typologiesDb"
 
-const { Database, aql } = require("arangojs")
-require("dotenv").config()
-
-const getConfigConnection = (config: DBConfig) => {
-  return new Database({
-    url: config.url,
-    databaseName: "configuration",
-    auth: { username: config.auth.username, password: config.auth.password },
-  })
-}
-
-const getCollection = async (cName: string, db: any) => {
-  // get list of collections in database
-  try {
-    const collections = await db.collections()
-
-    // check if collection exists, if so return collection, if not, create it
-    if (collections.find((c: any) => c._name === cName)) {
-      return await db.collection(cName)
-    } else {
-      return db.createCollection(cName)
-    }
-  } catch (err) {
-    console.log(err)
-  }
-}
-
-export const getRulesDescriptions = async (config: any) => {
-  // make connection
-  const db = getConfigConnection(config)
-  // make sure rule collection exists
-  await getCollection("ruleConfiguration", db)
-  // declare array to hold rules
-  let result = []
-  // query for rules
-  const results = await db.query(aql`FOR c IN ruleConfiguration RETURN c`)
-  // loop through array cursor and push results in array
-  for await (let rule of results) {
-    result.push(rule)
-  }
-
-  const ruleConfig: any[] = []
-
-  if (result.length > 0) {
-    result.forEach((rule) => {
-      let newRule: RuleConfig = {
-        id: rule.id,
-        title: rule.id.split("@")[0],
-        description: rule.desc,
-        bands: [],
-      }
-
-      rule.config.bands.forEach((band: any) => {
-        let newBand: RuleBand = {
-          subRuleRef: band.subRuleRef,
-          lowerLimit: band.lowerLimit ? band.lowerLimit : null,
-          upperLimit: band.upperLimit ? band.upperLimit : null,
-          reason: band.reason,
-        }
-        newRule.bands.push(newBand)
-      })
-
-      ruleConfig.push(newRule)
-    })
-  }
-
-  await db.close()
-
-  return result
-}
-
-export const getTypologyDescriptions = async (config: DBConfig) => {
-  // make connection
-  const db: typeof Database = getConfigConnection(config)
-  // make sure rule collection exists
-  await getCollection("typologyConfiguration", db)
-  // declare array to hold typologies
-  let result = []
-  // query for typologies
-  const results: any = await db.query(aql`FOR c IN typologyConfiguration RETURN c`)
-  // loop through array cursor and push results in array
-  for await (let typology of results) {
-    result.push(typology)
-  }
-
-  await db.close()
-
-  return result
-}
-
-export const handleTadProcResults = async (msg: any) => {
-  let result: any[] = []
-
-  try {
-    result.push(msg)
-    if (result.length > 0) {
-      let response: TADPROC = {
-        status: result[0]?.report?.status,
-        stop: false,
-        color: "n",
-        results: [],
-        efrupResults: [],
-      }
-      // DOUBLE CHECK THIS LOGIC
-      if (result[0]?.report?.status === "NALT") {
-        response.color = "g"
-      } else if (result[0]?.report?.status === "ALRT") {
-        response.color = "y"
-      }
-
-      let tr = result[0]?.report?.tadpResult?.typologyResult
-      // LOOP HERE
-      if (tr.length > 0) {
-        tr.forEach((typoRes: any) => {
-          // new result object
-          let typoResult: TADPROC_RESULT = {
-            cfg: typoRes.cfg,
-            result: typoRes.result,
-            efrup: undefined,
-            workflow: {
-              alertThreshold: null,
-              interdictionThreshold: null,
-            },
-            ruleResults: [],
-          }
-
-          // modify result object
-          typoRes.ruleResults.forEach((result: RuleResult) => {
-            if (result.id === "EFRuP@1.0.0") {
-              typoResult.efrup = result.subRuleRef
-              let typoEFRuP: TypoEFRuP = {
-                typology: typoRes.cfg.split("@")[0],
-                efrupResult: result.subRuleRef,
-              }
-              response.efrupResults.push(typoEFRuP)
-            }
-            typoResult.ruleResults.push(result)
-          })
-
-          typoResult.workflow.interdictionThreshold = typoRes.workflow.interdictionThreshold
-            ? typoRes.workflow.interdictionThreshold
-            : null
-
-          typoResult.workflow.alertThreshold = typoRes.workflow.alertThreshold ? typoRes.workflow.alertThreshold : null
-
-          if (typoResult.efrup !== undefined) {
-            response.efrup = typoResult.efrup
-          }
-
-          if (typoResult.workflow.interdictionThreshold !== null) {
-            if (typoRes.result >= typoResult.workflow.interdictionThreshold) {
-              response.stop = true
-              response.color = "r"
-            }
-          }
-          response.results.push(typoResult)
-        })
-      }
-      return response
-    }
-  } catch (err) {
-    console.log("TadProc Results Error: ", err)
-  }
-}
-
-export const getNetworkMap = async (config: DBConfig) => {
-  const db = await getConfigConnection(config)
-  await getCollection("networkConfiguration", db)
+export async function getNetworkMap() {
+  const query = "SELECT configuration FROM network_map WHERE configuration->>'active' = 'true';"
+  const { rows } = await pool.query(query)
 
   let result = []
-  const results = await db.query(aql`FOR c IN networkConfiguration FILTER c.active == true RETURN c`)
-  await db.close()
-  for await (let config of results) {
-    result.push(config)
+  for await (let config of rows) {
+    result.push(config.configuration)
   }
 
   const typologiesRes: any[] = []
@@ -248,8 +74,7 @@ export const getNetworkMap = async (config: DBConfig) => {
     }
   }
 
-  await getCollection("ruleConfiguration", db)
-  const res = await db.query(aql`FOR c IN ruleConfiguration RETURN c`)
+  const res = await getRulesDescriptions()
   const ruleData: any[] = []
   for await (let rule of res) {
     ruleData.push(rule)
@@ -301,10 +126,8 @@ export const getNetworkMap = async (config: DBConfig) => {
     }
   })
 
-  await getCollection("typologyConfiguration", db)
   const typoData: any[] = []
-
-  const typoRes = await db.query(aql`FOR typo IN typologyConfiguration RETURN typo`)
+  const typoRes = await getTypologyDescriptions()
 
   for await (let typo of typoRes) {
     typoData.push(typo)
