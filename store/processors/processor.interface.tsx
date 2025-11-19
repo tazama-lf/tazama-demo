@@ -34,7 +34,7 @@ export interface Rule {
 
 export interface Typology {
   id: number
-  cfg: string
+  cfg?: string
   title: string
   color: "r" | "g" | "y" | "n"
   result: any
@@ -43,7 +43,7 @@ export interface Typology {
     interdictionThreshold: number | null
     alertThreshold: number | null
   },
-  rules: Rule[],
+  rules?: Rule[],
   linkedRules: string[]
 }
 

@@ -5,7 +5,7 @@ export function linkRulesToTypologies(rules: Rule[], typologies: Typology[]): Ru
     ...rule,
     displayLinkedTypo: typologies
       .filter(typology =>
-        typology.rules.some((tRule: any) => tRule.id === rule.id)
+        typology.linkedRules.some((tRule: any) => tRule.id === rule.id)
       )
       .map(typology => String(typology.id)), // convert id to string
   }));

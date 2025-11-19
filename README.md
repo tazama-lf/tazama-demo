@@ -15,6 +15,8 @@
 >
 Welcome to the Tazama Demo Application. This demo app is used to demo the Tazama Open Source Real-Time Transaction Monitoring System built to support any Financial Services Provider (FSP) that requires Transaction Monitoring for Fraud and Money Laundering detection. Whether that FSP is a small provider running one or 2 transactions per day or a national payment switch running at over 3,000 Transactions per second. With Tazama they can implement simple or complex rules, implement Fraud Detection controls or support Anti-Money Laundering activities. 🌍
 
+[Usage Docs](https://github.com/tazama-lf/docs/blob/dev/Guides/demo-ui-guide.md)
+
 ## Requirements
 
 What you need:
