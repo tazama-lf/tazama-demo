@@ -55,8 +55,8 @@ app.prepare().then(() => {
     "tadProc",
     "stream",
     "ui_config",
-    "cms",
-    "interdiction-service",
+    "investigation-service",
+    "interdiction-service-tp",
   ]
 
   io.on("connection", async (socket) => {
@@ -89,7 +89,7 @@ app.prepare().then(() => {
     })
 
     // Connect to NATS server
-
+    
     const nc = await NATS.connect({
       servers: natsUrl.url,
       // ADD USER AND PASSWORD
@@ -111,8 +111,8 @@ app.prepare().then(() => {
 
     const connected = nc.subscribe("connection")
     // const all = nc.subscribe(">", { queue: "MONITORING1" })
-    const cms = nc.subscribe("cms", { queue: "MONITORING_CMS1" })
-    const int_service = nc.subscribe("interdiction-service", { queue: "MONITORING_IS1" })
+    const cms = nc.subscribe("investigation-service", { queue: "MONITORING_CMS1" })
+    const int_service = nc.subscribe("interdiction-service-tp", { queue: "MONITORING_IS1" })
 
     ;(async () => {
       for await (const msg of connected) await handleMsg(msg, io, "connection")
@@ -121,7 +121,7 @@ app.prepare().then(() => {
       for await (const msg of cms) await handleMsg1(msg, io, "tadProc")
     })()
     ;(async () => {
-      for await (const msg of int_service) await handleMsg2(msg, io, "interdiction-service")
+      for await (const msg of int_service) await handleMsg2(msg, io, "interdiction-service-tp")
     })()
 
     io.to("stream").emit("stream", { message: "Stream Test Message" })

@@ -364,9 +364,11 @@ export interface UIConfiguration {
   cmsNatsHosting: string
   natsUsername: string
   natsPassword: string
-  arangoDBHosting: string
-  dbUser: string
-  dbPassword: string
+  pgHost: string
+  pgPort: string
+  pgUser: string
+  pgPassword: string
+  pgDatabase: string
   wsIpAddress: string
   conditionTypes: string
   eventTypes: string

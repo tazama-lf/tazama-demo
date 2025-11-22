@@ -1,10 +1,7 @@
 import { ACTIONS } from "./processor.actions"
 import {
-  defaultConditionsData,
   defaultEDLights,
-  defaultTadProcLights,
-  ruleInitialState,
-  typologiesInitialState,
+  defaultTadProcLights
 } from "./processor.initialState"
 
 const ProcessorReducer = (state: any, action: any) => {
