@@ -9,6 +9,8 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
     steps:
       - uses: actions/checkout@v4
       - run: echo "node_version=$(cat .github/nodejs.version)" >> $GITHUB_ENV
