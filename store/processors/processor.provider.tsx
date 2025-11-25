@@ -300,7 +300,6 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const handleTadProcLive = async (msg: any) => {
-    debugger;
     const currentMsgId = localStorage.getItem("current_msg_id")
     console.log("LIVE: ", msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId)
     if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
@@ -361,8 +360,6 @@ const ProcessorProvider = ({ children }: Props) => {
         typologies?: any
         typologiesEFRuP?: any
       }
-      console.dir(typedConfigData)
-      debugger
 
       if (typedConfigData.rules) {
         dispatch({ type: ACTIONS.CREATE_RULES_SUCCESS, payload: typedConfigData.rules })
@@ -531,13 +528,11 @@ const ProcessorProvider = ({ children }: Props) => {
     try {
       dispatch({ type: ACTIONS.UPDATE_TADPROC_LOADING })
       await data.results.forEach(async (result) => {
-        debugger;
 
         result.ruleResults.map(async (ruleResult) => {
           if (ruleResult.id === "EFRuP@1.0.0") {
             const index = await state.rules.findIndex((r: Rule) => r.rule === ruleResult.id)
 
-            debugger;
             
             if (!state.rules[index]){
               console.log('Missing rule');
@@ -554,7 +549,6 @@ const ProcessorProvider = ({ children }: Props) => {
             }
             state.rules[index].result = ruleResult.subRuleRef
           } else {
-            debugger;
             const index = await state.rules.findIndex((r: Rule) => r.title === ruleResult.id.split("@")[0])
             if (index !== -1) {
               if (ruleResult.wght > 0) {
