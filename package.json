@@ -1,6 +1,6 @@
 {
   "name": "tazama-demo",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
     "dev": "cross-env FORCE_COLOR=1 nodemon server.js",
@@ -49,7 +49,7 @@
     "@semantic-release/npm": "^12.0.1",
     "@semantic-release/release-notes-generator": "^13.0.0",
     "@t3-oss/env-nextjs": "^0.10.1",
-    "@tazama-lf/frms-coe-lib": "6.0.0-postgres.alpha.5",
+    "@tazama-lf/frms-coe-lib": "6.0.0",
     "axios": "^1.7.3",
     "class-variance-authority": "^0.7.0",
     "crypto": "^1.0.1",
