@@ -17,7 +17,6 @@ RUN echo "//npm.pkg.github.com/:_authToken=${GH_TOKEN}" > ~/.npmrc && \
 COPY . .
 # Install dependencies and build
 RUN yarn install
-RUN yarn build
 
 FROM base AS production
 WORKDIR /app
