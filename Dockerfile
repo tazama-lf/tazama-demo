@@ -7,17 +7,9 @@ EXPOSE 3001
 FROM base AS builder
 WORKDIR /app
 
-# Accept the GitHub token as a build argument
-ARG GH_TOKEN
-
-# Configure npm/yarn to use the GitHub token for private packages
-RUN echo "//npm.pkg.github.com/:_authToken=${GH_TOKEN}" > ~/.npmrc && \
-    echo "@tazama-lf:registry=https://npm.pkg.github.com" >> ~/.npmrc
-
 COPY . .
 # Install dependencies and build
 RUN yarn install
-RUN yarn build
 
 FROM base AS production
 WORKDIR /app
@@ -71,7 +63,7 @@ ENV NEXT_PUBLIC_PG_DATABASE="your_pg_database"
 
 ENV NEXT_PUBLIC_WS_URL="http://localhost:3001"
 ENV NEXT_PUBLIC_NATS_SUBSCRIPTIONS="['connection', '>', 'typology-999@1.0.0']"
-# RUN yarn install --frozen-lockfile 
+RUN yarn install
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules

@@ -23,6 +23,8 @@ jobs:
     if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
     permissions:
       packages: write
       contents: read
@@ -63,7 +65,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: GH_TOKEN=${{ secrets.GH_TOKEN }}
+          build-args: GH_TOKEN=${{ secrets.GH_TOKEN_LIB }}
       
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
