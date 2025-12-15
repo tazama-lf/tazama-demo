@@ -6,8 +6,18 @@ EXPOSE 3001
 
 FROM base AS builder
 WORKDIR /app
+
+# Accept the GitHub token as a build argument
+ARG GH_TOKEN
+
+# Configure npm/yarn to use the GitHub token for private packages
+RUN echo "//npm.pkg.github.com/:_authToken=${GH_TOKEN}" > ~/.npmrc && \
+    echo "@tazama-lf:registry=https://npm.pkg.github.com" >> ~/.npmrc
+
 COPY . .
-# RUN yarn build
+# Install dependencies and build
+RUN yarn install --frozen-lockfile
+RUN yarn build
 
 FROM base AS production
 WORKDIR /app
@@ -68,6 +78,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/yarn.lock ./yarn.lock
 COPY --from=builder /app/public ./public
+
+# Clean up the auth token
+RUN rm -f ~/.npmrc
 
 COPY . .
 CMD ["yarn", "dev"]
