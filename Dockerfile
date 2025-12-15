@@ -7,7 +7,9 @@ EXPOSE 3001
 FROM base AS builder
 WORKDIR /app
 COPY . .
-# RUN yarn build
+# Install dependencies and build
+RUN yarn install --frozen-lockfile
+RUN yarn build
 
 FROM base AS production
 WORKDIR /app
