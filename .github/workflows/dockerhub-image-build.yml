@@ -23,21 +23,16 @@ jobs:
     if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+    
     permissions:
       packages: write
       contents: read
       attestations: write
       id-token: write
+    
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
-
-      - name: Set up NPM authentication
-        run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN_LIB }}" > ~/.npmrc
-          cat .npmrc
 
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
@@ -48,10 +43,6 @@ jobs:
       - name: Set ENV variables
         run: |
           echo "REPO_NAME=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}" >> $GITHUB_ENV
-    
-      - name: Use the custom ENV variable
-        run: |
-          echo $REPO_NAME
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -67,10 +58,14 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          target: production
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: GH_TOKEN=${{ secrets.GH_TOKEN_LIB }}
+          build-args: |
+            GH_TOKEN=${{ secrets.GH_TOKEN_LIB }}
+          secrets: |
+            GH_TOKEN=${{ secrets.GH_TOKEN_LIB }}
       
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
