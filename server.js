@@ -9,8 +9,6 @@ const { parse } = require("url")
 
 const app = next({ dev: process.env.NODE_ENV !== "production", customServer: true, quiet: false, turbo: true })
 
-let natsUrl = { url: null }
-
 const port = process.env.PORT
 
 const handle = app.getRequestHandler()
@@ -68,12 +66,6 @@ app.prepare().then(() => {
       console.log("Confirmed:", message)
     })
 
-    socket.on("uiconfig", (config) => {
-      if (config !== null && config !== undefined) {
-        natsUrl.url = config.cmsNatsHosting
-      }
-    })
-
     socket.on("subscriptions", (message) => {
       message.subscriptions.forEach((subscription) => {
         if (!NATSSubscriptions.includes(subscription)) {
@@ -89,10 +81,8 @@ app.prepare().then(() => {
     })
 
     // Connect to NATS server
-    
     const nc = await NATS.connect({
-      servers: natsUrl.url,
-      // ADD USER AND PASSWORD
+      servers: process.env.NATS_SERVER_URL,
     })
 
     let subscriptions = []

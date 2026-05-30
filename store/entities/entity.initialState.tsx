@@ -3,24 +3,7 @@ import { PACS002, PACS008, SelectedCreditor, SelectedDebtor, UIConfiguration } f
 
 dotenv.config()
 
-const TMS_SERVER_URL = process.env.NEXT_PUBLIC_TMS_SERVER_URL
-const TMS_KEY = process.env.NEXT_PUBLIC_TMS_KEY
-const CMS_NATS_HOSTING = process.env.NEXT_PUBLIC_CMS_NATS_HOSTING
-const NATS_USERNAME = process.env.NEXT_PUBLIC_NATS_USERNAME
-const NATS_PASSWORD = process.env.NEXT_PUBLIC_NATS_PASSWORD
-
-// Use NEXT_PUBLIC_ prefixed env variables for UI config
-const PG_HOST = process.env.NEXT_PUBLIC_PG_HOST
-const PG_PORT = process.env.NEXT_PUBLIC_PG_PORT
-const PG_USER = process.env.NEXT_PUBLIC_PG_USER
-const PG_PASSWORD = process.env.NEXT_PUBLIC_PG_PASSWORD
-const PG_DATABASE = process.env.NEXT_PUBLIC_PG_DATABASE
-
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL
-const ADMIN_SERVICE = process.env.NEXT_PUBLIC_ADMIN_SERVICE_HOSTING
-const CONDITION_TYPES = process.env.NEXT_PUBLIC_CONDITION_TYPES
-const EVENT_TYPES = process.env.NEXT_PUBLIC_EVENT_TYPES
-const CONDITION_REASONS = process.env.NEXT_PUBLIC_CONDITION_REASONS
 
 export const creditorInitialState: SelectedCreditor = {
   creditorSelectedIndex: undefined,
@@ -234,21 +217,21 @@ export const pacs002InitialState: PACS002 = {
 }
 
 export const uiConfigInitialState: UIConfiguration = {
-  tmsServerUrl: TMS_SERVER_URL || "",
-  tmsKey: TMS_KEY || "",
-  cmsNatsHosting: CMS_NATS_HOSTING || "",
-  natsUsername: NATS_USERNAME || "",
-  natsPassword: NATS_PASSWORD || "",
-  pgHost: PG_HOST || "",
-  pgPort: PG_PORT || "",
-  pgUser: PG_USER || "",
-  pgPassword: PG_PASSWORD || "",
-  pgDatabase: PG_DATABASE || "",
+  tmsServerUrl: "",
+  tmsKey: "",
+  cmsNatsHosting: "",
+  natsUsername: "",
+  natsPassword: "",
+  pgHost: "",
+  pgPort: "",
+  pgUser: "",
+  pgPassword: "",
+  pgDatabase: "",
   wsIpAddress: WS_URL || "",
-  adminServiceUrl: ADMIN_SERVICE || "",
-  conditionTypes: CONDITION_TYPES || "",
-  eventTypes: EVENT_TYPES || "",
-  conditionReasons: CONDITION_REASONS || "",
+  adminServiceUrl: "",
+  conditionTypes: "",
+  eventTypes: "",
+  conditionReasons: "",
 }
 
 export const rulesLightsInitialState = []

@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server"
-import { getRulesDescriptions } from "../../../utils/rulesDb"
 
 export async function GET() {
-  const rules = await getRulesDescriptions()
-  return NextResponse.json(rules)
+  const url = `${process.env.ADMIN_SERVICE_URL}/v1/admin/configuration/rule`
+  const res = await fetch(url)
+  if (!res.ok) {
+    return NextResponse.json({ error: "Failed to fetch rules" }, { status: res.status })
+  }
+  const data = await res.json()
+  return NextResponse.json(data)
 }
