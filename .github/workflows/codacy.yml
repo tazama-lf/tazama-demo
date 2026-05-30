@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Caller stub: delegates all Codacy scan logic to the centralised reusable workflow.
+# Logic changes belong in codacy-ci.yml - do not add steps here.
+
+# Please do not attempt to edit this flow without the direct consent from the DevOps team. This file is managed centrally.
+
+name: Codacy Security Scan
+
+on:
+  push:
+    branches: [ "dev", "main" ]
+  pull_request:
+    branches: [ "dev", "main" ]
+  schedule:
+    - cron: '17 0 * * 4'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  codacy-security-scan:
+    uses: tazama-lf/workflows/.github/workflows/codacy-ci.yml@dev
+    secrets: inherit
