@@ -10,7 +10,7 @@
     "lint:fix": "next lint --fix",
     "prettier": "prettier --check \"**/*.{js,jsx,ts,tsx}\"",
     "prettier:fix": "prettier --write \"**/*.{js,jsx,ts,tsx}\"",
-    "analyze": "cross-env ANALYZE=true yarn build",
+    "analyze": "cross-env ANALYZE=true npm run build",
     "storybook": "storybook dev -p 6006",
     "test-storybook": "cross-env FORCE_COLOR=1 test-storybook",
     "build-storybook": "storybook build",
@@ -18,7 +18,7 @@
     "e2e:headless": "playwright test",
     "e2e:ui": "playwright test --ui",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "preinstall": "npx npm-only-allow@latest --PM yarn",
+    "preinstall": "npx npm-only-allow@1.2.6 --PM npm",
     "postinstall": "npx patch-package -y",
     "coupling-graph": "npx madge --extensions js,jsx,ts,tsx,css,md,mdx ./ --exclude '.next|tailwind.config.js|reset.d.ts|prettier.config.js|postcss.config.js|playwright.config.ts|next.config.js|next-env.d.ts|instrumentation.ts|e2e/|README.md|.storybook/|.eslintrc.js' --image graph.svg"
   },
@@ -124,5 +124,5 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "npm@11.5.2"
 }
