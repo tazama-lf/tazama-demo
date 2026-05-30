@@ -230,7 +230,6 @@ const ProcessorProvider = ({ children }: Props) => {
 
   useEffect(() => {
     if (socket !== undefined) {
-      socket.emit("uiconfig", uiConfig)
       socket.emit("subscriptions", { subscriptions: ["connection", ">", "typology-processor@1.0.0", "cms"] })
     }
   }, [isConnected])

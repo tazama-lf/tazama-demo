@@ -1,5 +1,4 @@
 import axios from "axios"
-import dotenv from "../../node_modules/dotenv/lib/main"
 import Image from "next/image"
 import React, { useContext, useEffect, useState } from "react"
 import { TimeComponent } from "components/timeComponent/TimeComponent"
@@ -9,8 +8,6 @@ import { DeviceInfo } from "./DeviceInfo"
 import ProcessorContext from "store/processors/processor.context"
 import DeviceComponent from "./DeviceComponent"
 import { Rule, Typology } from "store/processors/processor.interface"
-
-dotenv.config()
 
 interface EDLights {
   pacs008: boolean

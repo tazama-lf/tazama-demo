@@ -1,5 +1,4 @@
 import withBundleAnalyzer from "@next/bundle-analyzer"
-import withPlugins from "next-compose-plugins"
 import { createRequire } from "module"
 
 const require = createRequire(import.meta.url)
@@ -9,7 +8,7 @@ import { env } from "./env.mjs"
 /**
  * @type {import('next').NextConfig}
  */
-const config = withPlugins([[withBundleAnalyzer({ enabled: env.ANALYZE })]], {
+const config = withBundleAnalyzer({ enabled: env.ANALYZE })({
   reactStrictMode: true,
   publicRuntimeConfig: {
     version: json.version,
@@ -19,7 +18,6 @@ const config = withPlugins([[withBundleAnalyzer({ enabled: env.ANALYZE })]], {
       fullUrl: true,
     },
   },
-  experimental: { instrumentationHook: true },
   sassOptions: {
     implementation: "sass-embedded",
   },
