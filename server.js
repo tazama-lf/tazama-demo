@@ -81,38 +81,43 @@ app.prepare().then(() => {
     })
 
     // Connect to NATS server
-    const nc = await NATS.connect({
-      servers: process.env.NATS_SERVER_URL,
-    })
+    try {
+      const nc = await NATS.connect({
+        servers: process.env.NATS_SERVER_URL,
+      })
 
-    let subscriptions = []
+      let subscriptions = []
 
-    NATSSubscriptions.forEach((sub) => {
-      let subscription = nc.subscribe(sub, { queue: "MONITORING" })
-      subscriptions.push(subscription)
-      if (sub === ">") {
-        socket.emit("subscriptions", `Subscribed to all rules`)
-      } else {
-        socket.emit("subscriptions", `Subscribed to ${sub}`)
-      }
-    })
+      NATSSubscriptions.forEach((sub) => {
+        let subscription = nc.subscribe(sub, { queue: "MONITORING" })
+        subscriptions.push(subscription)
+        if (sub === ">") {
+          socket.emit("subscriptions", `Subscribed to all rules`)
+        } else {
+          socket.emit("subscriptions", `Subscribed to ${sub}`)
+        }
+      })
 
-    console.log("NATS Server Info: ", nc.info)
+      console.log("NATS Server Info: ", nc.info)
 
-    const connected = nc.subscribe("connection")
-    // const all = nc.subscribe(">", { queue: "MONITORING1" })
-    const cms = nc.subscribe("investigation-service", { queue: "MONITORING_CMS1" })
-    const int_service = nc.subscribe("interdiction-service-tp", { queue: "MONITORING_IS1" })
+      const connected = nc.subscribe("connection")
+      // const all = nc.subscribe(">", { queue: "MONITORING1" })
+      const cms = nc.subscribe("investigation-service", { queue: "MONITORING_CMS1" })
+      const int_service = nc.subscribe("interdiction-service-tp", { queue: "MONITORING_IS1" })
 
-    ;(async () => {
-      for await (const msg of connected) await handleMsg(msg, io, "connection")
-    })()
-    ;(async () => {
-      for await (const msg of cms) await handleMsg1(msg, io, "tadProc")
-    })()
-    ;(async () => {
-      for await (const msg of int_service) await handleMsg2(msg, io, "interdiction-service-tp")
-    })()
+      ;(async () => {
+        for await (const msg of connected) await handleMsg(msg, io, "connection")
+      })()
+      ;(async () => {
+        for await (const msg of cms) await handleMsg1(msg, io, "tadProc")
+      })()
+      ;(async () => {
+        for await (const msg of int_service) await handleMsg2(msg, io, "interdiction-service-tp")
+      })()
+    } catch (err) {
+      console.error("NATS connection failed:", err)
+      socket.emit("welcome", { message: "NATS connection failed - check NATS_SERVER_URL" })
+    }
 
     io.to("stream").emit("stream", { message: "Stream Test Message" })
 
