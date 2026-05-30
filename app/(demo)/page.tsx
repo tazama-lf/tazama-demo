@@ -9,8 +9,10 @@ import { ProcessIndicator } from "components/ProcessIndicator/ProcessIndicator"
 import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
 import EntityContext from "store/entities/entity.context"
 import ProcessorContext from "store/processors/processor.context"
-import Loader from "./../components/Loader/Loader"
-import { DragDropContext } from "../node_modules/@hello-pangea/dnd/dist/dnd"
+import Loader from "components/Loader/Loader"
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - @hello-pangea/dnd is a peer dep used as commented-out placeholder
+import { DragDropContext } from "../../node_modules/@hello-pangea/dnd/dist/dnd"
 import RuleResult from "components/RuleResults/RuleResults"
 import TypeResult from "components/TypologyResults/TypologyResults"
 import io from "socket.io-client"
