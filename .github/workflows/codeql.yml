@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Caller stub: delegates all CodeQL analysis logic to the centralised reusable workflow.
+# Logic changes belong in codeql-ci.yml - do not add steps here.
+
+# Please do not attempt to edit this flow without the direct consent from the DevOps team. This file is managed centrally.
+
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ "dev", "main" ]
+  pull_request:
+    branches: [ "dev", "main" ]
+  schedule:
+    - cron: '34 0 * * 4'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  codeql:
+    uses: tazama-lf/workflows/.github/workflows/codeql-ci.yml@dev
+    secrets: inherit

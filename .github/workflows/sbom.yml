@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Caller stub: delegates all Anchore Syft SBOM scan logic to the centralised reusable workflow.
+# Logic changes belong in sbom-ci.yml - do not add steps here.
+
+# Please do not attempt to edit this flow without the direct consent from the DevOps team. This file is managed centrally.
+
+name: Anchore Syft SBOM scan
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  sbom:
+    uses: tazama-lf/workflows/.github/workflows/sbom-ci.yml@dev
+    secrets: inherit

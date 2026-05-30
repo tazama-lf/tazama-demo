@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Caller stub: delegates all njsscan logic to the centralised reusable workflow.
+# Logic changes belong in njsscan-ci.yml - do not add steps here.
+
+# Please do not attempt to edit this flow without the direct consent from the DevOps team. This file is managed centrally.
+
+name: njsscan sarif
+
+on:
+  push:
+    branches: [ "dev", "main" ]
+  pull_request:
+    branches: [ "dev", "main" ]
+  schedule:
+    - cron: '17 17 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  njsscan:
+    uses: tazama-lf/workflows/.github/workflows/njsscan-ci.yml@dev
+    secrets: inherit
