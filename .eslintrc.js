@@ -2,14 +2,8 @@
 const fs = require("fs")
 
 module.exports = {
-  extends: [
-    "next",
-    "prettier",
-    "react-app",
-    "react-app/jest",
-    "plugin:storybook/recommended",
-    "plugin:tailwindcss/recommended",
-  ],
+  extends: ["next", "prettier", "plugin:tailwindcss/recommended"],
+  plugins: ["@typescript-eslint"],
   parserOptions: {
     babelOptions: {
       presets: [require.resolve("next/babel")],
@@ -27,7 +21,7 @@ module.exports = {
       },
     ],
     "sort-imports": [
-      "error",
+      "warn",
       {
         ignoreCase: true,
         ignoreDeclarationSort: true,

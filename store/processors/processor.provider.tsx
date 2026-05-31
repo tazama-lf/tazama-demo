@@ -2,21 +2,21 @@
 
 import axios, { AxiosResponse } from "axios"
 import dotenv from "dotenv"
+import { signIn } from "next-auth/react"
 import { ReactNode, useContext, useEffect, useReducer, useRef, useState } from "react"
-import { io } from "socket.io-client"
-import { uiConfigInitialState } from "store/entities/entity.initialState"
-import { ACTIONS } from "./processor.actions"
-import ProcessorContext from "./processor.context"
 
 import { Socket } from "socket.io"
+import { io } from "socket.io-client"
 import EntityContext from "store/entities/entity.context"
-import { handleAdjudicatorResults } from "utils/adjudicatorUtils"
+import { findEfrupId, handleAdjudicatorResults } from "utils/adjudicatorUtils"
 import getNetworkMapSetup from "./networkMap"
+import { ACTIONS } from "./processor.actions"
+import ProcessorContext from "./processor.context"
 import {
+  defaultAdjudicatorLights,
   defaultConditionsData,
   defaultEDLights,
   defaultEntityEventType,
-  defaultAdjudicatorLights,
   ruleInitialState,
   typologiesInitialState,
 } from "./processor.initialState"
@@ -31,7 +31,7 @@ import {
   RuleBand,
   TADPROC,
   TADPROC_RESULT,
-  Typology
+  Typology,
 } from "./processor.interface"
 import ProcessorReducer from "./processor.reducer"
 
@@ -78,23 +78,19 @@ const ProcessorProvider = ({ children }: Props) => {
   const [state, dispatch] = useReducer(ProcessorReducer, initialProcessorState)
   const nttyCtx = useContext(EntityContext)
 
-  const [uiConfig, setUiConfig] = useState<any>(null)
   const [socket, setSocket] = useState<Socket>()
   const [isConnected, setIsConnected] = useState<boolean>(false)
-  const [wsAddress, setWsAddress] = useState<string | null>(null)
+  const [wsAddress, setWsAddress] = useState<string>(process.env.NEXT_PUBLIC_WS_URL ?? "")
   const [adminServiceUrl, setAdminServiceUrl] = useState<string>("")
 
   const msgId: any = useRef("")
+  const efrupIdRef = useRef<string | undefined>(undefined)
+  const currentMsgIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    const uiConfigStorage = localStorage.getItem("UI_CONFIG")
-    const uiConfig: any = uiConfigStorage ? JSON.parse(uiConfigStorage) : null
-    const url = uiConfig ? uiConfig.adminServiceUrl : process.env.NEXT_PUBLIC_ADMIN_SERVICE_HOSTING
-    // const url = localStorage.getItem()
-    if (adminServiceUrl === "") {
-      if (url) {
-        setAdminServiceUrl(url)
-      }
+    const url = process.env.NEXT_PUBLIC_ADMIN_SERVICE_HOSTING
+    if (adminServiceUrl === "" && url) {
+      setAdminServiceUrl(url)
     }
   }, [adminServiceUrl])
 
@@ -116,22 +112,21 @@ const ProcessorProvider = ({ children }: Props) => {
   useEffect(() => {
     if (state.linkedTypologies.length > 0) {
       state.rules.map((rule: Rule) => {
-        if (rule.title !== "EFRuP") {
-          let links = state.linkedTypologies.filter((link: LinkedTypo) => {
-            if (link.rule === rule.title) {
-              if (link.ruleResult !== null && link.ruleResult >= 0) {
-                return link
-              }
+        let links = state.linkedTypologies.filter((link: LinkedTypo) => {
+          if (link.rule === rule.title) {
+            if (link.ruleResult !== null && link.ruleResult >= 0) {
+              return link
             }
-          })
-          links.sort((a: LinkedTypo, b: LinkedTypo) => {
-            if (a.ruleResult !== null && b.ruleResult !== null) {
-              a.ruleResult - b.ruleResult
-            }
-          })
+          }
+        })
+        links.sort((a: LinkedTypo, b: LinkedTypo) => {
+          if (a.ruleResult !== null && b.ruleResult !== null) {
+            return a.ruleResult - b.ruleResult
+          }
+          return 0
+        })
 
-          rule.linkedTypologies = [...links]
-        }
+        rule.linkedTypologies = [...links]
       })
     }
   }, [state.linkedTypologies, state.rules])
@@ -146,58 +141,8 @@ const ProcessorProvider = ({ children }: Props) => {
   }, [state.tadProcResults])
 
   useEffect(() => {
-    if (wsAddress === null) {
-      if (uiConfig !== null) {
-        setWsAddress(uiConfig.wsIpAddress)
-        setAdminServiceUrl(uiConfig.adminServiceUrl)
-
-        // set condition types
-        let configConditionData: any[] = uiConfig.conditionTypes
-          ? uiConfig.conditionTypes.slice(1, -1).split(",")
-          : ["configuration error"]
-        let conditionsRes: any[] = [{ id: 0, option: "Please select condition type...", visible: false }]
-        configConditionData.map((item: any, index: number) => {
-          let option = {
-            id: index + 1,
-            option: item.split("'")[1],
-            visible: true,
-          }
-          conditionsRes.push(option)
-        })
-        setConditionTypes(conditionsRes)
-
-        // set event types
-        let configEventData: any[] = uiConfig.eventTypes
-          ? uiConfig.eventTypes.slice(1, -1).split(",")
-          : ["configuration error"]
-        let eventTypesRes: any[] = []
-        configEventData.map((item: any, index: number) => {
-          let option = {
-            id: index + 1,
-            option: item.split("'")[1],
-            selected: false,
-          }
-          eventTypesRes.push(option)
-        })
-        setEventTypes(eventTypesRes)
-
-        // set condition reasons
-        let configReasonsData: any[] = uiConfig.conditionReasons
-          ? uiConfig.conditionReasons.slice(1, -1).split(",")
-          : []
-        let conditionReasonsRes: any[] = [{ id: 0, option: "Please select a reason...", visible: false }]
-        configReasonsData.map((item: any, index: number) => {
-          let option = {
-            id: index + 1,
-            option: item.split("'")[1],
-            visible: true,
-          }
-          conditionReasonsRes.push(option)
-        })
-        setConditionReasons(conditionReasonsRes)
-      }
-    }
-  }, [uiConfig])
+    currentMsgIdRef.current = entityCtx.currentMsgId ?? null
+  }, [entityCtx.currentMsgId])
 
   useEffect(() => {
     const newSocket: any = io(wsAddress!, {
@@ -238,7 +183,7 @@ const ProcessorProvider = ({ children }: Props) => {
   useEffect(() => {
     if (socket !== undefined) {
       socket.on("eventAdjudicator", (msg) => {
-        const currentMsgId = localStorage.getItem("current_msg_id")
+        const currentMsgId = currentMsgIdRef.current
         if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
           const typoResult = Object.keys(msg.report.tadpResult).includes("typologyResult")
           if (typoResult) {
@@ -270,17 +215,15 @@ const ProcessorProvider = ({ children }: Props) => {
         // MAP THE TYPOLOGY RULE RESULTS
         typoResult.ruleResults.map((ruleResult: any) => {
           try {
-            if (ruleResult.id.split("@")[0] !== "EFRuP") {
-              let linkedTypo: LinkedTypo = {
-                typology: typoResult.cfg.split("@")[0],
-                typologyResult: typoResult.result,
-                ruleId: ruleResult.id,
-                rule: ruleResult.id.split("@")[0],
-                ruleResult: ruleResult.wght,
-                subRuleRef: ruleResult.subRuleRef,
-              }
-              linksResponse.push(linkedTypo)
+            let linkedTypo: LinkedTypo = {
+              typology: typoResult.cfg.split("@")[0],
+              typologyResult: typoResult.result,
+              ruleId: ruleResult.id,
+              rule: ruleResult.id.split("@")[0],
+              ruleResult: ruleResult.wght,
+              subRuleRef: ruleResult.subRuleRef,
             }
+            linksResponse.push(linkedTypo)
 
             // USE 'typoResult' for the typology
           } catch (err) {
@@ -302,54 +245,36 @@ const ProcessorProvider = ({ children }: Props) => {
   const handleAdjudicatorLive = async (msg: any) => {
     console.log("LIVE: ", msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId)
     try {
-        let results: TADPROC | undefined = undefined
-        let linkedTypologies: LinkedTypo[] | undefined = undefined
-        clearLinkedTypologies()
-        // INSERT CLEAR PREVIOUS EFRuP RESULTS HERE...
-        try {
-          linkedTypologies = await handleLinkedTypologies(msg)
-          if (linkedTypologies) {
-            setLinkedTypologies(linkedTypologies)
-          }
-        } catch (err: any) {
-          console.log("ERROR_MSG: ", err)
+      let results: TADPROC | undefined = undefined
+      let linkedTypologies: LinkedTypo[] | undefined = undefined
+      clearLinkedTypologies()
+      // INSERT CLEAR PREVIOUS EFRuP RESULTS HERE...
+      try {
+        linkedTypologies = await handleLinkedTypologies(msg)
+        if (linkedTypologies) {
+          setLinkedTypologies(linkedTypologies)
         }
-        while (results === undefined && linkedTypologies !== undefined) {
-          results = await handleAdjudicatorResults(msg, "EFRuP@1.0.0")
-        }
-        if (results !== undefined) {
-          dispatch({ type: ACTIONS.SET_ADJUDICATOR_RESULTS, payload: results })
-          dispatch({ type: ACTIONS.SET_TYPO_EFRUP_SUCCESS, payload: results.efrupResults })
-        }
-      } catch (err) {
-        console.log("ADJUDICATOR ERROR", err)
+      } catch (err: any) {
+        console.log("ERROR_MSG: ", err)
       }
-  }
-
-  const getUIConfig = async () => {
-    if (localStorage.getItem("UI_CONFIG") !== null) {
-      const config: string | null = await localStorage.getItem("UI_CONFIG")
-      return config
-    } else {
-      await localStorage.setItem("UI_CONFIG", JSON.stringify(uiConfigInitialState))
-      return JSON.stringify(uiConfigInitialState)
+      if (linkedTypologies !== undefined) {
+        results = await handleAdjudicatorResults(msg, efrupIdRef.current)
+      }
+      if (results !== undefined) {
+        dispatch({ type: ACTIONS.SET_ADJUDICATOR_RESULTS, payload: results })
+        dispatch({ type: ACTIONS.SET_TYPO_EFRUP_SUCCESS, payload: results.efrupResults })
+      }
+    } catch (err) {
+      console.log("ADJUDICATOR ERROR", err)
     }
   }
-
-  useEffect(() => {
-    if (uiConfig === null) {
-      ;(async () => {
-        let config: any = await getUIConfig()
-        if (uiConfig !== undefined) {
-          setUiConfig(JSON.parse(config))
-        }
-      })()
-    }
-  }, [uiConfig])
 
   const createUIFromNetworkMap = async () => {
     try {
       const configData = await getNetworkMapSetup()
+
+      // Derive EFRuP rule id from network map
+      efrupIdRef.current = findEfrupId(configData)
 
       // Type assertion to ensure configData is not unknown
       const typedConfigData = configData as {
@@ -367,7 +292,11 @@ const ProcessorProvider = ({ children }: Props) => {
       if (typedConfigData.typologiesEFRuP) {
         dispatch({ type: ACTIONS.CREATE_TYPO_EFRUP_SUCCESS, payload: typedConfigData.typologiesEFRuP })
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err.message === "UNAUTHORIZED" || err.response?.status === 401) {
+        await signIn()
+        return
+      }
       console.log("ERROR CREATING RULES: ", err)
     }
   }
@@ -384,6 +313,10 @@ const ProcessorProvider = ({ children }: Props) => {
       const res: AxiosResponse = await axios.get("api/rules")
       dispatch({ type: ACTIONS.CREATE_RULES_SUCCESS, payload: res.data.rules.rule })
     } catch (error: any) {
+      if (error.response?.status === 401) {
+        await signIn()
+        return
+      }
       dispatch({ type: ACTIONS.CREATE_RULES_FAIL })
       console.error(error.message)
     }
@@ -395,6 +328,10 @@ const ProcessorProvider = ({ children }: Props) => {
       const res: AxiosResponse = await axios.get("api/typologies")
       dispatch({ type: ACTIONS.CREATE_TYPO_SUCCESS, payload: res.data.types.type })
     } catch (error: any) {
+      if (error.response?.status === 401) {
+        await signIn()
+        return
+      }
       dispatch({ type: ACTIONS.CREATE_TYPO_FAIL })
       console.error(error.message)
     }
@@ -402,13 +339,13 @@ const ProcessorProvider = ({ children }: Props) => {
 
   const updateRules = async (msg: any) => {
     try {
-      console.log('Rule hit - Message Received:')
+      console.log("Rule hit - Message Received:")
       console.dir(msg)
-      console.log('Disecting Rule Status.')
+      console.log("Disecting Rule Status.")
       dispatch({ type: ACTIONS.UPDATE_RULES_LOADING })
       let index: number = 0
       const updatedRules: any[] = [...state.rules]
-      if (msg.ruleResult.id === "EFRuP@1.0.0") {
+      if (efrupIdRef.current !== undefined && msg.ruleResult.id === efrupIdRef.current) {
         index = await state.rules.findIndex((r: Rule) => r.title === msg.ruleResult.id)
         if (msg.ruleResult.subRuleRef === "override") {
           updatedRules[index].color = "g"
@@ -508,7 +445,7 @@ const ProcessorProvider = ({ children }: Props) => {
         const index: number = state.rules.findIndex((r: Rule) => r.title === ruleResult.id.split("@")[0])
         const updatedRules: any[] = [...state.rules]
 
-        if (ruleResult.wght > 0) {
+        if ((ruleResult.wght ?? 0) > 0) {
           updatedRules[index].color = "r"
         }
       })
@@ -525,15 +462,13 @@ const ProcessorProvider = ({ children }: Props) => {
     try {
       dispatch({ type: ACTIONS.UPDATE_ADJUDICATOR_LOADING })
       await data.results.forEach(async (result) => {
-
         result.ruleResults.map(async (ruleResult) => {
-          if (ruleResult.id === "EFRuP@1.0.0") {
+          if (efrupIdRef.current !== undefined && ruleResult.id === efrupIdRef.current) {
             const index = await state.rules.findIndex((r: Rule) => r.rule === ruleResult.id)
 
-            
-            if (!state.rules[index]){
-              console.log('Missing rule');
-              console.dir(state.rules);
+            if (!state.rules[index]) {
+              console.log("Missing rule")
+              console.dir(state.rules)
               return
             }
 
@@ -548,12 +483,12 @@ const ProcessorProvider = ({ children }: Props) => {
           } else {
             const index = await state.rules.findIndex((r: Rule) => r.title === ruleResult.id.split("@")[0])
             if (index !== -1) {
-              if (ruleResult.wght > 0) {
+              if ((ruleResult.wght ?? 0) > 0) {
                 state.rules[index].result = ruleResult.subRuleRef
 
                 state.rules[index].color = "r"
 
-                if (state.rules[index].wght < ruleResult.wght) state.rules[index].wght = ruleResult.wght
+                if (state.rules[index].wght < (ruleResult.wght ?? 0)) state.rules[index].wght = ruleResult.wght
 
                 if (!resIndex.includes(index)) {
                   resIndex.push({ index: index, wght: ruleResult.wght })
@@ -1068,7 +1003,7 @@ const ProcessorProvider = ({ children }: Props) => {
         showCreditorConditions: state.showCreditorConditions,
         showDebtorConditionsCreate: state.showDebtorConditionsCreate,
         showCreditorConditionsCreate: state.showCreditorConditionsCreate,
-        uiconfig: uiConfig,
+        uiconfig: null,
         linkedTypologies: state.linkedTypologies,
         conditionTypes: state.conditionTypes,
         eventTypes: state.eventTypes,
@@ -1086,7 +1021,6 @@ const ProcessorProvider = ({ children }: Props) => {
         ruleLightsNeutral,
         resetAllLights,
         clearResults,
-        getUIConfig,
         handleAdjudicatorLive,
         getConditions,
         createCondition,

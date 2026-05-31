@@ -1,9 +1,9 @@
 import { createContext } from "react"
 import {
+  defaultAdjudicatorLights,
   defaultConditionsData,
   defaultEDLights,
   defaultEntityEventType,
-  defaultAdjudicatorLights,
   ruleInitialState,
 } from "./processor.initialState"
 import {
@@ -62,7 +62,6 @@ interface Context {
   updateEDLights: (data: EDLightsManager) => void
   resetAllLights: () => void
   clearResults: () => void
-  getUIConfig: () => void
   handleAdjudicatorLive: (msg: any) => void
   ruleLightsGreen: () => void
   ruleLightsNeutral: () => void
@@ -123,7 +122,6 @@ const ProcessorContext = createContext<Context>({
   updateTadpLights: () => {},
   resetAllLights: () => {},
   clearResults: () => {},
-  getUIConfig: () => {},
   handleAdjudicatorLive: (msg: any) => {},
   ruleLightsGreen: () => {},
   ruleLightsNeutral: () => {},

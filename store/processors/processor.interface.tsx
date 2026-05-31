@@ -1,3 +1,9 @@
+// SPDX-License-Identifier: Apache-2.0
+import type { RuleResult as LibRuleResult } from "@tazama-lf/frms-coe-lib"
+
+/** RuleResult without the server-side tenantId field */
+export type RuleResult = Omit<LibRuleResult, "tenantId">
+
 export interface RuleBand {
   subRuleRef: string
   lowerLimit: number | null
@@ -42,17 +48,9 @@ export interface Typology {
   workflow: {
     interdictionThreshold: number | null
     alertThreshold: number | null
-  },
-  rules?: Rule[],
+  }
+  rules?: Rule[]
   linkedRules: string[]
-}
-
-export interface RuleResult {
-  id: string
-  cfg: string
-  subRuleRef: string
-  prcgTm: number
-  wght: number
 }
 
 export interface TADPROC_RESULT {

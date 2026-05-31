@@ -1,18 +1,11 @@
 import withBundleAnalyzer from "@next/bundle-analyzer"
-import { createRequire } from "module"
-
-const require = createRequire(import.meta.url)
-const json = require("./package.json")
 import { env } from "./env.mjs"
 
 /**
  * @type {import('next').NextConfig}
  */
-const config = withBundleAnalyzer({ enabled: env.ANALYZE })({
+const config = withBundleAnalyzer({ enabled: env.ANALYZE ?? false })({
   reactStrictMode: true,
-  publicRuntimeConfig: {
-    version: json.version,
-  },
   logging: {
     fetches: {
       fullUrl: true,
