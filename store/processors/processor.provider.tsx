@@ -42,6 +42,7 @@ interface Props {
 }
 
 const ProcessorProvider = ({ children }: Props) => {
+  const entityCtx = useContext(EntityContext)
   const initialProcessorState = {
     app_version: "",
     rulesLoading: false,
@@ -299,7 +300,7 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const handleAdjudicatorLive = async (msg: any) => {
-    const currentMsgId = localStorage.getItem("current_msg_id")
+    const currentMsgId = entityCtx.currentMsgId
     console.log("LIVE: ", msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId)
     if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
       try {
@@ -1055,7 +1056,7 @@ const ProcessorProvider = ({ children }: Props) => {
         edLights: state.edLights,
         rules: state.rules,
         adjudicatorLights: state.tadpLights,
-        adjudicatorResults: state.tadprocResults,
+        adjudicatorResults: state.tadProcResults,
         msgId: msgId,
         entityEventType: state.entityEventType,
         entityAllChecked: state.entityAllChecked,

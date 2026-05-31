@@ -620,14 +620,13 @@ const Web = () => {
                 <StatusIndicator large={true} colour={processCtx.adjudicatorLights.color} />
               )}
 
-              {processCtx.adjudicatorLights.color === "y" ||
-                (processCtx.adjudicatorLights.color === "r" && (
-                  <div className="absolute bottom-16 flex items-center justify-center text-center">
-                    <p className="mb-5 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 px-5 py-2 text-center text-xs uppercase shadow-lg">
-                      {processCtx.adjudicatorLights.status}
-                    </p>
-                  </div>
-                ))}
+              {(processCtx.adjudicatorLights.color === "y" || processCtx.adjudicatorLights.color === "r") && (
+                <div className="absolute bottom-16 flex items-center justify-center text-center">
+                  <p className="mb-5 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 px-5 py-2 text-center text-xs uppercase shadow-lg">
+                    {processCtx.adjudicatorLights.status}
+                  </p>
+                </div>
+              )}
               {processCtx.adjudicatorLights.efrup !== undefined && (
                 <div className="absolute bottom-16 flex items-center justify-center text-center">
                   {processCtx.adjudicatorLights.efrup === "block" ? (

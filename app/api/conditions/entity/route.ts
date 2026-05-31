@@ -9,7 +9,7 @@ const AUTHENTICATED = process.env.AUTHENTICATED === "true"
 async function getJwt(): Promise<string | undefined> {
   if (!AUTHENTICATED) return undefined
   const session = (await auth()) as (Session & { accessToken?: string }) | null
-  if (!session) return undefined
+  if (!session || !session.accessToken) return undefined
   return session.accessToken
 }
 
@@ -24,10 +24,8 @@ function errorResponse(err: unknown) {
 }
 
 export async function GET(request: NextRequest) {
-  if (AUTHENTICATED) {
-    const session = (await auth()) as (Session & { accessToken?: string }) | null
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const jwt = await getJwt()
+  if (AUTHENTICATED && !jwt) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { searchParams } = new URL(request.url)
   const id = searchParams.get("id")
@@ -40,7 +38,6 @@ export async function GET(request: NextRequest) {
   const path = `/v1/admin/event-flow-control/entity?id=${encodeURIComponent(id)}&schmenm=${encodeURIComponent(schmenm)}&synccache=all`
 
   try {
-    const jwt = await getJwt()
     const data = await adminGet(path, jwt)
     return NextResponse.json(data)
   } catch (err) {
@@ -49,10 +46,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (AUTHENTICATED) {
-    const session = (await auth()) as (Session & { accessToken?: string }) | null
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const jwt = await getJwt()
+  if (AUTHENTICATED && !jwt) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   let body: unknown
   try {
@@ -62,7 +57,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const jwt = await getJwt()
     const data = await adminPost("/v1/admin/event-flow-control/entity?synccache=all", body, jwt)
     return NextResponse.json(data)
   } catch (err) {
@@ -71,10 +65,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  if (AUTHENTICATED) {
-    const session = (await auth()) as (Session & { accessToken?: string }) | null
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const jwt = await getJwt()
+  if (AUTHENTICATED && !jwt) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { searchParams } = new URL(request.url)
   const id = searchParams.get("id")
@@ -95,7 +87,6 @@ export async function PUT(request: NextRequest) {
   const path = `/v1/admin/event-flow-control/entity?id=${encodeURIComponent(id)}&schmenm=${encodeURIComponent(schmenm)}&condid=${encodeURIComponent(condid)}&synccache=all`
 
   try {
-    const jwt = await getJwt()
     const data = await adminPut(path, body, jwt)
     return NextResponse.json(data)
   } catch (err) {

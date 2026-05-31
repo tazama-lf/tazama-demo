@@ -1,5 +1,5 @@
 import Image from "next/image"
-import React, { useContext, useState } from "react"
+import React, { useContext } from "react"
 import { TimeComponent } from "components/timeComponent/TimeComponent"
 import EntityContext from "store/entities/entity.context"
 import { DeviceInfo } from "./DeviceInfo"
@@ -31,7 +31,6 @@ interface DebtorProps {
 }
 
 export function DebtorDevice(props: DebtorProps) {
-  const [msgId, setMsgId] = useState<string | undefined>(undefined)
   const entityCtx = useContext(EntityContext)
   const procCtx = useContext(ProcessorContext)
 
@@ -49,7 +48,7 @@ export function DebtorDevice(props: DebtorProps) {
       })
       const data = await response.json() as { msgId?: string; error?: string }
       if (response.ok) {
-        setMsgId(data.msgId)
+        entityCtx.setCurrentMsgId(data.msgId)
         props.setLights({
           ED: {
             pacs008: true,
