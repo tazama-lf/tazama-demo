@@ -1,5 +1,24 @@
 // SPDX-License-Identifier: Apache-2.0
-import { TADPROC, TADPROC_RESULT, TypoEFRuP, RuleResult } from "../store/processors/processor.interface"
+import { RuleResult, TADPROC, TADPROC_RESULT, TypoEFRuP } from "../store/processors/processor.interface"
+
+/**
+ * Scans a raw network-map API response for the EFRuP rule and returns its
+ * full id string (e.g. "EFRuP@1.0.0"), or `undefined` if no EFRuP rule is
+ * found.
+ *
+ * @param networkMap - Raw response object from the /api/network-map BFF route.
+ */
+export function findEfrupId(networkMap: unknown): string | undefined {
+  const mapData = (networkMap as any)?.data?.[0]
+  if (!mapData?.messages) return undefined
+  for (const message of mapData.messages) {
+    for (const typology of message.typologies ?? []) {
+      const efrupRule = (typology.rules ?? []).find((r: { id: string }) => r.id.split("@")[0] === "EFRuP")
+      if (efrupRule) return efrupRule.id
+    }
+  }
+  return undefined
+}
 
 /**
  * Parses a raw event-adjudicator NATS message into the UI TADPROC state shape.

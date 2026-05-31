@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 const frms = require("@tazama-lf/frms-coe-lib/lib/helpers/protobuf")
+const {
+  isPacs008Transaction,
+  isPacs002Transaction,
+} = require("@tazama-lf/frms-coe-lib/lib/helpers/transactionTypeGuards")
 const NATS = require("nats")
 const next = require("next")
 require("dotenv").config()
 
+const { getToken } = require("next-auth/jwt")
 const { Server } = require("socket.io")
 const { createServer } = require("http")
 const { parse } = require("url")
-const { getToken } = require("next-auth/jwt")
 const { extractTenant } = require("@tazama-lf/auth-lib")
 
 // ---------------------------------------------------------------------------
@@ -71,10 +75,10 @@ async function fetchNetworkMap(jwt) {
   try {
     const headers = { "Content-Type": "application/json" }
     if (jwt) headers["Authorization"] = `Bearer ${jwt}`
-    const res = await fetch(
-      `${ADMIN_SERVICE_URL}/v1/admin/configuration/network_map?filters[active]=true`,
-      { headers, signal: AbortSignal.timeout(5000) }
-    )
+    const res = await fetch(`${ADMIN_SERVICE_URL}/v1/admin/configuration/network_map?filters[active]=true`, {
+      headers,
+      signal: AbortSignal.timeout(5000),
+    })
     if (!res.ok) {
       console.error(`Admin service returned ${res.status} fetching network map`)
       return null
@@ -151,6 +155,11 @@ function ensureGlobalSub(subject, room, io) {
     for await (const msg of sub) {
       const decoded = decodeMsg(msg.data)
       if (!decoded) continue
+      if (
+        !decoded.transaction ||
+        (!isPacs008Transaction(decoded.transaction) && !isPacs002Transaction(decoded.transaction))
+      )
+        continue
       for (const [, socket] of io.sockets.sockets) {
         // In passthrough mode (tenantId is null), emit to all sockets.
         // In authenticated mode, filter by tenant.
@@ -187,6 +196,11 @@ function ensureTenantSub(producer, tenantId, room, io) {
     for await (const msg of sub) {
       const decoded = decodeMsg(msg.data)
       if (!decoded) continue
+      if (
+        !decoded.transaction ||
+        (!isPacs008Transaction(decoded.transaction) && !isPacs002Transaction(decoded.transaction))
+      )
+        continue
       for (const [, socket] of io.sockets.sockets) {
         if (socket.data.tenantId === tenantId) {
           socket.emit(room, decoded)
@@ -211,7 +225,11 @@ function releaseTenantSub(producer, tenantId) {
   if (!entry) return
   entry.refCount--
   if (entry.refCount <= 0) {
-    try { entry.sub.unsubscribe() } catch { /* ignore */ }
+    try {
+      entry.sub.unsubscribe()
+    } catch {
+      /* ignore */
+    }
     tenantSubs.delete(key)
   }
 }
@@ -314,8 +332,10 @@ app.prepare().then(() => {
 
       if (tenantId != null) {
         if (ALERT_DESTINATION === "tenant") ensureTenantSub(ALERT_PRODUCER, tenantId, "eventAdjudicator", io)
-        if (TP_INTERDICTION_DESTINATION === "tenant") ensureTenantSub(TP_INTERDICTION_PRODUCER, tenantId, "interdiction-service-tp", io)
-        if (EF_INTERDICTION_DESTINATION === "tenant") ensureTenantSub(EF_INTERDICTION_PRODUCER, tenantId, "interdiction-service-ef", io)
+        if (TP_INTERDICTION_DESTINATION === "tenant")
+          ensureTenantSub(TP_INTERDICTION_PRODUCER, tenantId, "interdiction-service-tp", io)
+        if (EF_INTERDICTION_DESTINATION === "tenant")
+          ensureTenantSub(EF_INTERDICTION_PRODUCER, tenantId, "interdiction-service-ef", io)
       }
     }
 

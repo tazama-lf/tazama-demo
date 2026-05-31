@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { handleAdjudicatorResults } from "utils/adjudicatorUtils"
+import { findEfrupId, handleAdjudicatorResults } from "utils/adjudicatorUtils"
 
 // Shared fixture: a minimal but realistic NATS message from the event adjudicator.
 function buildMsg(overrides: Record<string, unknown> = {}) {
@@ -145,5 +145,59 @@ describe("handleAdjudicatorResults - color and stop flag", () => {
     const result = await handleAdjudicatorResults(msg)
     expect(result!.color).toBe("g")
     expect(result!.stop).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// findEfrupId
+// ---------------------------------------------------------------------------
+describe("findEfrupId", () => {
+  function buildNetworkMap(rules: { id: string; cfg: string }[]) {
+    return {
+      data: [{ messages: [{ typologies: [{ rules }] }] }],
+    }
+  }
+
+  it("returns the EFRuP rule id when the network map contains one", () => {
+    const map = buildNetworkMap([
+      { id: "Rule-001@1.0.0", cfg: "1.0.0" },
+      { id: "EFRuP@1.0.0", cfg: "none" },
+    ])
+    expect(findEfrupId(map)).toBe("EFRuP@1.0.0")
+  })
+
+  it("returns undefined when no EFRuP rule exists", () => {
+    const map = buildNetworkMap([
+      { id: "Rule-001@1.0.0", cfg: "1.0.0" },
+      { id: "Rule-002@1.0.0", cfg: "1.0.0" },
+    ])
+    expect(findEfrupId(map)).toBeUndefined()
+  })
+
+  it("returns the correct id when EFRuP appears in a later message's typology", () => {
+    const map = {
+      data: [
+        {
+          messages: [
+            { typologies: [{ rules: [{ id: "Rule-001@1.0.0", cfg: "1.0.0" }] }] },
+            {
+              typologies: [
+                {
+                  rules: [
+                    { id: "Rule-002@1.0.0", cfg: "1.0.0" },
+                    { id: "EFRuP@2.0.0", cfg: "none" },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+    expect(findEfrupId(map)).toBe("EFRuP@2.0.0")
+  })
+
+  it("returns undefined for null input", () => {
+    expect(findEfrupId(null)).toBeUndefined()
   })
 })
