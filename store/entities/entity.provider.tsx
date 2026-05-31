@@ -97,8 +97,9 @@ const EntityProvider = ({ children }: Props) => {
     if (pacs008 !== "") {
       const parsedPacs008: any = JSON.parse(pacs008)
       const txInfo = parsedPacs008.FIToFICstmrCdtTrf?.CdtTrfTxInf
+      const doc = parsedPacs008.FIToFICstmrCdtTrf?.SplmtryData?.Envlp?.Doc
+      if (doc?.Xprtn) doc.Xprtn = new Date(doc.Xprtn)
       if (txInfo) {
-        if (txInfo.Xprtn) txInfo.Xprtn = new Date(txInfo.Xprtn)
         if (txInfo.InitgPty?.Id?.PrvtId?.DtAndPlcOfBirth?.BirthDt) {
           txInfo.InitgPty.Id.PrvtId.DtAndPlcOfBirth.BirthDt = new Date(txInfo.InitgPty.Id.PrvtId.DtAndPlcOfBirth.BirthDt)
         }
