@@ -11,40 +11,6 @@ export function filterByTenantId(message: unknown, tenantId: string): boolean {
 }
 
 /**
- * Returns true when the decoded NATS message contains the expected MsgId.
- *
- * For rule-executer and typology-processor subjects (`isTerminal=false`) the
- * MsgId is at `message.transaction.FIToFIPmtSts.GrpHdr.MsgId`.
- *
- * For terminal output subjects (`isTerminal=true`) the transaction identifier
- * is at `message.transactionID`.
- */
-export function filterByMsgId(message: unknown, expectedMsgId: string, isTerminal: boolean): boolean {
-  if (message === null || typeof message !== "object") return false
-
-  try {
-    const msg = message as Record<string, unknown>
-
-    if (isTerminal) {
-      return msg["transactionID"] === expectedMsgId
-    }
-
-    const transaction = msg["transaction"] as Record<string, unknown> | undefined
-    if (!transaction) return false
-
-    const FIToFIPmtSts = transaction["FIToFIPmtSts"] as Record<string, unknown> | undefined
-    if (!FIToFIPmtSts) return false
-
-    const GrpHdr = FIToFIPmtSts["GrpHdr"] as Record<string, unknown> | undefined
-    if (!GrpHdr) return false
-
-    return GrpHdr["MsgId"] === expectedMsgId
-  } catch {
-    return false
-  }
-}
-
-/**
  * Derives the NATS subject name for a terminal output producer.
  *
  * When `destination === 'tenant'` the tenantId suffix is appended:

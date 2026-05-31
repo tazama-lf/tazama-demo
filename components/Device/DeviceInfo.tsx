@@ -56,7 +56,7 @@ export function DeviceInfo(props: DeviceProps) {
       let test = processCtx.conditionsDataDebtor.conditions.find((con: Conditions) => {
         let startDate = new Date(con.incptnDtTm).getTime()
         let now = new Date().getTime()
-        return startDate <= now && con.ntty?.id === entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id
+        return startDate <= now && con.ntty?.id === entity?.Entity.Dbtr.Id.PrvtId.Othr[0]!.Id
       })
       if (test) {
         setNttyDebColor("b")
@@ -71,7 +71,7 @@ export function DeviceInfo(props: DeviceProps) {
       let test = processCtx.conditionsDataCreditor.conditions.find((con: Conditions) => {
         let startDate = new Date(con.incptnDtTm).getTime()
         let now = new Date().getTime()
-        return startDate <= now && con.ntty?.id === creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id
+        return startDate <= now && con.ntty?.id === creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0]!.Id
       })
       if (test) {
         setNttyCredColor("b")
@@ -86,7 +86,7 @@ export function DeviceInfo(props: DeviceProps) {
       let test = processCtx.conditionsDataDebtor.conditions.find((con: Conditions) => {
         let startDate = new Date(con.incptnDtTm).getTime()
         let now = new Date().getTime()
-        return startDate <= now && con.acct?.id === entity?.Accounts[accountIndex || 0]?.DbtrAcct.Id.Othr[0].Id
+        return startDate <= now && con.acct?.id === entity?.Accounts[accountIndex || 0]?.DbtrAcct.Id.Othr[0]!.Id
       })
       if (test) {
         setAcctDebColor("b")
@@ -103,7 +103,7 @@ export function DeviceInfo(props: DeviceProps) {
         let now = new Date().getTime()
         return (
           startDate <= now &&
-          con.acct?.id === creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0].Id
+          con.acct?.id === creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0]!.Id
         )
       })
       if (test) {
@@ -227,7 +227,7 @@ export function DeviceInfo(props: DeviceProps) {
                   if (
                     "activeConditions" in processCtx.conditionsDataDebtor &&
                     processCtx.conditionsDataDebtor.activeConditions &&
-                    processCtx.conditionsDataDebtor.activeConditions.includes(entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id)
+                    processCtx.conditionsDataDebtor.activeConditions.includes(entity?.Entity.Dbtr.Id.PrvtId.Othr[0]!.Id)
                   ) {
                     processCtx.setShowDebtorConditions(true)
                     props.setCreateModalVisible(false)
@@ -246,7 +246,7 @@ export function DeviceInfo(props: DeviceProps) {
             </div>
 
             <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
-              <p className="truncate">ID: {entity.Entity?.Dbtr.Id.PrvtId.Othr[0].Id} </p>
+              <p className="truncate">ID: {entity.Entity?.Dbtr.Id.PrvtId.Othr[0]!.Id} </p>
               <p>Date of birth: {entity?.Entity?.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt}</p>
             </div>
 
@@ -379,7 +379,7 @@ export function DeviceInfo(props: DeviceProps) {
                     "activeConditions" in processCtx.conditionsDataCreditor &&
                     processCtx.conditionsDataCreditor.activeConditions &&
                     processCtx.conditionsDataCreditor.activeConditions.includes(
-                      creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id
+                      creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0]!.Id
                     )
                   ) {
                     processCtx.setShowCreditorConditions(true)
@@ -399,7 +399,7 @@ export function DeviceInfo(props: DeviceProps) {
             </div>
 
             <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
-              <p className="truncate">ID: {creditorEntity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id} </p>
+              <p className="truncate">ID: {creditorEntity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0]!.Id} </p>
               <p>Date of birth: {creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt}</p>
             </div>
             <div className="relative m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
@@ -440,7 +440,7 @@ export function DeviceInfo(props: DeviceProps) {
                 </p>
               </button>
               <p className="truncate">
-                ID: {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0].Id}
+                ID: {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0]!.Id}
               </p>
             </div>
             <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
@@ -479,3 +479,4 @@ export function DeviceInfo(props: DeviceProps) {
     )
   }
 }
+

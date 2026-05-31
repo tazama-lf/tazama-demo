@@ -1,6 +1,6 @@
 {
   "name": "tazama-demo",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": true,
   "scripts": {
     "dev": "cross-env FORCE_COLOR=1 nodemon server.js",
@@ -40,7 +40,7 @@
     "@semantic-release/npm": "^12.0.1",
     "@semantic-release/release-notes-generator": "^13.0.0",
     "@t3-oss/env-nextjs": "^0.10.1",
-    "@tazama-lf/frms-coe-lib": "6.0.0",
+    "@tazama-lf/frms-coe-lib": "8.1.0-rc.0",
     "axios": "^1.7.3",
     "class-variance-authority": "^0.7.0",
     "dotenv": "^16.4.5",

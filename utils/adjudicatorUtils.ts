@@ -1,6 +1,15 @@
+// SPDX-License-Identifier: Apache-2.0
 import { TADPROC, TADPROC_RESULT, TypoEFRuP, RuleResult } from "../store/processors/processor.interface"
 
-export const handleTadProcResults = async (msg: any) => {
+/**
+ * Parses a raw event-adjudicator NATS message into the UI TADPROC state shape.
+ *
+ * @param msg      - The decoded NATS message from the eventAdjudicator room.
+ * @param efrupId  - The rule ID string that identifies the EFRuP rule
+ *                   (e.g. "EFRuP@1.0.0"). When undefined, EFRuP detection is
+ *                   skipped and no efrupResults are populated.
+ */
+export const handleAdjudicatorResults = async (msg: any, efrupId?: string) => {
   let result: any[] = []
   try {
     result.push(msg)
@@ -31,7 +40,7 @@ export const handleTadProcResults = async (msg: any) => {
             ruleResults: [],
           }
           typoRes.ruleResults.forEach((result: RuleResult) => {
-            if (result.id === "EFRuP@1.0.0") {
+            if (efrupId !== undefined && result.id === efrupId) {
               typoResult.efrup = result.subRuleRef
               let typoEFRuP: TypoEFRuP = {
                 typology: typoRes.cfg.split("@")[0],
@@ -60,6 +69,6 @@ export const handleTadProcResults = async (msg: any) => {
       return response
     }
   } catch (err) {
-    console.log("TadProc Results Error: ", err)
+    console.log("Adjudicator Results Error: ", err)
   }
 }

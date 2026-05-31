@@ -190,8 +190,8 @@ const Web = () => {
         socket.on("welcome", (msg) => {
           console.log("received", msg)
         })
-        socket.on("tadProc", async (msg) => {
-          await processCtx.handleTadProcLive(msg)
+        socket.on("eventAdjudicator", async (msg) => {
+          await processCtx.handleAdjudicatorLive(msg)
         })
       } catch (error) {
         console.log(error)
@@ -225,12 +225,12 @@ const Web = () => {
   }, [flashing])
 
   useEffect(() => {
-    if (processCtx.tadpLights.efrup === "override") {
+    if (processCtx.adjudicatorLights.efrup === "override") {
       setFlashing(true)
     } else {
       setFlashing(false)
     }
-  }, [processCtx.tadpLights.efrup])
+  }, [processCtx.adjudicatorLights.efrup])
 
   useEffect(() => {
     processCtx.getAllDebtorConditions()
@@ -404,10 +404,10 @@ const Web = () => {
               <div className="relative col-span-4 flex items-center justify-between px-5">
                 <ProcessIndicator
                   started={started}
-                  stop={processCtx.tadpLights.stop}
-                  efrup={processCtx.tadpLights.efrup}
+                  stop={processCtx.adjudicatorLights.stop}
+                  efrup={processCtx.adjudicatorLights.efrup}
                 />
-                {processCtx.tadpLights.efrup === "block" ? (
+                {processCtx.adjudicatorLights.efrup === "block" ? (
                   <Image
                     src="/stop.png"
                     width="250"
@@ -422,8 +422,8 @@ const Web = () => {
                     priority={true}
                   />
                 ) : (
-                  processCtx.tadpLights.stop &&
-                  processCtx.tadpLights.efrup !== "override" && (
+                  processCtx.adjudicatorLights.stop &&
+                  processCtx.adjudicatorLights.efrup !== "override" && (
                     <Image
                       src="/stop.png"
                       width="250"
@@ -608,35 +608,35 @@ const Web = () => {
             </div>
           </div>
 
-          {/* Tadproc */}
+          {/* Event Adjudicator */}
           <div className="col-span-1 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
             <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
-              Tadproc
+              Event Adjudicator
             </h2>
             <div className="relative flex min-h-80 items-center justify-center">
-              {processCtx.tadpLights.efrup === "override" && processCtx.tadpLights.color === "r" && flashing ? (
+              {processCtx.adjudicatorLights.efrup === "override" && processCtx.adjudicatorLights.color === "r" && flashing ? (
                 <StatusIndicator large={true} colour={flashColor} />
               ) : (
-                <StatusIndicator large={true} colour={processCtx.tadpLights.color} />
+                <StatusIndicator large={true} colour={processCtx.adjudicatorLights.color} />
               )}
 
-              {processCtx.tadpLights.color === "y" ||
-                (processCtx.tadpLights.color === "r" && (
+              {processCtx.adjudicatorLights.color === "y" ||
+                (processCtx.adjudicatorLights.color === "r" && (
                   <div className="absolute bottom-16 flex items-center justify-center text-center">
                     <p className="mb-5 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 px-5 py-2 text-center text-xs uppercase shadow-lg">
-                      {processCtx.tadpLights.status}
+                      {processCtx.adjudicatorLights.status}
                     </p>
                   </div>
                 ))}
-              {processCtx.tadpLights.efrup !== undefined && (
+              {processCtx.adjudicatorLights.efrup !== undefined && (
                 <div className="absolute bottom-16 flex items-center justify-center text-center">
-                  {processCtx.tadpLights.efrup === "block" ? (
+                  {processCtx.adjudicatorLights.efrup === "block" ? (
                     <p className="mb-5 rounded-lg border-[1px] border-red-500 bg-gradient-to-r from-red-100 to-red-200 px-5 py-2 text-center text-xs uppercase text-red-500 shadow-lg">
                       BLOCKED
                     </p>
                   ) : (
-                    processCtx.tadpLights.efrup === "override" &&
-                    processCtx.tadpLights.color === "r" && (
+                    processCtx.adjudicatorLights.efrup === "override" &&
+                    processCtx.adjudicatorLights.color === "r" && (
                       <p className="mb-5 flex max-w-[120px] rounded-lg border-[1px] border-green-500 bg-gradient-to-r from-green-100 to-green-200 px-5 py-2 text-center text-xs uppercase text-green-500 shadow-lg">
                         INTERDICTION OVERRIDDEN
                       </p>

@@ -10,13 +10,13 @@ import ProcessorContext from "./processor.context"
 
 import { Socket } from "socket.io"
 import EntityContext from "store/entities/entity.context"
-import { handleTadProcResults } from "utils/tadProcUtils"
+import { handleAdjudicatorResults } from "utils/adjudicatorUtils"
 import getNetworkMapSetup from "./networkMap"
 import {
   defaultConditionsData,
   defaultEDLights,
   defaultEntityEventType,
-  defaultTadProcLights,
+  defaultAdjudicatorLights,
   ruleInitialState,
   typologiesInitialState,
 } from "./processor.initialState"
@@ -53,8 +53,8 @@ const ProcessorProvider = ({ children }: Props) => {
     typologiesEFRuP: [],
     rules: ruleInitialState,
     edLights: defaultEDLights,
-    tadpLights: defaultTadProcLights,
-    tadProcResults: defaultTadProcLights,
+    tadpLights: defaultAdjudicatorLights,
+    tadProcResults: defaultAdjudicatorLights,
     entityEventType: defaultEntityEventType,
     entityAllChecked: false,
     conditionsList: [],
@@ -236,7 +236,7 @@ const ProcessorProvider = ({ children }: Props) => {
 
   useEffect(() => {
     if (socket !== undefined) {
-      socket.on("tadProc", (msg) => {
+      socket.on("eventAdjudicator", (msg) => {
         const currentMsgId = localStorage.getItem("current_msg_id")
         if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
           const typoResult = Object.keys(msg.report.tadpResult).includes("typologyResult")
@@ -298,7 +298,7 @@ const ProcessorProvider = ({ children }: Props) => {
     }
   }
 
-  const handleTadProcLive = async (msg: any) => {
+  const handleAdjudicatorLive = async (msg: any) => {
     const currentMsgId = localStorage.getItem("current_msg_id")
     console.log("LIVE: ", msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId)
     if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
@@ -316,14 +316,14 @@ const ProcessorProvider = ({ children }: Props) => {
           console.log("ERROR_MSG: ", err)
         }
         while (results === undefined && linkedTypologies !== undefined) {
-          results = await handleTadProcResults(msg)
+          results = await handleAdjudicatorResults(msg, "EFRuP@1.0.0")
         }
         if (results !== undefined) {
-          dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: results })
+          dispatch({ type: ACTIONS.SET_ADJUDICATOR_RESULTS, payload: results })
           dispatch({ type: ACTIONS.SET_TYPO_EFRUP_SUCCESS, payload: results.efrupResults })
         }
       } catch (err) {
-        console.log("TADPROC ERROR", err)
+        console.log("ADJUDICATOR ERROR", err)
       }
     }
   }
@@ -525,7 +525,7 @@ const ProcessorProvider = ({ children }: Props) => {
     const resIndex: any[] = []
 
     try {
-      dispatch({ type: ACTIONS.UPDATE_TADPROC_LOADING })
+      dispatch({ type: ACTIONS.UPDATE_ADJUDICATOR_LOADING })
       await data.results.forEach(async (result) => {
 
         result.ruleResults.map(async (ruleResult) => {
@@ -570,9 +570,9 @@ const ProcessorProvider = ({ children }: Props) => {
         })
       })
 
-      dispatch({ type: ACTIONS.UPDATE_TADPROC_SUCCESS, payload: data })
+      dispatch({ type: ACTIONS.UPDATE_ADJUDICATOR_SUCCESS, payload: data })
     } catch (error) {
-      dispatch({ type: ACTIONS.UPDATE_TADPROC_FAIL })
+      dispatch({ type: ACTIONS.UPDATE_ADJUDICATOR_FAIL })
       console.log("Updating Lights Failed: ", error)
     }
   }
@@ -611,7 +611,7 @@ const ProcessorProvider = ({ children }: Props) => {
     })
     dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: [] })
     dispatch({ type: ACTIONS.UPDATE_RULES_SUCCESS, payload: [] })
-    dispatch({ type: ACTIONS.SET_TADPROC_RESULTS, payload: [] })
+    dispatch({ type: ACTIONS.SET_ADJUDICATOR_RESULTS, payload: [] })
     dispatch({ type: ACTIONS.CLEAR_LINKED_TYPOLOGIES })
     dispatch({ type: ACTIONS.CLEAR_CONDITIONS })
 
@@ -1047,15 +1047,15 @@ const ProcessorProvider = ({ children }: Props) => {
       value={{
         app_version: state.app_version,
         rulesLoading: false,
-        tadprocLoading: false,
+        adjudicatorLoading: false,
         edLightsLoading: false,
         typologyLoading: false,
         typologies: state.typologies,
         typologiesEFRuP: state.typologiesEFRuP,
         edLights: state.edLights,
         rules: state.rules,
-        tadpLights: state.tadpLights,
-        tadProcResults: state.tadprocResults,
+        adjudicatorLights: state.tadpLights,
+        adjudicatorResults: state.tadprocResults,
         msgId: msgId,
         entityEventType: state.entityEventType,
         entityAllChecked: state.entityAllChecked,
@@ -1088,7 +1088,7 @@ const ProcessorProvider = ({ children }: Props) => {
         resetAllLights,
         clearResults,
         getUIConfig,
-        handleTadProcLive,
+        handleAdjudicatorLive,
         getConditions,
         createCondition,
         expireCondition,
