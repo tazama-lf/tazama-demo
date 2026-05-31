@@ -321,6 +321,10 @@ app.prepare().then(() => {
           res.end(JSON.stringify({ error: "Invalid body" }))
         }
       })
+      req.on("error", () => {
+        res.writeHead(500, { "Content-Type": "application/json" })
+        res.end(JSON.stringify({ error: "Request stream error" }))
+      })
       return
     }
 

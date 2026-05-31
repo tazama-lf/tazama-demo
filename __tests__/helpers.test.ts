@@ -73,6 +73,9 @@ describe("convertToDate", () => {
     expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)
   })
 
+  // The +2h offset is intentional: utils/helpers.ts line 62 applies `Math.ceil(parseInt(hrs) + 2)`
+  // as a legacy UTC-to-local adjustment baked into the implementation. Math.ceil is a no-op here
+  // because parseInt always returns an integer, so no rounding occurs.
   it("adds 2 hours to the input time", () => {
     // Use a midday time to avoid date-rollover ambiguity across timezones
     const result = convertToDate("2024-06-15T12:00:00.000")
