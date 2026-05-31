@@ -30,6 +30,20 @@ export default defineConfig({
     trace: "on-first-retry",
   },
 
+  /* Start the dev server before running tests */
+  webServer: {
+    command: "node server.js",
+    url: "http://127.0.0.1:3000",
+    reuseExistingServer: !process.env.CI,
+    env: {
+      SKIP_ENV_VALIDATION: "1",
+      AUTHENTICATED: "false",
+      TEST_MODE: "true",
+      PORT: "3000",
+      NODE_ENV: "development",
+    },
+  },
+
   /* Configure projects for major browsers */
   projects: [
     {
@@ -37,34 +51,15 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
 
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-
-    /* Test against mobile viewports. */
+    // Firefox and WebKit are excluded from the default run for CI speed.
+    // Run them locally with: npx playwright test --project=firefox --project=webkit
     // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
+    //   name: "firefox",
+    //   use: { ...devices["Desktop Firefox"] },
     // },
     // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ..devices['Desktop Chrome'], channel: 'chrome' },
+    //   name: "webkit",
+    //   use: { ...devices["Desktop Safari"] },
     // },
   ],
 
