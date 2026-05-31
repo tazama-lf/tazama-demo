@@ -111,6 +111,11 @@
     "typescript": "5.4.5",
     "webpack": "5.94.0"
   },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^9.0.9"
+    }
+  },
   "engines": {
     "node": ">=20.0.0"
   },
