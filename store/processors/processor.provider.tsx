@@ -80,7 +80,7 @@ const ProcessorProvider = ({ children }: Props) => {
 
   const [socket, setSocket] = useState<Socket>()
   const [isConnected, setIsConnected] = useState<boolean>(false)
-  const [wsAddress, setWsAddress] = useState<string>("")
+  const [wsAddress, setWsAddress] = useState<string>(process.env.NEXT_PUBLIC_WS_URL ?? "")
   const [adminServiceUrl, setAdminServiceUrl] = useState<string>("")
 
   const msgId: any = useRef("")
@@ -121,8 +121,9 @@ const ProcessorProvider = ({ children }: Props) => {
         })
         links.sort((a: LinkedTypo, b: LinkedTypo) => {
           if (a.ruleResult !== null && b.ruleResult !== null) {
-            a.ruleResult - b.ruleResult
+            return a.ruleResult - b.ruleResult
           }
+          return 0
         })
 
         rule.linkedTypologies = [...links]
@@ -256,7 +257,7 @@ const ProcessorProvider = ({ children }: Props) => {
       } catch (err: any) {
         console.log("ERROR_MSG: ", err)
       }
-      while (results === undefined && linkedTypologies !== undefined) {
+      if (linkedTypologies !== undefined) {
         results = await handleAdjudicatorResults(msg, efrupIdRef.current)
       }
       if (results !== undefined) {
