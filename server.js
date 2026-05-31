@@ -18,6 +18,7 @@ const { extractTenant } = require("@tazama-lf/auth-lib")
 // Config
 // ---------------------------------------------------------------------------
 const AUTHENTICATED = process.env.AUTHENTICATED === "true"
+const TEST_MODE = process.env.TEST_MODE === "true"
 
 const ALERT_PRODUCER = process.env.ALERT_PRODUCER || "investigation-service"
 const ALERT_DESTINATION = process.env.ALERT_DESTINATION || "global"
@@ -235,6 +236,62 @@ function releaseTenantSub(producer, tenantId) {
 }
 
 // ---------------------------------------------------------------------------
+// TEST_MODE: emit deterministic fixtures to all connected sockets so that
+// Playwright tests can drive the full transaction journey without a live NATS
+// connection. Only active when TEST_MODE=true.
+// ---------------------------------------------------------------------------
+
+/**
+ * Emits a synthetic eventAdjudicator message that matches `msgId` to every
+ * connected Socket.IO client.  Called ~500 ms after the test POST to
+ * /api/transaction is intercepted, giving the client time to register the
+ * activeMsgId it is waiting for.
+ *
+ * @param {Server} io
+ * @param {string} msgId
+ */
+function emitTestFixtures(io, msgId) {
+  const fixture = {
+    transaction: { FIToFIPmtSts: { GrpHdr: { MsgId: msgId } } },
+    report: {
+      status: "ALRT",
+      tadpResult: {
+        id: "event-adjudicator",
+        cfg: "1.0.0",
+        typologyResult: [
+          {
+            id: "typology",
+            cfg: "typology-001@1.0.0",
+            result: 500,
+            tenantId: "DEFAULT",
+            ruleResults: [
+              {
+                id: "Rule-001@1.0.0",
+                cfg: "1.0.0",
+                subRuleRef: ".01",
+                tenantId: "DEFAULT",
+                indpdntVarbl: 0,
+                wght: 1.0,
+              },
+              {
+                id: "Rule-002@1.0.0",
+                cfg: "1.0.0",
+                subRuleRef: ".01",
+                tenantId: "DEFAULT",
+                indpdntVarbl: 0,
+                wght: 1.0,
+              },
+            ],
+            workflow: { alertThreshold: 400, interdictionThreshold: 600 },
+          },
+        ],
+      },
+    },
+  }
+  io.emit("eventAdjudicator", fixture)
+}
+
+// ---------------------------------------------------------------------------
 // App bootstrap
 // ---------------------------------------------------------------------------
 const app = next({ dev: process.env.NODE_ENV !== "production", customServer: true, quiet: false, turbo: true })
@@ -244,6 +301,33 @@ const handle = app.getRequestHandler()
 app.prepare().then(() => {
   const server = createServer((req, res) => {
     const parsedUrl = parse(req.url, true)
+
+    // In TEST_MODE, intercept POST /api/transaction before Next.js handles it.
+    // The body is parsed here to extract the msgId, a deterministic fixture is
+    // scheduled via setTimeout, and the response is sent immediately so the
+    // client can record the activeMsgId it is waiting for.
+    if (TEST_MODE && req.method === "POST" && parsedUrl.pathname === "/api/transaction") {
+      const chunks = []
+      req.on("data", (chunk) => chunks.push(chunk))
+      req.on("end", () => {
+        try {
+          const body = JSON.parse(Buffer.concat(chunks).toString())
+          const msgId = body?.pacs002?.FIToFIPmtSts?.GrpHdr?.MsgId ?? `test-msg-${Date.now()}`
+          setTimeout(() => emitTestFixtures(io, msgId), 500)
+          res.writeHead(200, { "Content-Type": "application/json" })
+          res.end(JSON.stringify({ msgId }))
+        } catch {
+          res.writeHead(400, { "Content-Type": "application/json" })
+          res.end(JSON.stringify({ error: "Invalid body" }))
+        }
+      })
+      req.on("error", () => {
+        res.writeHead(500, { "Content-Type": "application/json" })
+        res.end(JSON.stringify({ error: "Request stream error" }))
+      })
+      return
+    }
+
     handle(req, res, parsedUrl)
   })
 

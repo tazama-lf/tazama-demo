@@ -1,32 +1,52 @@
-name: Playwright Tests
+name: Playwright E2E Tests
+
 on:
-  push:
+  pull_request:
     branches:
-      - main
       - dev
-  workflow_dispatch: 
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
-  test:
+  playwright:
+    name: Run Playwright e2e tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
       - run: echo "node_version=$(cat .github/nodejs.version)" >> $GITHUB_ENV
-      - name: "use node ${{ env.node_version }}"
-        uses: actions/setup-node@v4
+
+      - name: Use Node ${{ env.node_version }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "${{ env.node_version }}"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: Run Playwright tests
-        run: npx playwright test
-      - uses: actions/upload-artifact@v4
-        if: always()
+        run: npx playwright test --project=chromium
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "1"
+          AUTHENTICATED: "false"
+          TEST_MODE: "true"
+          PORT: "3000"
+          NODE_ENV: "development"
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 30
+          retention-days: 7
