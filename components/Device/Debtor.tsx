@@ -1,9 +1,7 @@
-import axios from "axios"
 import Image from "next/image"
-import React, { useContext, useEffect, useState } from "react"
+import React, { useContext } from "react"
 import { TimeComponent } from "components/timeComponent/TimeComponent"
 import EntityContext from "store/entities/entity.context"
-import { sentanceCase } from "utils/helpers"
 import { DeviceInfo } from "./DeviceInfo"
 import ProcessorContext from "store/processors/processor.context"
 import DeviceComponent from "./DeviceComponent"
@@ -33,7 +31,6 @@ interface DebtorProps {
 }
 
 export function DebtorDevice(props: DebtorProps) {
-  const [tmsUrl, setTmsUrl] = useState(process.env.NEXT_PUBLIC_TMS_SERVER_URL)
   const entityCtx = useContext(EntityContext)
   const procCtx = useContext(ProcessorContext)
 
@@ -41,108 +38,48 @@ export function DebtorDevice(props: DebtorProps) {
 
   const creditorEntity = entityCtx.creditorEntities
 
-  useEffect(() => {
-    ;(async () => {
-      const cfg: any = await procCtx.getUIConfig()
-      const parsedConfig: any = JSON.parse(cfg)
-      setTmsUrl(parsedConfig.tmsServerUrl)
-    })()
-  }, [])
-
-  const postPacs002 = async () => {
-    try {
-      const response = await axios.post(`${tmsUrl}/v1/evaluate/iso20022/pacs.002.001.12`, entityCtx.pacs002, {
-        headers: { "Content-Type": "application/json" },
-      })
-      if (response.status === 200) {
-        let data: EDLights = {
-          pacs008: true,
-          pacs002: true,
-          color: "g",
-          error: "",
-        }
-        let newData: any = {
-          ED: data,
-        }
-        props.setLights(newData)
-        setTimeout(async () => {
-          props.setStarted(false)
-        }, 1000)
-      } else {
-        let data: EDLights = {
-          pacs008: true,
-          pacs002: false,
-          color: "r",
-          error: "",
-        }
-        let newData: LightsManager = {
-          ED: data,
-        }
-        props.setLights(newData)
-        setTimeout(async () => {
-          props.setStarted(false)
-        }, 1000)
-      }
-    } catch (error: any) {
-      let errMsg: any
-      if (error.response.data) {
-        errMsg = JSON.stringify(error.response.data).split(".")[0]
-      }
-
-      let data: EDLights = {
-        pacs008: true,
-        pacs002: false,
-        color: "r",
-        error: `PACS002: ${errMsg}`,
-      }
-      let newData: LightsManager = {
-        ED: data,
-      }
-      props.setLights(newData)
-      setTimeout(async () => {
-        props.setStarted(false)
-      }, 1000)
-    }
-  }
-
-  const postPacs008 = async () => {
+  const sendTransaction = async () => {
     try {
       props.setStarted(true)
-
-      const response = await axios.post(`${tmsUrl}/v1/evaluate/iso20022/pacs.008.001.10`, entityCtx.pacs008, {
+      const response = await fetch("/api/transaction", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pacs008: entityCtx.pacs008, pacs002: entityCtx.pacs002 }),
       })
-
-      if (response.status === 200) {
-        if (response.status === 200) {
-          let data: EDLights = {
+      const data = await response.json() as { msgId?: string; error?: string }
+      if (response.ok) {
+        entityCtx.setCurrentMsgId(data.msgId)
+        props.setLights({
+          ED: {
             pacs008: true,
-            pacs002: false,
-            color: "y", // orange
+            pacs002: true,
+            color: "g",
             error: "",
-          }
-          let newData: LightsManager = {
-            ED: data,
-          }
-          props.setLights(newData)
-        }
-        setTimeout(async () => {
-          await postPacs002()
-        }, 800)
+          },
+        })
+      } else {
+        props.setLights({
+          ED: {
+            pacs008: false,
+            pacs002: false,
+            color: "r",
+            error: data.error ?? "Transaction failed",
+          },
+        })
       }
+      setTimeout(() => {
+        props.setStarted(false)
+      }, 1000)
     } catch (error: any) {
-      const errMsg: any = JSON.parse(error.response.data.split("\n").slice(1).join("\n"))
-      let data: any = {
-        pacs008: props.lights.ED.pacs008,
-        pacs002: false,
-        color: "r",
-        error: `PACS008: ${sentanceCase(errMsg.errorMessage.split("-")[0])}`,
-      }
-      let newData: LightsManager = {
-        ED: data,
-      }
-      props.setLights(newData)
-      setTimeout(async () => {
+      props.setLights({
+        ED: {
+          pacs008: false,
+          pacs002: false,
+          color: "r",
+          error: error?.message ?? "Network error",
+        },
+      })
+      setTimeout(() => {
         props.setStarted(false)
       }, 1000)
     }
@@ -199,7 +136,7 @@ export function DebtorDevice(props: DebtorProps) {
                 })
                 props.resetLights(true)
                 setTimeout(async () => {
-                  await postPacs008()
+                  await sendTransaction()
                 }, 500)
               }}
             >

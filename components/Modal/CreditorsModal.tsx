@@ -39,7 +39,7 @@ const CreditorModal = ({ ...props }: Props) => {
       let filteredNttyData = nttyData.filter((con) => {
         let nttyIndex: number = entityCtx.selectedCreditorEntity.creditorSelectedIndex || 0
         let nttyId: string | undefined =
-          entityCtx.creditorEntities[nttyIndex !== undefined ? nttyIndex : 0]?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id
+          entityCtx.creditorEntities[nttyIndex !== undefined ? nttyIndex : 0]?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0]!.Id
         return con.ntty!.id.includes(nttyId!)
       })
       setFilteredConditions(filteredNttyData)
@@ -53,7 +53,7 @@ const CreditorModal = ({ ...props }: Props) => {
         let acctId: string | undefined =
           entityCtx.creditorEntities[nttyIndex !== undefined ? nttyIndex : 0]?.CreditorAccounts[
             acctIndex !== undefined ? acctIndex : 0
-          ]?.CdtrAcct.Id.Othr[0].Id
+          ]?.CdtrAcct.Id.Othr[0]!.Id
         return con.acct!.id.includes(acctId!)
       })
       setFilteredConditions(filteredAcctData)
@@ -80,25 +80,25 @@ const CreditorModal = ({ ...props }: Props) => {
     ;(async function () {
       await processCtx.getAllCreditorConditions()
       if (processCtx.creditorActiveSection === "Accounts") {
-        newAccountConditionState.acct!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAcct.Id.Othr[0].Id
+        newAccountConditionState.acct!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAcct.Id.Othr[0]!.Id
         newAccountConditionState.acct!.agt.finInstnId.clrSysMmbId.mmbId =
           entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAgt.FinInstnId.ClrSysMmbId.MmbId
         newAccountConditionState.acct!.schmeNm.prtry =
-          entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAcct.Id.Othr[0].SchmeNm.Prtry
+          entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAcct.Id.Othr[0]!.SchmeNm.Prtry
 
         setNewCondition(newAccountConditionState)
       } else if (processCtx.creditorActiveSection === "Entity") {
-        newEntityConditionState.ntty!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].Id
+        newEntityConditionState.ntty!.id = entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0]!.Id
         newEntityConditionState.ntty!.schmeNm.prtry =
-          entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].SchmeNm.Prtry
+          entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0]!.SchmeNm.Prtry
         setNewCondition(newEntityConditionState)
       }
     })()
   }, [
     processCtx.creditorActiveSection,
     entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex,
-    entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAcct.Id.Othr[0].Id,
-    entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0].Id,
+    entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.CdtrAcct.Id.Othr[0]!.Id,
+    entityCtx.pacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.Othr[0]!.Id,
   ])
 
   function handleClose() {
@@ -165,7 +165,7 @@ const CreditorModal = ({ ...props }: Props) => {
     if (!customEntity?.Cdtr.Id.PrvtId.DtAndPlcOfBirth.CityOfBirth) newErrors.CityOfBirth = "City of birth is required"
     if (!customEntity?.Cdtr.Id.PrvtId.DtAndPlcOfBirth.CtryOfBirth)
       newErrors.CtryOfBirth = "Country of birth is required"
-    if (!customEntity?.Cdtr.Id.PrvtId.Othr[0].Id) newErrors.Id = "ID number is required"
+    if (!customEntity?.Cdtr.Id.PrvtId.Othr[0]!.Id) newErrors.Id = "ID number is required"
     if (!customEntity?.Cdtr.CtctDtls.MobNb) {
       newErrors.MobNb = "Mobile number is required"
     } else if (!/^\+[0-9]{1,4}-[0-9()+\-]{1,30}$/.test(customEntity.Cdtr.CtctDtls.MobNb)) {
@@ -491,7 +491,7 @@ const CreditorModal = ({ ...props }: Props) => {
                         <label htmlFor="modal-ID">ID number</label>
                         <input
                           className="w-full"
-                          value={customEntity?.Cdtr.Id.PrvtId.Othr[0].Id || ""}
+                          value={customEntity?.Cdtr.Id.PrvtId.Othr[0]!.Id || ""}
                           id="modal-ID"
                           maxLength={35}
                           onKeyDown={() => {
@@ -769,3 +769,4 @@ const CreditorModal = ({ ...props }: Props) => {
 }
 
 export default CreditorModal
+

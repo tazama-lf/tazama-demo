@@ -280,7 +280,7 @@ app.prepare().then(() => {
       // Subscribe to global terminal subjects immediately
       if (ALERT_DESTINATION !== "tenant") {
         const subj = computeTerminalSubject(ALERT_PRODUCER, ALERT_DESTINATION, "")
-        ensureGlobalSub(subj, "tadProc", io)
+        ensureGlobalSub(subj, "eventAdjudicator", io)
       }
       if (TP_INTERDICTION_DESTINATION !== "tenant") {
         const subj = computeTerminalSubject(TP_INTERDICTION_PRODUCER, TP_INTERDICTION_DESTINATION, "")
@@ -313,7 +313,7 @@ app.prepare().then(() => {
       for (const sub of typoSubjects) ensureGlobalSub(sub, "typoResponse", io)
 
       if (tenantId != null) {
-        if (ALERT_DESTINATION === "tenant") ensureTenantSub(ALERT_PRODUCER, tenantId, "tadProc", io)
+        if (ALERT_DESTINATION === "tenant") ensureTenantSub(ALERT_PRODUCER, tenantId, "eventAdjudicator", io)
         if (TP_INTERDICTION_DESTINATION === "tenant") ensureTenantSub(TP_INTERDICTION_PRODUCER, tenantId, "interdiction-service-tp", io)
         if (EF_INTERDICTION_DESTINATION === "tenant") ensureTenantSub(EF_INTERDICTION_PRODUCER, tenantId, "interdiction-service-ef", io)
       }
@@ -323,9 +323,9 @@ app.prepare().then(() => {
       console.log("Confirmed:", message)
     })
 
-    socket.on("tadProc", (message) => {
-      console.log("TADPROC_RESULT:", message)
-      io.to("tadProc").emit("tadProc", message)
+    socket.on("eventAdjudicator", (message) => {
+      console.log("EVENT_ADJUDICATOR_RESULT:", message)
+      io.to("eventAdjudicator").emit("eventAdjudicator", message)
     })
 
     socket.on("disconnect", () => {

@@ -63,7 +63,7 @@ export const pacs008InitialState: PACS008 = {
         Id: {
           PrvtId: {
             DtAndPlcOfBirth: {
-              BirthDt: "",
+              BirthDt: new Date(),
               CityOfBirth: "Unknown",
               CtryOfBirth: "ZZ",
             },
@@ -86,7 +86,7 @@ export const pacs008InitialState: PACS008 = {
         Id: {
           PrvtId: {
             DtAndPlcOfBirth: {
-              BirthDt: "",
+              BirthDt: new Date(),
               CityOfBirth: "Unknown",
               CtryOfBirth: "ZZ",
             },
@@ -137,7 +137,7 @@ export const pacs008InitialState: PACS008 = {
         Id: {
           PrvtId: {
             DtAndPlcOfBirth: {
-              BirthDt: "",
+              BirthDt: new Date(),
               CityOfBirth: "Unknown",
               CtryOfBirth: "ZZ",
             },
@@ -184,7 +184,7 @@ export const pacs008InitialState: PACS008 = {
     SplmtryData: {
       Envlp: {
         Doc: {
-          Xprtn: "2021-11-30T10:38:56.000Z",
+          Xprtn: new Date("2021-11-30T10:38:56.000Z"),
           InitgPty: {
             Glctn: {
               Lat: "",
@@ -198,6 +198,7 @@ export const pacs008InitialState: PACS008 = {
 }
 
 export const pacs002InitialState: PACS002 = {
+  TxTp: "pacs.002.001.12",
   FIToFIPmtSts: {
     GrpHdr: { MsgId: "", CreDtTm: "" },
     TxInfAndSts: {
@@ -209,7 +210,7 @@ export const pacs002InitialState: PACS002 = {
         { Amt: { Amt: 0, Ccy: "USD" }, Agt: { FinInstnId: { ClrSysMmbId: { MmbId: "fsp001" } } } },
         { Amt: { Amt: 0, Ccy: "USD" }, Agt: { FinInstnId: { ClrSysMmbId: { MmbId: "fsp001" } } } },
       ],
-      AccptncDtTm: "",
+      AccptncDtTm: new Date(),
       InstgAgt: { FinInstnId: { ClrSysMmbId: { MmbId: "fsp001" } } },
       InstdAgt: { FinInstnId: { ClrSysMmbId: { MmbId: "fsp001" } } },
     },

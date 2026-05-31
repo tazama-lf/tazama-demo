@@ -3,7 +3,7 @@ import {
   defaultConditionsData,
   defaultEDLights,
   defaultEntityEventType,
-  defaultTadProcLights,
+  defaultAdjudicatorLights,
   ruleInitialState,
 } from "./processor.initialState"
 import {
@@ -22,15 +22,16 @@ import {
 
 interface Context {
   rulesLoading: boolean
-  tadprocLoading: boolean
+  adjudicatorLoading: boolean
   edLightsLoading: boolean
   typologyLoading: boolean
   typologies: Typology[]
   edLights: EDLightsManager
   rules: Rule[]
-  tadpLights: TADPROC
-  tadProcResults: TADPROC
+  adjudicatorLights: TADPROC
+  adjudicatorResults: TADPROC
   msgId: string | undefined
+  activeMsgId: string | undefined
   entityEventType: string[]
   entityAllChecked: boolean
   expireConError: string | undefined
@@ -62,7 +63,7 @@ interface Context {
   resetAllLights: () => void
   clearResults: () => void
   getUIConfig: () => void
-  handleTadProcLive: (msg: any) => void
+  handleAdjudicatorLive: (msg: any) => void
   ruleLightsGreen: () => void
   ruleLightsNeutral: () => void
   getConditions: ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => void
@@ -82,15 +83,16 @@ interface Context {
 
 const ProcessorContext = createContext<Context>({
   rulesLoading: false,
-  tadprocLoading: false,
+  adjudicatorLoading: false,
   edLightsLoading: false,
   typologyLoading: false,
   edLights: defaultEDLights,
   rules: ruleInitialState,
   typologies: [],
-  tadpLights: defaultTadProcLights,
-  tadProcResults: defaultTadProcLights,
+  adjudicatorLights: defaultAdjudicatorLights,
+  adjudicatorResults: defaultAdjudicatorLights,
   msgId: "",
+  activeMsgId: undefined,
   entityEventType: defaultEntityEventType,
   entityAllChecked: false,
   conditionsList: [],
@@ -122,7 +124,7 @@ const ProcessorContext = createContext<Context>({
   resetAllLights: () => {},
   clearResults: () => {},
   getUIConfig: () => {},
-  handleTadProcLive: (msg: any) => {},
+  handleAdjudicatorLive: (msg: any) => {},
   ruleLightsGreen: () => {},
   ruleLightsNeutral: () => {},
   getConditions: async ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => {},

@@ -73,6 +73,7 @@ interface Context {
   setUiConfig: (UiConfig: UIConfiguration) => void
   updateStatus: (x: any) => void
   clearUIData: () => void
+  setCurrentMsgId: (id: string | undefined) => void
 }
 
 const EntityContext = createContext<Context>({
@@ -130,6 +131,7 @@ const EntityContext = createContext<Context>({
   setUiConfig: () => {},
   updateStatus: () => {},
   clearUIData: () => {},
+  setCurrentMsgId: () => {},
 })
 
 export default EntityContext

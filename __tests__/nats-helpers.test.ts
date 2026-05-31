@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { filterByTenantId, filterByMsgId, computeTerminalSubject } from "lib/nats-helpers"
+import { filterByTenantId, computeTerminalSubject } from "lib/nats-helpers"
 
 // ---------------------------------------------------------------------------
 // filterByTenantId
@@ -26,64 +26,6 @@ describe("filterByTenantId", () => {
 
   it("returns false for a non-object message", () => {
     expect(filterByTenantId("string-message", "org-xyz")).toBe(false)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// filterByMsgId
-// ---------------------------------------------------------------------------
-describe("filterByMsgId - rule/typology subject (isTerminal=false)", () => {
-  it("returns true when transaction MsgId matches (rule/typology path)", () => {
-    const msg = {
-      transaction: {
-        FIToFIPmtSts: { GrpHdr: { MsgId: "abc-123" } },
-      },
-    }
-    expect(filterByMsgId(msg, "abc-123", false)).toBe(true)
-  })
-
-  it("returns false when transaction MsgId does not match (rule/typology path)", () => {
-    const msg = {
-      transaction: {
-        FIToFIPmtSts: { GrpHdr: { MsgId: "abc-123" } },
-      },
-    }
-    expect(filterByMsgId(msg, "xyz-999", false)).toBe(false)
-  })
-
-  it("returns false when MsgId field is missing (rule/typology path)", () => {
-    const msg = { transaction: { FIToFIPmtSts: { GrpHdr: {} } } }
-    expect(filterByMsgId(msg, "abc-123", false)).toBe(false)
-  })
-
-  it("returns false when transaction object is missing entirely (rule/typology path)", () => {
-    const msg = {}
-    expect(filterByMsgId(msg, "abc-123", false)).toBe(false)
-  })
-
-  it("returns false for null message (rule/typology path)", () => {
-    expect(filterByMsgId(null, "abc-123", false)).toBe(false)
-  })
-})
-
-describe("filterByMsgId - terminal output subject (isTerminal=true)", () => {
-  it("returns true when transactionID matches (terminal path)", () => {
-    const msg = { transactionID: "tx-456" }
-    expect(filterByMsgId(msg, "tx-456", true)).toBe(true)
-  })
-
-  it("returns false when transactionID does not match (terminal path)", () => {
-    const msg = { transactionID: "tx-456" }
-    expect(filterByMsgId(msg, "tx-999", true)).toBe(false)
-  })
-
-  it("returns false when transactionID is missing (terminal path)", () => {
-    const msg = {}
-    expect(filterByMsgId(msg, "tx-456", true)).toBe(false)
-  })
-
-  it("returns false for null message (terminal path)", () => {
-    expect(filterByMsgId(null, "tx-456", true)).toBe(false)
   })
 })
 

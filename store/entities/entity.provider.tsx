@@ -95,7 +95,22 @@ const EntityProvider = ({ children }: Props) => {
     }
 
     if (pacs008 !== "") {
-      dispatch({ type: ACTIONS.SET_DEBTOR_PACS008_SUCCESS, payload: JSON.parse(pacs008) })
+      const parsedPacs008: any = JSON.parse(pacs008)
+      const txInfo = parsedPacs008.FIToFICstmrCdtTrf?.CdtTrfTxInf
+      const doc = parsedPacs008.FIToFICstmrCdtTrf?.SplmtryData?.Envlp?.Doc
+      if (doc?.Xprtn) doc.Xprtn = new Date(doc.Xprtn)
+      if (txInfo) {
+        if (txInfo.InitgPty?.Id?.PrvtId?.DtAndPlcOfBirth?.BirthDt) {
+          txInfo.InitgPty.Id.PrvtId.DtAndPlcOfBirth.BirthDt = new Date(txInfo.InitgPty.Id.PrvtId.DtAndPlcOfBirth.BirthDt)
+        }
+        if (txInfo.Dbtr?.Id?.PrvtId?.DtAndPlcOfBirth?.BirthDt) {
+          txInfo.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt = new Date(txInfo.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt)
+        }
+        if (txInfo.Cdtr?.Id?.PrvtId?.DtAndPlcOfBirth?.BirthDt) {
+          txInfo.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt = new Date(txInfo.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt)
+        }
+      }
+      dispatch({ type: ACTIONS.SET_DEBTOR_PACS008_SUCCESS, payload: parsedPacs008 })
 
       if (JSON.parse(creditorEntities) !== "") {
         let parsedCreditor: any = JSON.parse(creditorEntities)
@@ -105,7 +120,10 @@ const EntityProvider = ({ children }: Props) => {
       }
     }
     if (pacs002 !== "") {
-      dispatch({ type: ACTIONS.GENERATE_PACS002_SUCCESS, payload: JSON.parse(pacs002) })
+      const parsedPacs002: any = JSON.parse(pacs002)
+      const txInfo = parsedPacs002.FIToFIPmtSts?.TxInfAndSts
+      if (txInfo?.AccptncDtTm) txInfo.AccptncDtTm = new Date(txInfo.AccptncDtTm)
+      dispatch({ type: ACTIONS.GENERATE_PACS002_SUCCESS, payload: parsedPacs002 })
     }
   }, [])
 
@@ -195,7 +213,7 @@ const EntityProvider = ({ children }: Props) => {
       pacs002Payload.FIToFIPmtSts.TxInfAndSts.OrgnlEndToEndId =
         pacs008Data.FIToFICstmrCdtTrf.CdtTrfTxInf.PmtId.EndToEndId
       pacs002Payload.FIToFIPmtSts.TxInfAndSts.TxSts = pacs002Payload.FIToFIPmtSts.TxInfAndSts.TxSts || "ACCC"
-      pacs002Payload.FIToFIPmtSts.TxInfAndSts.AccptncDtTm = new Date().toISOString()
+      pacs002Payload.FIToFIPmtSts.TxInfAndSts.AccptncDtTm = new Date()
       dispatch({ type: ACTIONS.GENERATE_PACS002_SUCCESS, payload: pacs002Payload })
       localStorage.setItem("current_msg_id", state.pacs002.FIToFIPmtSts.GrpHdr.MsgId)
       localStorage.setItem("PACS002", JSON.stringify(state.pacs002))
@@ -577,11 +595,23 @@ const EntityProvider = ({ children }: Props) => {
 
       // Set Debtor Details
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.InitgPty.Nm = debtor.Entity.Dbtr.Nm
-      setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.InitgPty.Id.PrvtId = { ...debtor.Entity.Dbtr.Id.PrvtId }
+      setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.InitgPty.Id.PrvtId = {
+        ...debtor.Entity.Dbtr.Id.PrvtId,
+        DtAndPlcOfBirth: {
+          ...debtor.Entity.Dbtr.Id.PrvtId.DtAndPlcOfBirth,
+          BirthDt: new Date(debtor.Entity.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt),
+        },
+      }
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.InitgPty.CtctDtls = { ...debtor.Entity.Dbtr.CtctDtls }
 
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Nm = debtor.Entity.Dbtr.Nm
-      setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId = { ...debtor.Entity.Dbtr.Id.PrvtId }
+      setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId = {
+        ...debtor.Entity.Dbtr.Id.PrvtId,
+        DtAndPlcOfBirth: {
+          ...debtor.Entity.Dbtr.Id.PrvtId.DtAndPlcOfBirth,
+          BirthDt: new Date(debtor.Entity.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt),
+        },
+      }
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.CtctDtls = { ...debtor.Entity.Dbtr.CtctDtls }
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.PmtId.InstrId = uuidv4().replaceAll("-", "")
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.PmtId.EndToEndId = uuidv4().replaceAll("-", "")
@@ -600,7 +630,7 @@ const EntityProvider = ({ children }: Props) => {
 
       // Set Defaults
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Purp.Cd = "MP2P"
-      setPacs008.FIToFICstmrCdtTrf.SplmtryData.Envlp.Doc.Xprtn = new Date().toISOString()
+      setPacs008.FIToFICstmrCdtTrf.SplmtryData.Envlp.Doc.Xprtn = new Date()
       setPacs008.FIToFICstmrCdtTrf.SplmtryData.Envlp.Doc.InitgPty.Glctn.Lat = "-3.0677"
       setPacs008.FIToFICstmrCdtTrf.SplmtryData.Envlp.Doc.InitgPty.Glctn.Long = "37.3552"
 
@@ -643,7 +673,13 @@ const EntityProvider = ({ children }: Props) => {
       const setPacs008: PACS008 = state.pacs008
 
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Nm = creditor.CreditorEntity.Cdtr.Nm
-      setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId = { ...creditor.CreditorEntity.Cdtr.Id.PrvtId }
+      setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId = {
+        ...creditor.CreditorEntity.Cdtr.Id.PrvtId,
+        DtAndPlcOfBirth: {
+          ...creditor.CreditorEntity.Cdtr.Id.PrvtId.DtAndPlcOfBirth,
+          BirthDt: new Date(creditor.CreditorEntity.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt),
+        },
+      }
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.CtctDtls = { ...creditor.CreditorEntity.Cdtr.CtctDtls }
 
       // Set Creditor Account Details
@@ -876,6 +912,10 @@ const EntityProvider = ({ children }: Props) => {
     dispatch({ type: ACTIONS.CLEAR_UI_DATA })
   }
 
+  const setCurrentMsgId = (id: string | undefined) => {
+    dispatch({ type: ACTIONS.SET_CURRENT_MESSAGE_ID, payload: id })
+  }
+
   return (
     <EntityContext.Provider
       value={{
@@ -933,6 +973,7 @@ const EntityProvider = ({ children }: Props) => {
         setUiConfig,
         updateStatus,
         clearUIData,
+        setCurrentMsgId,
       }}
     >
       {children}

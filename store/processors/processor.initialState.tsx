@@ -11,7 +11,7 @@ import {
 export const ruleInitialState: Rule[] = []
 export const typologiesInitialState: Typology[] = []
 
-export const defaultTadProcLights: TADPROC = {
+export const defaultAdjudicatorLights: TADPROC = {
   color: "n",
   stop: false,
   status: "NALT",

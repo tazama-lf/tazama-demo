@@ -1,7 +1,7 @@
 import { ACTIONS } from "./processor.actions"
 import {
   defaultEDLights,
-  defaultTadProcLights
+  defaultAdjudicatorLights
 } from "./processor.initialState"
 
 const ProcessorReducer = (state: any, action: any) => {
@@ -263,23 +263,23 @@ const ProcessorReducer = (state: any, action: any) => {
         typology: [],
       }
 
-    case ACTIONS.UPDATE_TADPROC_LOADING:
+    case ACTIONS.UPDATE_ADJUDICATOR_LOADING:
       return {
         ...state,
         tadprocLoading: true,
-        tadpLights: defaultTadProcLights,
+        tadpLights: defaultAdjudicatorLights,
       }
-    case ACTIONS.UPDATE_TADPROC_SUCCESS:
+    case ACTIONS.UPDATE_ADJUDICATOR_SUCCESS:
       return {
         ...state,
         tadprocLoading: false,
         tadpLights: action.payload,
       }
-    case ACTIONS.UPDATE_TADPROC_FAIL:
+    case ACTIONS.UPDATE_ADJUDICATOR_FAIL:
       return {
         ...state,
         tadprocLoading: false,
-        tadpLights: defaultTadProcLights,
+        tadpLights: defaultAdjudicatorLights,
       }
 
     case ACTIONS.UPDATE_ED_LOADING:
@@ -316,19 +316,19 @@ const ProcessorReducer = (state: any, action: any) => {
         ...state,
       }
 
-    case ACTIONS.RESET_TADPROC_RESULTS:
+    case ACTIONS.RESET_ADJUDICATOR_RESULTS:
       return {
         ...state,
-        tadProcResults: defaultTadProcLights,
+        tadProcResults: defaultAdjudicatorLights,
         typologiesEFRuP: [],
       }
     case ACTIONS.CLEAR_RESULTS:
       return {
         ...state,
-        tadProcResults: defaultTadProcLights,
+        tadProcResults: defaultAdjudicatorLights,
         typologiesEFRuP: [],
       }
-    case ACTIONS.SET_TADPROC_RESULTS:
+    case ACTIONS.SET_ADJUDICATOR_RESULTS:
       return {
         ...state,
         tadProcResults: action.payload,
@@ -362,11 +362,11 @@ const ProcessorReducer = (state: any, action: any) => {
     case ACTIONS.RESET_ALL_LIGHTS:
       return {
         ...state,
-        tadpLights: defaultTadProcLights,
+        tadpLights: defaultAdjudicatorLights,
         rules: state.rules.map((rule: any) => ({ ...rule, color: "n" })),
         typologies: state.typologies.map((typo: any) => ({ ...typo, color: "n" })),
         edLights: defaultEDLights,
-        tadProcResults: defaultTadProcLights,
+        tadProcResults: defaultAdjudicatorLights,
       }
 
     case ACTIONS.UPDATE_DEBTOR_ACTIVE_SECTION:
