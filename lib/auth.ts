@@ -1,26 +1,48 @@
 // SPDX-License-Identifier: Apache-2.0
 import NextAuth from "next-auth"
-import KeycloakProvider from "next-auth/providers/keycloak"
+import CredentialsProvider from "next-auth/providers/credentials"
 import type { JWT } from "next-auth/jwt"
 import type { Session } from "next-auth"
 
+if (process.env.AUTHENTICATED === "true") {
+  if (!process.env.NEXTAUTH_SECRET) throw new Error("NEXTAUTH_SECRET is required when AUTHENTICATED=true")
+  if (!process.env.AUTH_SERVICE_URL) throw new Error("AUTH_SERVICE_URL is required when AUTHENTICATED=true")
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
-    KeycloakProvider({
-      clientId: process.env.KEYCLOAK_CLIENT_ID ?? "",
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET ?? "",
-      issuer: process.env.KEYCLOAK_ISSUER,
+    CredentialsProvider({
+      credentials: {
+        username: { label: "Username" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.username || !credentials?.password) return null
+        const authServiceUrl = process.env.AUTH_SERVICE_URL
+        if (!authServiceUrl) throw new Error("AUTH_SERVICE_URL is not configured")
+        const response = await fetch(`${authServiceUrl}/v1/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: credentials.username,
+            password: credentials.password,
+          }),
+        })
+        if (!response.ok) return null
+        const accessToken = await response.text()
+        if (!accessToken) return null
+        return { id: credentials.username as string, accessToken }
+      },
     }),
   ],
   pages: {
     signIn: "/login",
   },
   callbacks: {
-    jwt({ token, account }) {
-      // Persist the access_token so BFF routes can forward it to downstream services
-      if (account) {
-        token.accessToken = account.access_token
-        token.expiresAt = account.expires_at
+    jwt({ token, user }) {
+      // On initial sign-in, user contains the object returned from authorize
+      if (user && "accessToken" in user) {
+        token.accessToken = (user as { accessToken: string }).accessToken
       }
       return token
     },

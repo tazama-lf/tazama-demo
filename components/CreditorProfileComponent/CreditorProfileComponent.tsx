@@ -4,8 +4,7 @@ import { CreditorProfile } from "components/ProfileCreditor/ProfileCreditor"
 import EntityContext from "store/entities/entity.context"
 import { iconColour } from "utils/helpers"
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - @hello-pangea/dnd missing from node_modules
-import { DragDropContext, Draggable, Droppable, DroppableProvided, DroppableStateSnapshot } from "../../node_modules/@hello-pangea/dnd/dist/dnd"
+import { DragDropContext, Draggable, Droppable, DroppableProvided, DroppableStateSnapshot } from "@hello-pangea/dnd"
 import Dragger from "components/dnd/dragger"
 import Dropzone from "components/dnd/dropzone"
 import { on } from "events"

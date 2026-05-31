@@ -19,7 +19,7 @@ export default async function DemoLayout({ children }: { children: React.ReactNo
       displayName = session.user?.name ?? session.user?.email ?? "User"
       const jwt = session.accessToken
       const result = extractTenant(true, jwt ? `Bearer ${jwt}` : undefined)
-      tenantId = result.success ? result.tenantId : "DEFAULT"
+      tenantId = result.success ? result.tenantId : undefined
     }
   }
 

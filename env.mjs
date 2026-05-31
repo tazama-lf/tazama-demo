@@ -11,15 +11,14 @@ export const env = createEnv({
     ADMIN_SERVICE_URL: z.string().url().optional(),
     TMS_SERVER_URL: z.string().url().optional(),
     // Authentication - all optional so builds pass without them.
-    // AUTHENTICATED=true requires NEXTAUTH_SECRET + Keycloak vars at runtime.
+    // AUTHENTICATED=true requires NEXTAUTH_SECRET + AUTH_SERVICE_URL at runtime
+    // (enforced by lib/auth.ts at startup).
     AUTHENTICATED: z
       .enum(["true", "false"])
       .optional()
       .transform((value) => value === "true"),
     NEXTAUTH_SECRET: z.string().optional(),
-    KEYCLOAK_ISSUER: z.string().url().optional(),
-    KEYCLOAK_CLIENT_ID: z.string().optional(),
-    KEYCLOAK_CLIENT_SECRET: z.string().optional(),
+    AUTH_SERVICE_URL: z.string().url().optional(),
   },
   client: {},
   runtimeEnv: {
@@ -29,8 +28,6 @@ export const env = createEnv({
     TMS_SERVER_URL: process.env.TMS_SERVER_URL,
     AUTHENTICATED: process.env.AUTHENTICATED,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    KEYCLOAK_ISSUER: process.env.KEYCLOAK_ISSUER,
-    KEYCLOAK_CLIENT_ID: process.env.KEYCLOAK_CLIENT_ID,
-    KEYCLOAK_CLIENT_SECRET: process.env.KEYCLOAK_CLIENT_SECRET,
+    AUTH_SERVICE_URL: process.env.AUTH_SERVICE_URL,
   },
 })

@@ -152,10 +152,10 @@ function ensureGlobalSub(subject, room, io) {
       const decoded = decodeMsg(msg.data)
       if (!decoded) continue
       for (const [, socket] of io.sockets.sockets) {
-        if (!socket.data.tenantId) continue
-        if (filterByTenantId(decoded, socket.data.tenantId)) {
-          socket.emit(room, decoded)
-        }
+        // In passthrough mode (tenantId is null), emit to all sockets.
+        // In authenticated mode, filter by tenant.
+        if (socket.data.tenantId != null && !filterByTenantId(decoded, socket.data.tenantId)) continue
+        socket.emit(room, decoded)
       }
     }
   })().catch((err) => {
@@ -238,7 +238,7 @@ app.prepare().then(() => {
   // ---------------------------------------------------------------------------
   io.use(async (socket, next) => {
     if (!AUTHENTICATED) {
-      socket.data.tenantId = "DEFAULT"
+      socket.data.tenantId = null // passthrough mode - no tenant filtering
       socket.data.jwt = undefined
       return next()
     }
@@ -312,9 +312,11 @@ app.prepare().then(() => {
       for (const sub of ruleSubjects) ensureGlobalSub(sub, "ruleResponse", io)
       for (const sub of typoSubjects) ensureGlobalSub(sub, "typoResponse", io)
 
-      if (ALERT_DESTINATION === "tenant") ensureTenantSub(ALERT_PRODUCER, tenantId, "tadProc", io)
-      if (TP_INTERDICTION_DESTINATION === "tenant") ensureTenantSub(TP_INTERDICTION_PRODUCER, tenantId, "interdiction-service-tp", io)
-      if (EF_INTERDICTION_DESTINATION === "tenant") ensureTenantSub(EF_INTERDICTION_PRODUCER, tenantId, "interdiction-service-ef", io)
+      if (tenantId != null) {
+        if (ALERT_DESTINATION === "tenant") ensureTenantSub(ALERT_PRODUCER, tenantId, "tadProc", io)
+        if (TP_INTERDICTION_DESTINATION === "tenant") ensureTenantSub(TP_INTERDICTION_PRODUCER, tenantId, "interdiction-service-tp", io)
+        if (EF_INTERDICTION_DESTINATION === "tenant") ensureTenantSub(EF_INTERDICTION_PRODUCER, tenantId, "interdiction-service-ef", io)
+      }
     }
 
     socket.on("confirmation", (message) => {
@@ -328,7 +330,7 @@ app.prepare().then(() => {
 
     socket.on("disconnect", () => {
       console.log("Client disconnected", socket.id)
-      if (nc) {
+      if (nc && tenantId != null) {
         if (ALERT_DESTINATION === "tenant") releaseTenantSub(ALERT_PRODUCER, tenantId)
         if (TP_INTERDICTION_DESTINATION === "tenant") releaseTenantSub(TP_INTERDICTION_PRODUCER, tenantId)
         if (EF_INTERDICTION_DESTINATION === "tenant") releaseTenantSub(EF_INTERDICTION_PRODUCER, tenantId)

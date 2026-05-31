@@ -19,14 +19,17 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
     try {
-      const result = await signIn("keycloak", {
+      const result = await signIn("credentials", {
+        username: email,
+        password,
         redirect: false,
-        callbackUrl: "/",
       })
       if (result?.error) {
         setError("Invalid credentials. Please try again.")
       } else if (result?.url) {
         router.push(result.url)
+      } else {
+        router.push("/")
       }
     } catch {
       setError("An unexpected error occurred. Please try again.")
