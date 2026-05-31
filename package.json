@@ -25,7 +25,6 @@
     "e2e:ui": "playwright test --ui",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "preinstall": "npx npm-only-allow@1.2.6 --PM npm",
-    "postinstall": "npx patch-package -y",
     "coupling-graph": "npx madge --extensions js,jsx,ts,tsx,css,md,mdx ./ --exclude '.next|tailwind.config.js|reset.d.ts|prettier.config.js|postcss.config.js|playwright.config.ts|next.config.js|next-env.d.ts|instrumentation.ts|e2e/|README.md|.storybook/|eslint.config.mjs' --image graph.svg"
   },
   "dependencies": {
@@ -99,9 +98,7 @@
     "minimatch": "^9.0.9",
     "mkdirp": "^3.0.1",
     "npm-only-allow": "^1.2.6",
-    "patch-package": "^8.0.0",
     "postcss": "^8.4.31",
-    "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.5.7",
     "react-datepicker": "^7.3.0",
