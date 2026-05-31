@@ -1,5 +1,5 @@
 // @ts-check
-import { dirname } from "path"
+import { dirname, join } from "path"
 import { fileURLToPath } from "url"
 import { FlatCompat } from "@eslint/eslintrc"
 import { defineConfig, globalIgnores } from "eslint/config"
@@ -21,7 +21,7 @@ function getDirectoriesToSort() {
 
 function getDirectories(path) {
   return fs.readdirSync(path).filter(function (file) {
-    return fs.statSync(path + "/" + file).isDirectory()
+    return fs.statSync(join(path, file)).isDirectory()
   })
 }
 
@@ -64,7 +64,7 @@ export default defineConfig([
         },
       ],
       "import/order": [
-        1,
+        "warn",
         {
           groups: ["external", "builtin", "internal", "sibling", "parent", "index"],
           pathGroups: [
