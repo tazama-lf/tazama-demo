@@ -97,6 +97,7 @@
     "lint-staged": "^16.1.2",
     "minimatch": "^9.0.9",
     "mkdirp": "^3.0.1",
+    "conventional-commits-filter": "^5.0.0",
     "npm-only-allow": "^1.2.6",
     "postcss": "^8.4.31",
     "prettier": "^3.6.2",
