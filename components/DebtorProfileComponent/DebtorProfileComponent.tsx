@@ -3,13 +3,8 @@ import { v4 as uuidv4 } from "uuid"
 import { Profile } from "components/Profile/Profile"
 import EntityContext from "store/entities/entity.context"
 import { iconColour } from "utils/helpers"
-import {
-  DragDropContext,
-  Draggable,
-  Droppable,
-  DroppableProvided,
-  DroppableStateSnapshot,
-} from "../../node_modules/@hello-pangea/dnd/dist/dnd"
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+import { DragDropContext, Draggable, Droppable, DroppableProvided, DroppableStateSnapshot } from "@hello-pangea/dnd"
 import Dragger from "components/dnd/dragger"
 import Dropzone from "components/dnd/dropzone"
 import { set } from "zod"

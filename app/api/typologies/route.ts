@@ -1,15 +1,29 @@
+// SPDX-License-Identifier: Apache-2.0
 import { NextResponse } from "next/server"
+import { auth } from "lib/auth"
+import { adminGet, TazamaClientError } from "lib/tazama-client"
+import type { Session } from "next-auth"
+
+const AUTHENTICATED = process.env.AUTHENTICATED === "true"
 
 export async function GET() {
-  const url = `${process.env.ADMIN_SERVICE_URL}/v1/admin/configuration/typology`
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
-    if (!res.ok) {
-      return NextResponse.json({ error: "Failed to fetch typologies" }, { status: res.status })
+  let jwt: string | undefined
+
+  if (AUTHENTICATED) {
+    const session = (await auth()) as (Session & { accessToken?: string }) | null
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    const data = await res.json()
+    jwt = session.accessToken
+  }
+
+  try {
+    const data = await adminGet("/v1/admin/configuration/typology", jwt)
     return NextResponse.json(data)
   } catch (err) {
+    if (err instanceof TazamaClientError) {
+      return NextResponse.json({ error: err.message }, { status: err.status })
+    }
     if (err instanceof DOMException && err.name === "TimeoutError") {
       return NextResponse.json({ error: "Admin service request timed out" }, { status: 504 })
     }
