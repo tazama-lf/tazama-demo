@@ -31,6 +31,7 @@ interface Context {
   adjudicatorLights: TADPROC
   adjudicatorResults: TADPROC
   msgId: string | undefined
+  activeMsgId: string | undefined
   entityEventType: string[]
   entityAllChecked: boolean
   expireConError: string | undefined
@@ -91,6 +92,7 @@ const ProcessorContext = createContext<Context>({
   adjudicatorLights: defaultAdjudicatorLights,
   adjudicatorResults: defaultAdjudicatorLights,
   msgId: "",
+  activeMsgId: undefined,
   entityEventType: defaultEntityEventType,
   entityAllChecked: false,
   conditionsList: [],

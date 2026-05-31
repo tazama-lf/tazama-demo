@@ -191,6 +191,7 @@ const Web = () => {
           console.log("received", msg)
         })
         socket.on("eventAdjudicator", async (msg) => {
+          if (processCtx.activeMsgId && msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId !== processCtx.activeMsgId) return
           await processCtx.handleAdjudicatorLive(msg)
         })
       } catch (error) {

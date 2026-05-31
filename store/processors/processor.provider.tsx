@@ -300,10 +300,8 @@ const ProcessorProvider = ({ children }: Props) => {
   }
 
   const handleAdjudicatorLive = async (msg: any) => {
-    const currentMsgId = entityCtx.currentMsgId
     console.log("LIVE: ", msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId)
-    if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
-      try {
+    try {
         let results: TADPROC | undefined = undefined
         let linkedTypologies: LinkedTypo[] | undefined = undefined
         clearLinkedTypologies()
@@ -326,7 +324,6 @@ const ProcessorProvider = ({ children }: Props) => {
       } catch (err) {
         console.log("ADJUDICATOR ERROR", err)
       }
-    }
   }
 
   const getUIConfig = async () => {
@@ -1058,6 +1055,7 @@ const ProcessorProvider = ({ children }: Props) => {
         adjudicatorLights: state.tadpLights,
         adjudicatorResults: state.tadProcResults,
         msgId: msgId,
+        activeMsgId: entityCtx.currentMsgId,
         entityEventType: state.entityEventType,
         entityAllChecked: state.entityAllChecked,
         conditionsList: state.conditionsList,
