@@ -29,7 +29,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }),
         })
         if (!response.ok) return null
-        const accessToken = await response.text()
+        // The auth-service returns a raw JWT string (Content-Type: text/plain).
+        // Defensively handle JSON in case the API contract changes.
+        const contentType = response.headers.get("content-type") ?? ""
+        let accessToken: string
+        if (contentType.includes("application/json")) {
+          const json = (await response.json()) as Record<string, unknown>
+          accessToken = (json.token ?? json.accessToken ?? json.authentication_token ?? "") as string
+        } else {
+          accessToken = await response.text()
+        }
         if (!accessToken) return null
         return { id: credentials.username as string, accessToken }
       },
