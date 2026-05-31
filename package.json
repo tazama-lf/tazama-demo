@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "cross-env FORCE_COLOR=1 nodemon server.js",
-    "build": "next build",
+    "build": "cross-env SKIP_ENV_VALIDATION=1 next build",
     "start": "node server.js",
     "clean": "npx rimraf .next node_modules coverage package-lock.json",
     "lint": "next lint",
