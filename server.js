@@ -8,7 +8,6 @@ const NATS = require("nats")
 const next = require("next")
 require("dotenv").config()
 
-const { getToken } = require("next-auth/jwt")
 const { Server } = require("socket.io")
 const { createServer } = require("http")
 const { parse } = require("url")
@@ -347,6 +346,7 @@ app.prepare().then(() => {
 
     try {
       // getToken reads the encrypted NextAuth session cookie from the request
+      const { getToken } = await import("next-auth/jwt")
       const req = socket.request
       const token = await getToken({ req, secret: NEXTAUTH_SECRET })
       if (!token) {
