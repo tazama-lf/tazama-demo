@@ -33,7 +33,7 @@ What you need:
     - [Local Setup](#local-setup)
     - [Network Setup](#network-setup)
     - [Setup UI](#setup-ui)
-    - [Settings Screen](#settings-screen)
+    - [End-to-End Tests](#end-to-end-tests)
   - [Tag and Release](#tag-and-release)
     - [Versioning](#versioning)
     - [Tag, Build and Push to Docker Hub](#tag-build-and-push-to-docker-hub)
@@ -80,42 +80,27 @@ add your GH_TOKEN to the .npmrc file ${GH_TOKEN}
 3. Install the dependencies:
 
 ```bash
-yarn install --frozen-lockfile
+npm install
 ```
 
 4. Create a new .env file and copy the contents of the `env_sample` file to the newly created .env
 
 ```text
 NODE_ENV=development
-NEXT_PUBLIC_URL="http://{server_ip_address}:3001"
-PORT="3001"
-NEXT_PUBLIC_TMS_SERVER_URL="http://{server_ip_address}:5000"
-NEXT_PUBLIC_TMS_KEY=""
-NEXT_PUBLIC_CMS_NATS_HOSTING="nats://nats:4222"
-NEXT_PUBLIC_NATS_USERNAME=""
-NEXT_PUBLIC_NATS_PASSWORD=""
-
-NEXT_PUBLIC_PG_HOST=localhost
-NEXT_PUBLIC_PG_PORT=5432
-NEXT_PUBLIC_PG_USER=postgres
-NEXT_PUBLIC_PG_PASSWORD=password
-NEXT_PUBLIC_PG_DATABASE=configuration
-
-NEXT_PUBLIC_WS_URL="http://{your_machines_ip_address}:3001"
-
-NEXT_PUBLIC_NATS_SUBSCRIPTIONS="['connection', '>', 'typology-999@1.0.0']"
-
-NEXT_PUBLIC_ADMIN_SERVICE_HOSTING="http://{server_ip_address}:5100"
-NEXT_PUBLIC_CONDITION_TYPES="['non-overridable-block', 'overridable-block', 'override']"
-NEXT_PUBLIC_EVENT_TYPES="['pacs.008.001.10', 'pacs.002.001.12', 'pain.001.001.11', 'pain.013.001.09']"
-NEXT_PUBLIC_CONDITION_REASONS="['Suspicion of Money Laundering', 'Violation of KYC/AML Requirements', 'Suspicion of Terrorist Financing', 'Tax Evasion Concerns', 'Regulatory Reporting Thresholds', 'Unusual Transaction Patterns', 'High-Risk Countries', 'Multiple Failed Login Attempts', 'Fraudulent Activity', 'Phishing or Account Takeover', 'Suspicious Beneficiaries', 'System Errors', 'Exceeding Limits', 'Legal Holds or Court Orders', 'Adverse media reports', 'Dormant or Inactive Accounts', 'Internal Bank Policies']"
-
+PORT=3001
+NATS_SERVER_URL=nats://user:password@{server_ip_address}:4222
+ADMIN_SERVICE_URL=http://{server_ip_address}:5100
+TMS_SERVER_URL=http://{server_ip_address}:5000
+NEXT_PUBLIC_URL=http://{server_ip_address}:3001
+NEXT_PUBLIC_WS_URL=http://{server_ip_address}:3001
+AUTHENTICATED=false
+TEST_MODE=false
 ```
 
 5. Run the development server:
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 6. Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
@@ -134,26 +119,37 @@ yarn dev
 
 >  <img width="60%" height="full" src="./public/first_load.png" alt="main"><br/>
 
-2. Click the gear icon on the top right for Settings
+<a><div align="right">[Top](#table-of-contents)</div></a>
 
-> <img width="60%" height="full" src="./public/settings.png" alt="settings"><br/>
+### End-to-End Tests
 
-### Settings Screen
+The e2e tests use [Playwright](https://playwright.dev/) and run entirely without a live Tazama stack. The server starts automatically in `TEST_MODE`, intercepting transaction submissions and emitting deterministic fixtures over Socket.IO.
 
-- TMS API Host URL: `http://localhost:5000`
+1. Install Playwright browsers (one-time, after `npm install`):
 
-  > **Check what port number is being used by the TMS server on the docker instance **(Default Port: 5000)***
+```bash
+npx playwright install chromium
+```
 
-- CMS NATS Hosting: `http://localhost:14222` if run outside of docker-compose else `nats://nats:4222`
-  
-  > **Check what port number is being used by the NATS server on the docker instance **(Default Port: 4222)***
+2. Run headless (CI-style):
 
-- PostgreSQL Hosting: `localhost:5432`
-  > **Check what port number is being used by the PostgreSQL server on your instance (Default Port: 5432)***
+```bash
+npm run e2e:headless
+```
 
+To view the HTML report after a headless run:
 
-- Websocket IP Address: `http://localhost:3001`
-  > **If run locally use `http://localhost:3001` else if run on a network or hosted use `http://{your_ip_address}:3001` **(Default Port: 3001)***
+```bash
+npx playwright show-report
+```
+
+3. Run in UI mode (interactive, with step-by-step timeline and live browser):
+
+```bash
+npm run e2e:ui
+```
+
+No `.env` file is needed to run the tests - all required environment variables are injected by `playwright.config.ts`.
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
 
@@ -303,7 +299,6 @@ flowchart TD
   ```text
   Custom Server - Contains WebSocket and NATS Connections
   Package Management - Package.json
-  Application Settings and configurations
   ```
 
 - App Folder:
@@ -311,7 +306,6 @@ flowchart TD
   ```text
   Application Layout
   Main Page
-  Settings Page
   Handles navigation
   ```
 
