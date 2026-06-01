@@ -423,3 +423,214 @@ describe("ProcessorProvider - createCondition BFF routing", () => {
     )
   })
 })
+
+// ─── Fixtures for bulk-fetch tests ───────────────────────────────────────────
+
+const DEBTOR_ENTITY_FULL = {
+  Entity: {
+    Dbtr: {
+      Id: {
+        PrvtId: {
+          Othr: [{ Id: "eid-001", SchmeNm: { Prtry: "TAZAMA_EID" } }],
+        },
+      },
+    },
+  },
+  Accounts: [
+    {
+      DbtrAcct: {
+        Id: {
+          Othr: [{ Id: "acct-001", SchmeNm: { Prtry: "MSISDN" } }],
+        },
+      },
+    },
+  ],
+}
+
+const CREDITOR_ENTITY_FULL = {
+  CreditorEntity: {
+    Cdtr: {
+      Id: {
+        PrvtId: {
+          Othr: [{ Id: "eid-002", SchmeNm: { Prtry: "TAZAMA_EID" } }],
+        },
+      },
+    },
+  },
+  CreditorAccounts: [
+    {
+      CdtrAcct: {
+        Id: {
+          Othr: [{ Id: "acct-002", SchmeNm: { Prtry: "MSISDN" } }],
+        },
+      },
+    },
+  ],
+}
+
+const PACS008_WITH_AGENTS = {
+  FIToFICstmrCdtTrf: {
+    CdtTrfTxInf: {
+      DbtrAgt: {
+        FinInstnId: { ClrSysMmbId: { MmbId: "BANK001" } },
+      },
+      CdtrAgt: {
+        FinInstnId: { ClrSysMmbId: { MmbId: "BANK002" } },
+      },
+    },
+  },
+}
+
+function setupWithEntityContext(entities: any[], creditorEntities: any[], pacs008: any) {
+  let ctx: ReturnType<typeof useContext<typeof ProcessorContext>> | null = null
+
+  function Consumer() {
+    ctx = useContext(ProcessorContext)
+    return null
+  }
+
+  render(
+    <EntityContext.Provider value={{ entities, creditorEntities, pacs008, currentMsgId: undefined } as any}>
+      <ProcessorProvider>
+        <Consumer />
+      </ProcessorProvider>
+    </EntityContext.Provider>
+  )
+
+  return { getCtx: () => ctx as any }
+}
+
+// ─── getAllDebtorConditions ───────────────────────────────────────────────────
+
+describe("ProcessorProvider - getAllDebtorConditions BFF routing", () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockGet.mockImplementation((url: string) => {
+      if (url.includes("/api/conditions/entity")) return Promise.resolve({ data: ENTITY_CONDITIONS_FIXTURE })
+      if (url.includes("/api/conditions/account")) return Promise.resolve({ data: ACCOUNT_CONDITIONS_FIXTURE })
+      return defaultGetHandler(url)
+    })
+  })
+
+  it("calls /api/conditions/entity (BFF) for each debtor entity", async () => {
+    const { getCtx } = setupWithEntityContext([DEBTOR_ENTITY_FULL], [], PACS008_WITH_AGENTS)
+
+    await waitFor(() => {
+      expect(getCtx().conditionTypes).toHaveLength(3)
+    })
+
+    await act(async () => {
+      await getCtx().getAllDebtorConditions()
+    })
+
+    const entityCall = (mockGet.mock.calls as string[][]).find(([url]) => url.includes("/api/conditions/entity"))
+    expect(entityCall).toBeDefined()
+    expect(entityCall![0]).toBe("/api/conditions/entity?id=eid-001&schmenm=TAZAMA_EID")
+    // Must not call admin service directly
+    expect(entityCall![0]).not.toMatch(/^https?:\/\//)
+  })
+
+  it("calls /api/conditions/account (BFF) for each debtor account", async () => {
+    const { getCtx } = setupWithEntityContext([DEBTOR_ENTITY_FULL], [], PACS008_WITH_AGENTS)
+
+    await waitFor(() => {
+      expect(getCtx().conditionTypes).toHaveLength(3)
+    })
+
+    await act(async () => {
+      await getCtx().getAllDebtorConditions()
+    })
+
+    const accountCall = (mockGet.mock.calls as string[][]).find(([url]) => url.includes("/api/conditions/account"))
+    expect(accountCall).toBeDefined()
+    expect(accountCall![0]).toBe("/api/conditions/account?id=acct-001&schmenm=MSISDN&agt=BANK001")
+    expect(accountCall![0]).not.toMatch(/^https?:\/\//)
+  })
+
+  it("does not call conditions endpoints when entities list is empty", async () => {
+    const { getCtx } = setup()
+
+    await waitFor(() => {
+      expect(getCtx().conditionTypes).toHaveLength(3)
+    })
+
+    jest.clearAllMocks()
+    mockGet.mockImplementation(defaultGetHandler)
+
+    await act(async () => {
+      await getCtx().getAllDebtorConditions()
+    })
+
+    const conditionsCalls = (mockGet.mock.calls as string[][]).filter(
+      ([url]) => url.includes("/api/conditions/entity") || url.includes("/api/conditions/account")
+    )
+    expect(conditionsCalls).toHaveLength(0)
+  })
+})
+
+// ─── getAllCreditorConditions ─────────────────────────────────────────────────
+
+describe("ProcessorProvider - getAllCreditorConditions BFF routing", () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockGet.mockImplementation((url: string) => {
+      if (url.includes("/api/conditions/entity")) return Promise.resolve({ data: ENTITY_CONDITIONS_FIXTURE })
+      if (url.includes("/api/conditions/account")) return Promise.resolve({ data: ACCOUNT_CONDITIONS_FIXTURE })
+      return defaultGetHandler(url)
+    })
+  })
+
+  it("calls /api/conditions/entity (BFF) for each creditor entity", async () => {
+    const { getCtx } = setupWithEntityContext([], [CREDITOR_ENTITY_FULL], PACS008_WITH_AGENTS)
+
+    await waitFor(() => {
+      expect(getCtx().conditionTypes).toHaveLength(3)
+    })
+
+    await act(async () => {
+      await getCtx().getAllCreditorConditions()
+    })
+
+    const entityCall = (mockGet.mock.calls as string[][]).find(([url]) => url.includes("/api/conditions/entity"))
+    expect(entityCall).toBeDefined()
+    expect(entityCall![0]).toBe("/api/conditions/entity?id=eid-002&schmenm=TAZAMA_EID")
+    expect(entityCall![0]).not.toMatch(/^https?:\/\//)
+  })
+
+  it("calls /api/conditions/account (BFF) for each creditor account", async () => {
+    const { getCtx } = setupWithEntityContext([], [CREDITOR_ENTITY_FULL], PACS008_WITH_AGENTS)
+
+    await waitFor(() => {
+      expect(getCtx().conditionTypes).toHaveLength(3)
+    })
+
+    await act(async () => {
+      await getCtx().getAllCreditorConditions()
+    })
+
+    const accountCall = (mockGet.mock.calls as string[][]).find(([url]) => url.includes("/api/conditions/account"))
+    expect(accountCall).toBeDefined()
+    expect(accountCall![0]).toBe("/api/conditions/account?id=acct-002&schmenm=MSISDN&agt=BANK002")
+    expect(accountCall![0]).not.toMatch(/^https?:\/\//)
+  })
+
+  it("does not call conditions endpoints when creditorEntities list is empty", async () => {
+    const { getCtx } = setup()
+
+    await waitFor(() => {
+      expect(getCtx().conditionTypes).toHaveLength(3)
+    })
+
+    jest.clearAllMocks()
+    mockGet.mockImplementation(defaultGetHandler)
+
+    await act(async () => {
+      await getCtx().getAllCreditorConditions()
+    })
+
+    const conditionsCalls = (mockGet.mock.calls as string[][]).filter(
+      ([url]) => url.includes("/api/conditions/entity") || url.includes("/api/conditions/account")
+    )
+    expect(conditionsCalls).toHaveLength(0)
+  })
+})
