@@ -33,6 +33,14 @@ const DEFAULT_CONDITION_REASONS = [
  */
 function parseEnvList(envVar: string | undefined, defaults: string[]): string[] {
   if (!envVar) return defaults
+  // Try standard JSON first (handles values containing apostrophes correctly)
+  try {
+    const parsed = JSON.parse(envVar.trim()) as unknown[]
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[]
+  } catch {
+    // fall through to legacy single-quote format
+  }
+  // Legacy format: ['a','b'] - normalise single quotes to double quotes
   try {
     const normalised = envVar.trim().replace(/'/g, '"')
     const parsed = JSON.parse(normalised) as unknown[]

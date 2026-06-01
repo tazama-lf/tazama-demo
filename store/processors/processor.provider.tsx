@@ -652,7 +652,7 @@ const ProcessorProvider = ({ children }: Props) => {
     try {
       if (type === "account") {
         if (accountId !== undefined) {
-          const acctURL = `/api/conditions/account?id=${accountId}&schmenm=${schmeNm}&agt=${agt}`
+          const acctURL = `/api/conditions/account?${new URLSearchParams({ id: accountId, schmenm: String(schmeNm), agt: String(agt) })}`
           const res: AxiosResponse = await axios.get(acctURL)
           const response: ListCondition[] = await handleEntityAccountConditions(res.data)
 
@@ -663,7 +663,7 @@ const ProcessorProvider = ({ children }: Props) => {
         }
       } else if (type === "entity") {
         if (entityId !== undefined) {
-          const nttyURL = `/api/conditions/entity?id=${entityId}&schmenm=${schmeNm}`
+          const nttyURL = `/api/conditions/entity?${new URLSearchParams({ id: entityId, schmenm: String(schmeNm) })}`
           const res: AxiosResponse = await axios.get(nttyURL)
           const response: ListCondition[] = await handleEntityConditions(res.data)
 
@@ -687,14 +687,14 @@ const ProcessorProvider = ({ children }: Props) => {
         const res: AxiosResponse = await axios.post(acctURL, condition)
 
         if (res.status === 200 || res.status === 201) {
-          const response: ListCondition[] = await handleEntityConditions(res.data.result)
+          const response: ListCondition[] = await handleEntityAccountConditions(res.data.result)
           dispatch({ type: ACTIONS.CREATE_CONDITIONS_SUCCESS, payload: response })
         }
       } else if ("ntty" in condition) {
         const res: AxiosResponse = await axios.post(nttyURL, condition)
 
         if (res.status === 200 || res.status === 201) {
-          const response: ListCondition[] = await handleEntityAccountConditions(res.data.result)
+          const response: ListCondition[] = await handleEntityConditions(res.data.result)
           dispatch({ type: ACTIONS.CREATE_CONDITIONS_SUCCESS, payload: response })
         }
       }
@@ -708,11 +708,11 @@ const ProcessorProvider = ({ children }: Props) => {
     try {
       dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_LOADING })
       if (type === "account") {
-        const acctURL = `/api/conditions/account?id=${accountId}&schmenm=${schmeNm}&agt=${agt}&condid=${condId}`
+        const acctURL = `/api/conditions/account?${new URLSearchParams({ id: String(accountId), schmenm: String(schmeNm), agt: String(agt), condid: String(condId) })}`
         const res: AxiosResponse = await axios.put(acctURL, { xprtnDtTm: xprtnDtTm ? xprtnDtTm : null })
         dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_SUCCESS, payload: [] })
       } else if (type === "entity") {
-        const nttyURL = `/api/conditions/entity?id=${entityId}&schmenm=${schmeNm}&condid=${condId}`
+        const nttyURL = `/api/conditions/entity?${new URLSearchParams({ id: String(entityId), schmenm: schmeNm, condid: String(condId) })}`
         const res: AxiosResponse = await axios.put(nttyURL, { xprtnDtTm: xprtnDtTm ? xprtnDtTm : null })
         dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_SUCCESS, payload: [] })
       }
@@ -764,14 +764,14 @@ const ProcessorProvider = ({ children }: Props) => {
 
     if (entities.length > 0) {
       entities.map(async (ntty) => {
-        const nttyURL = `/api/conditions/entity?id=${ntty.entityId}&schmenm=${ntty.schmeNm}`
+        const nttyURL = `/api/conditions/entity?${new URLSearchParams({ id: ntty.entityId, schmenm: ntty.schmeNm })}`
         entityUrls.push(nttyURL)
       })
     }
 
     if (accounts.length > 0) {
       accounts.map(async (acct) => {
-        const acctURL = `/api/conditions/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}`
+        const acctURL = `/api/conditions/account?${new URLSearchParams({ id: acct.accountId, schmenm: acct.schmeNm, agt: acct.agt })}`
         accountUrls.push(acctURL)
       })
     }
@@ -862,14 +862,14 @@ const ProcessorProvider = ({ children }: Props) => {
 
     if (entities.length > 0) {
       entities.map(async (ntty) => {
-        const nttyURL = `/api/conditions/entity?id=${ntty.entityId}&schmenm=${ntty.schmeNm}`
+        const nttyURL = `/api/conditions/entity?${new URLSearchParams({ id: ntty.entityId, schmenm: ntty.schmeNm })}`
         entityUrls.push(nttyURL)
       })
     }
 
     if (accounts.length > 0) {
       accounts.map(async (acct) => {
-        const acctURL = `/api/conditions/account?id=${acct.accountId}&schmenm=${acct.schmeNm}&agt=${acct.agt}`
+        const acctURL = `/api/conditions/account?${new URLSearchParams({ id: acct.accountId, schmenm: acct.schmeNm, agt: acct.agt })}`
         accountUrls.push(acctURL)
       })
     }

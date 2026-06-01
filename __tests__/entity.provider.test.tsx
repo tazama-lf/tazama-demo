@@ -71,7 +71,7 @@ const DEBTOR_FIXTURE = {
 }
 
 const CREDITOR_FIXTURE = {
-  CdtrEntity: {
+  CreditorEntity: {
     Cdtr: {
       Nm: "Bob Jones",
       Id: {
@@ -87,7 +87,7 @@ const CREDITOR_FIXTURE = {
       CtctDtls: { MobNb: "555-0002" },
     },
   },
-  CdtrAccounts: [
+  CreditorAccounts: [
     {
       CdtrAcct: {
         Id: { Othr: [{ Id: "acct-002", SchmeNm: { Prtry: "MSISDN" } }] },

@@ -50,12 +50,14 @@ describe("TazamaClientError", () => {
 
 describe("adminGet", () => {
   const ORIGINAL_ADMIN_URL = process.env.ADMIN_SERVICE_URL
+  const originalFetch = global.fetch
 
   beforeEach(() => {
     process.env.ADMIN_SERVICE_URL = "https://admin.example.com"
   })
 
   afterEach(() => {
+    global.fetch = originalFetch
     if (ORIGINAL_ADMIN_URL === undefined) {
       delete process.env.ADMIN_SERVICE_URL
     } else {
@@ -145,12 +147,14 @@ describe("adminGet", () => {
 
 describe("adminPost", () => {
   const ORIGINAL_ADMIN_URL = process.env.ADMIN_SERVICE_URL
+  const originalFetch = global.fetch
 
   beforeEach(() => {
     process.env.ADMIN_SERVICE_URL = "https://admin.example.com"
   })
 
   afterEach(() => {
+    global.fetch = originalFetch
     if (ORIGINAL_ADMIN_URL === undefined) {
       delete process.env.ADMIN_SERVICE_URL
     } else {
@@ -215,12 +219,14 @@ describe("adminPost", () => {
 
 describe("adminPut", () => {
   const ORIGINAL_ADMIN_URL = process.env.ADMIN_SERVICE_URL
+  const originalFetch = global.fetch
 
   beforeEach(() => {
     process.env.ADMIN_SERVICE_URL = "https://admin.example.com"
   })
 
   afterEach(() => {
+    global.fetch = originalFetch
     if (ORIGINAL_ADMIN_URL === undefined) {
       delete process.env.ADMIN_SERVICE_URL
     } else {
@@ -285,12 +291,14 @@ describe("adminPut", () => {
 
 describe("tmsPost", () => {
   const ORIGINAL_TMS_URL = process.env.TMS_SERVER_URL
+  const originalFetch = global.fetch
 
   beforeEach(() => {
     process.env.TMS_SERVER_URL = "https://tms.example.com"
   })
 
   afterEach(() => {
+    global.fetch = originalFetch
     if (ORIGINAL_TMS_URL === undefined) {
       delete process.env.TMS_SERVER_URL
     } else {
