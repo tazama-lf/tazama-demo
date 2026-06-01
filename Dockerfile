@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+# SPDX-License-Identifier: Apache-2.0
 FROM node:22-bookworm-slim AS base
 WORKDIR /app
 COPY package*.json ./
@@ -6,20 +8,11 @@ EXPOSE 3001
 FROM base AS builder
 WORKDIR /app
 
-# Accept GitHub token as build argument
-ARG GH_TOKEN
-
-# Create .npmrc with authentication for GitHub Packages
-RUN echo "//npm.pkg.github.com/:_authToken=${GH_TOKEN}" > ~/.npmrc && \
-    echo "@tazama-lf:registry=https://npm.pkg.github.com" >> ~/.npmrc
-
+COPY .npmrc ./
 COPY . .
 
 # Install dependencies with authentication
-RUN npm ci
-
-# Clean up the auth token for security
-RUN rm -f ~/.npmrc
+RUN --mount=type=secret,id=GH_TOKEN,env=GH_TOKEN npm ci
 
 # Build the Next.js application
 RUN npm run build
