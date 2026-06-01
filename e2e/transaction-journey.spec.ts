@@ -7,11 +7,54 @@ test.describe("Transaction journey", () => {
     await seedLocalStorage(page)
 
     // Mock the network-map endpoint - no external admin service available in test
+    // Rules and typologies must match the ids emitted by emitTestFixtures() in server.js:
+    //   Rule-001@1.0.0 and Rule-002@1.0.0 (looked up by title = id.split("@")[0])
+    //   typology-001@1.0.0 (looked up by title = cfg.split("@")[0])
     await page.route("/api/network-map", async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ rules: [], typologies: [], data: [] }),
+        body: JSON.stringify({
+          rules: [
+            {
+              id: 1,
+              title: "Rule-001",
+              rule: "Rule-001",
+              ruleDescription: "",
+              color: "n",
+              result: null,
+              wght: 0,
+              linkedTypologies: [],
+              displayLinkedTypo: [],
+              ruleBands: [],
+            },
+            {
+              id: 2,
+              title: "Rule-002",
+              rule: "Rule-002",
+              ruleDescription: "",
+              color: "n",
+              result: null,
+              wght: 0,
+              linkedTypologies: [],
+              displayLinkedTypo: [],
+              ruleBands: [],
+            },
+          ],
+          typologies: [
+            {
+              id: 1,
+              title: "typology-001",
+              cfg: "typology-001@1.0.0",
+              color: "n",
+              result: null,
+              typoDescription: "",
+              workflow: { alertThreshold: 400, interdictionThreshold: 600 },
+              linkedRules: [],
+            },
+          ],
+          data: [],
+        }),
       })
     })
 
@@ -71,5 +114,20 @@ test.describe("Transaction journey", () => {
 
     // The Event Adjudicator heading should still be present after processing
     await expect(page.getByRole("heading", { name: /event adjudicator/i })).toBeVisible()
+
+    // The ALRT badge should appear (adjudicatorLights.status = "ALRT", color = "y")
+    await expect(page.getByText("ALRT")).toBeVisible({ timeout: 8000 })
+
+    // Rules: wght=1.0 > 0 for both rules → color="r" (red) via updateTadpLights()
+    // following::img[n] counts only imgs AFTER the "Rules" heading in DOM order
+    const rulesHeading = page.getByRole("heading", { name: /^rules$/i })
+    await expect(rulesHeading.locator("xpath=following::img[1]")).toHaveAttribute("src", /red-light/, { timeout: 8000 })
+    await expect(rulesHeading.locator("xpath=following::img[2]")).toHaveAttribute("src", /red-light/, { timeout: 8000 })
+
+    // Typologies: result=500 >= alertThreshold=400 and < interdictionThreshold=600 → color="y" (yellow)
+    const typologiesHeading = page.getByRole("heading", { name: /^typologies$/i })
+    await expect(typologiesHeading.locator("xpath=following::img[1]")).toHaveAttribute("src", /yellow-light/, {
+      timeout: 8000,
+    })
   })
 })
