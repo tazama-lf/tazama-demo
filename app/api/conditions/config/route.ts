@@ -35,8 +35,8 @@ function parseEnvList(envVar: string | undefined, defaults: string[]): string[] 
   if (!envVar) return defaults
   try {
     const normalised = envVar.trim().replace(/'/g, '"')
-    const parsed = JSON.parse(normalised)
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : defaults
+    const parsed = JSON.parse(normalised) as unknown[]
+    return Array.isArray(parsed) && parsed.length > 0 ? (parsed as string[]) : defaults
   } catch {
     return defaults
   }
