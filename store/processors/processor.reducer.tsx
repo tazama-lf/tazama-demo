@@ -1,8 +1,5 @@
 import { ACTIONS } from "./processor.actions"
-import {
-  defaultEDLights,
-  defaultAdjudicatorLights
-} from "./processor.initialState"
+import { defaultAdjudicatorLights, defaultEDLights } from "./processor.initialState"
 
 const ProcessorReducer = (state: any, action: any) => {
   switch (action.type) {
@@ -448,6 +445,8 @@ const ProcessorReducer = (state: any, action: any) => {
         conditionReasons: action.payload,
       }
     }
+    default:
+      return state
   }
 }
 
