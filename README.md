@@ -83,19 +83,13 @@ add your GH_TOKEN to the .npmrc file ${GH_TOKEN}
 npm install
 ```
 
-4. Create a new .env file and copy the contents of the `env_sample` file to the newly created .env
+4. Create a `.env` file from the template:
 
-```text
-NODE_ENV=development
-PORT=3001
-NATS_SERVER_URL=nats://user:password@{server_ip_address}:4222
-ADMIN_SERVICE_URL=http://{server_ip_address}:5100
-TMS_SERVER_URL=http://{server_ip_address}:5000
-NEXT_PUBLIC_URL=http://{server_ip_address}:3001
-NEXT_PUBLIC_WS_URL=http://{server_ip_address}:3001
-AUTHENTICATED=false
-TEST_MODE=false
+```bash
+cp .env.template .env
 ```
+
+Edit `.env` and replace the placeholder hostnames/URLs with your Tazama stack addresses.
 
 5. Run the development server:
 
