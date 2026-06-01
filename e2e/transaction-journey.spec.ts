@@ -50,20 +50,24 @@ test.describe("Transaction journey", () => {
     await page.goto("/")
     await page.waitForSelector("text=Debtors", { timeout: 15000 })
 
-    // Before submission: the large StatusIndicator in the Event Adjudicator panel should be neutral
-    await expect(page.locator('img[src*="neutral-light"]').last()).toBeVisible()
+    // Before submission: the Event Adjudicator status indicator should be neutral
+    const adjudicatorStatusImg = page
+      .getByRole("heading", { name: /event adjudicator/i })
+      .locator("xpath=following-sibling::div//img")
+    await expect(adjudicatorStatusImg).toHaveAttribute("src", /neutral-light/)
 
     // Click Send to submit the transaction
     const sendBtn = page.getByRole("button", { name: /^send$/i })
     await expect(sendBtn).toBeVisible()
     await sendBtn.click()
 
-    // TEST_MODE server intercepts POST /api/transaction and emits eventAdjudicator fixture after 500ms.
-    // The fixture has status "ALRT" with result 500 >= alertThreshold 400, so adjudicatorLights.stop
-    // becomes true and the large StatusIndicator changes from neutral to a coloured state.
+    // TEST_MODE server intercepts POST /api/transaction and emits an eventAdjudicator fixture
+    // after 500ms. The fixture has status "ALRT" with result 500 >= alertThreshold 400 but
+    // result 500 < interdictionThreshold 600, so stop=false and color="y" (yellow/alert).
+    // The Event Adjudicator StatusIndicator changes from neutral to yellow.
     //
     // Wait up to 8 seconds for the socket event to arrive and the UI to update.
-    await expect(page.locator('img[src*="neutral-light"]').last()).not.toBeVisible({ timeout: 8000 })
+    await expect(adjudicatorStatusImg).not.toHaveAttribute("src", /neutral-light/, { timeout: 8000 })
 
     // The Event Adjudicator heading should still be present after processing
     await expect(page.getByRole("heading", { name: /event adjudicator/i })).toBeVisible()

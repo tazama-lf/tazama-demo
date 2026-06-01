@@ -41,6 +41,7 @@ export default defineConfig({
       TEST_MODE: "true",
       PORT: "3000",
       NODE_ENV: "development",
+      NEXTAUTH_SECRET: "playwright-test-secret",
     },
   },
 
