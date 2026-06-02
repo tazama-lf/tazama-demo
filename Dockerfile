@@ -44,5 +44,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/server.js ./server.js
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
 COPY --from=builder /app/env.mjs ./env.mjs
+# server.js is plain CommonJS and is not bundled by Next; any module it
+# requires at runtime (currently the resilient network-map fetch and the
+# retry helper in lib/) must be copied into the runtime image explicitly.
+# Without this, the container crashes on startup with
+# "Cannot find module './lib/network-map'".
+COPY --from=builder /app/lib ./lib
 
 CMD ["node", "server.js"]
