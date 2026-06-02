@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import NextAuth from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import type { JWT } from "next-auth/jwt"
 import type { Session } from "next-auth"
+import type { JWT } from "next-auth/jwt"
+import CredentialsProvider from "next-auth/providers/credentials"
 
 if (process.env.AUTHENTICATED === "true") {
   if (!process.env.NEXTAUTH_SECRET) throw new Error("NEXTAUTH_SECRET is required when AUTHENTICATED=true")
@@ -10,6 +10,12 @@ if (process.env.AUTHENTICATED === "true") {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Tazama is always self-hosted (Docker Compose, Helm). NextAuth v5's
+  // host-trust check otherwise fails with UntrustedHost on every request
+  // because no Vercel auto-detect path applies. Setting this here, rather
+  // than relying on an AUTH_TRUST_HOST env var per deployment, makes the
+  // demo work correctly out of the box in any self-hosted environment.
+  trustHost: true,
   providers: [
     CredentialsProvider({
       credentials: {
