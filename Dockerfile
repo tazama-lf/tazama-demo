@@ -25,14 +25,15 @@ ENV PORT="3001"
 ENV NEXT_PUBLIC_URL="http://localhost:3001"
 ENV NEXT_PUBLIC_WS_URL="http://localhost:3001"
 
-# Server-side configuration (never exposed to browser)
-ENV NATS_SERVER_URL=""
-ENV ADMIN_SERVICE_URL=""
-ENV TMS_SERVER_URL=""
+# Server-side configuration (never exposed to browser).
+# Required vars (NATS_SERVER_URL, ADMIN_SERVICE_URL, TMS_SERVER_URL) must be
+# provided by the caller - no defaults are baked in so a missing value fails
+# fast at env.mjs validation rather than later at request time.
+# Optional vars (AUTH_SERVICE_URL, NEXTAUTH_SECRET) are intentionally left
+# unset so the caller can omit them; AUTHENTICATED defaults to "false" so the
+# image is usable out-of-the-box without an auth backend.
+# NEXTAUTH_SECRET is required when AUTHENTICATED=true - generate with: openssl rand -base64 32
 ENV AUTHENTICATED="false"
-ENV AUTH_SERVICE_URL=""
-# NEXTAUTH_SECRET is required in authenticated deployments - generate with: openssl rand -base64 32
-ENV NEXTAUTH_SECRET=""
 
 # Copy built artifacts from builder stage
 COPY --from=builder --chown=node:node /app/.next ./.next

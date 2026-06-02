@@ -28,7 +28,10 @@ export const env = createEnv({
     ADMIN_SERVICE_URL: process.env.ADMIN_SERVICE_URL,
     TMS_SERVER_URL: process.env.TMS_SERVER_URL,
     AUTHENTICATED: process.env.AUTHENTICATED,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    AUTH_SERVICE_URL: process.env.AUTH_SERVICE_URL,
+    // Coerce empty strings to undefined so .optional() (which only accepts
+    // undefined, not "") works correctly when callers pass blank values via
+    // env_file or when Docker image defaults leave the var as "".
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || undefined,
+    AUTH_SERVICE_URL: process.env.AUTH_SERVICE_URL || undefined,
   },
 })
