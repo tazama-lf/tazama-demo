@@ -12,6 +12,8 @@ const { Server } = require("socket.io")
 const { createServer } = require("http")
 const { parse } = require("url")
 const { extractTenant } = require("@tazama-lf/auth-lib")
+const { fetchNetworkMapWithRetry } = require("./lib/network-map")
+const { RetryAbortedError } = require("./lib/retry")
 
 // ---------------------------------------------------------------------------
 // Config
@@ -64,28 +66,78 @@ const tenantSubs = new Map()
 
 // ---------------------------------------------------------------------------
 // Network map fetching
+//
+// Wraps `lib/network-map.js` (retry-with-backoff) so that cold-start races
+// against the admin-service are absorbed transparently. The retry is
+// unbounded - a new Socket.IO session cannot proceed without a network map,
+// and "still trying" is the correct state to expose to the client. The
+// caller passes its socket so per-attempt status can be emitted as a
+// `connection:status` event for the UI to render.
 // ---------------------------------------------------------------------------
+
+/** Default backoff: 500ms ÷ 2x ÷ 30s cap ÷ ±20% jitter. */
+const NETWORK_MAP_BACKOFF = {
+  initialDelayMs: 500,
+  multiplier: 2,
+  maxDelayMs: 30000,
+  jitterRatio: 0.2,
+}
+
 /**
- * Fetches the network map from admin-service.
+ * Fetches the network map from admin-service with unbounded retry. Emits
+ * `connection:status` events to `socket` so the UI can render a banner.
  * @param {string | undefined} jwt
+ * @param {import('socket.io').Socket} [socket]
  * @returns {Promise<object | null>}
  */
-async function fetchNetworkMap(jwt) {
-  if (!ADMIN_SERVICE_URL) return null
+async function fetchNetworkMap(jwt, socket) {
+  if (socket) socket.emit("connection:status", { state: "connecting", service: "admin" })
+
+  // Abort the unbounded retry loop if the client disconnects before we land
+  // a network map. Without this, a flaky client could leave the server in an
+  // unbounded fetch loop for a session that no longer exists.
+  let abortController
+  if (socket) {
+    abortController = new AbortController()
+    socket.once("disconnect", () => abortController.abort())
+  }
+
   try {
-    const headers = { "Content-Type": "application/json" }
-    if (jwt) headers["Authorization"] = `Bearer ${jwt}`
-    const res = await fetch(`${ADMIN_SERVICE_URL}/v1/admin/configuration/network_map?filters[active]=true`, {
-      headers,
-      signal: AbortSignal.timeout(5000),
+    const { networkMap, attempts } = await fetchNetworkMapWithRetry({
+      jwt,
+      backoff: NETWORK_MAP_BACKOFF,
+      signal: abortController ? abortController.signal : undefined,
+      onAttempt: (event) => {
+        if (!event.ok) {
+          console.error(
+            `Network-map fetch attempt ${event.attempt} failed:`,
+            event.error ? event.error.message || String(event.error) : `HTTP ${event.status}`
+          )
+          if (socket && event.attempt > 1) {
+            socket.emit("connection:status", {
+              state: "retrying",
+              service: "admin",
+              attempt: event.attempt,
+            })
+          }
+        }
+      },
     })
-    if (!res.ok) {
-      console.error(`Admin service returned ${res.status} fetching network map`)
+    if (socket) {
+      socket.emit("connection:status", {
+        state: "connected",
+        service: "admin",
+        attempts,
+      })
+    }
+    return networkMap
+  } catch (err) {
+    if (err instanceof RetryAbortedError) {
+      if (socket) socket.emit("connection:status", { state: "failed", service: "admin" })
       return null
     }
-    return await res.json()
-  } catch (err) {
-    console.error("Failed to fetch network map:", err.message)
+    console.error("Failed to fetch network map:", err && err.message ? err.message : err)
+    if (socket) socket.emit("connection:status", { state: "failed", service: "admin" })
     return null
   }
 }
@@ -407,7 +459,7 @@ app.prepare().then(() => {
     socket.emit("welcome", { message: "NATS Connected" })
 
     // Derive subscription subjects from tenant-specific network map
-    const networkMap = await fetchNetworkMap(jwt)
+    const networkMap = await fetchNetworkMap(jwt, socket)
     const { ruleSubjects, typoSubjects } = deriveSubjectsFromNetworkMap(networkMap)
 
     if (nc) {

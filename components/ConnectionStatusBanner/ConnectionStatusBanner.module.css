@@ -1,0 +1,30 @@
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  z-index: 9999;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.connecting {
+  background-color: #fff8e1;
+  color: #5d4037;
+  border-bottom: 1px solid #ffe082;
+}
+
+.retrying {
+  background-color: #ffe0b2;
+  color: #4e342e;
+  border-bottom: 1px solid #ffb74d;
+}
+
+.failed {
+  background-color: #ffcdd2;
+  color: #b71c1c;
+  border-bottom: 1px solid #e57373;
+  font-weight: 600;
+}

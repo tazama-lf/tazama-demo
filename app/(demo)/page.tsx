@@ -4,6 +4,7 @@ import { DragDropContext } from "@hello-pangea/dnd"
 import Image from "next/image"
 import React, { useContext, useEffect, useState } from "react"
 import io from "socket.io-client"
+import { type ConnectionStatus, ConnectionStatusBanner } from "components/ConnectionStatusBanner/ConnectionStatusBanner"
 import CreditorProfileComponent from "components/CreditorProfileComponent/CreditorProfileComponent"
 import DebtorProfileComponent from "components/DebtorProfileComponent/DebtorProfileComponent"
 import { DebtorDevice } from "components/Device/Debtor"
@@ -18,7 +19,7 @@ import TypeResult from "components/TypologyResults/TypologyResults"
 import EntityContext from "store/entities/entity.context"
 import { CdtrEntity, Entity } from "store/entities/entity.interface"
 import ProcessorContext from "store/processors/processor.context"
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
 import { Rule, TypoEFRuP, Typology } from "store/processors/processor.interface"
 
 let socket
@@ -40,6 +41,7 @@ const Web = () => {
   const [flashing, setFlashing] = useState(false)
   const [flashColor, setFlashColor] = useState<"r" | "g">("r")
   const [displayOverridden, setDisplayOverridden] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({ state: "idle" })
 
   useEffect(() => {
     if (hoveredType) {
@@ -189,6 +191,9 @@ const Web = () => {
         })
         socket.on("welcome", (msg) => {
           console.log("received", msg)
+        })
+        socket.on("connection:status", (status: ConnectionStatus) => {
+          setConnectionStatus(status)
         })
         socket.on("eventAdjudicator", async (msg) => {
           if (processCtx.activeMsgId && msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId !== processCtx.activeMsgId) return
@@ -346,6 +351,7 @@ const Web = () => {
 
   return (
     <div className="flex min-h-full w-full flex-col">
+      <ConnectionStatusBanner status={connectionStatus} />
       <div className="z-99 absolute right-[100px] top-5 cursor-pointer">
         <button
           className="content-right-center ml-auto rounded-md bg-gradient-to-b from-gray-100 to-gray-200 p-2 shadow-lg"
