@@ -42,5 +42,6 @@ COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/server.js ./server.js
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
+COPY --from=builder /app/env.mjs ./env.mjs
 
 CMD ["node", "server.js"]
