@@ -15,6 +15,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // because no Vercel auto-detect path applies. Setting this here, rather
   // than relying on an AUTH_TRUST_HOST env var per deployment, makes the
   // demo work correctly out of the box in any self-hosted environment.
+  //
+  // SECURITY NOTE: `trustHost: true` tells Auth.js to accept the
+  // `X-Forwarded-Host` and `X-Forwarded-Proto` headers from the request
+  // when constructing canonical callback/redirect URLs. This is safe
+  // ONLY when the deployment's ingress (the Compose reverse proxy, the
+  // Helm chart's ingress controller, etc.) is the single trusted hop
+  // and strips or overwrites any client-supplied `X-Forwarded-*`
+  // headers before they reach the app. If client-supplied forwarded
+  // headers can reach this process, an attacker can spoof the host and
+  // redirect OAuth callbacks to an arbitrary origin.
   trustHost: true,
   providers: [
     CredentialsProvider({
