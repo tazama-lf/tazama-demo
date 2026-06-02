@@ -458,23 +458,12 @@ app.prepare().then(() => {
     console.log("Client connected", socket.id, "tenantId:", tenantId)
     socket.emit("welcome", { message: "NATS Connected" })
 
-    // Derive subscription subjects from tenant-specific network map
-    const networkMap = await fetchNetworkMap(jwt, socket)
-    const { ruleSubjects, typoSubjects } = deriveSubjectsFromNetworkMap(networkMap)
-
-    if (nc) {
-      for (const sub of ruleSubjects) ensureGlobalSub(sub, "ruleResponse", io)
-      for (const sub of typoSubjects) ensureGlobalSub(sub, "typoResponse", io)
-
-      if (tenantId != null) {
-        if (ALERT_DESTINATION === "tenant") ensureTenantSub(ALERT_PRODUCER, tenantId, "eventAdjudicator", io)
-        if (TP_INTERDICTION_DESTINATION === "tenant")
-          ensureTenantSub(TP_INTERDICTION_PRODUCER, tenantId, "interdiction-service-tp", io)
-        if (EF_INTERDICTION_DESTINATION === "tenant")
-          ensureTenantSub(EF_INTERDICTION_PRODUCER, tenantId, "interdiction-service-ef", io)
-      }
-    }
-
+    // Register socket event listeners up-front so they are active during the
+    // (potentially long, unbounded) network-map fetch below. Otherwise events
+    // arriving during cold-start would be dropped. The disconnect handler's
+    // tenant-sub cleanup is idempotent: releaseTenantSub is a no-op if no
+    // tenant subscription was registered for this socket yet, so it remains
+    // safe to fire even if disconnect happens before fetchNetworkMap returns.
     socket.on("confirmation", (message) => {
       console.log("Confirmed:", message)
     })
@@ -492,6 +481,23 @@ app.prepare().then(() => {
         if (EF_INTERDICTION_DESTINATION === "tenant") releaseTenantSub(EF_INTERDICTION_PRODUCER, tenantId)
       }
     })
+
+    // Derive subscription subjects from tenant-specific network map
+    const networkMap = await fetchNetworkMap(jwt, socket)
+    const { ruleSubjects, typoSubjects } = deriveSubjectsFromNetworkMap(networkMap)
+
+    if (nc) {
+      for (const sub of ruleSubjects) ensureGlobalSub(sub, "ruleResponse", io)
+      for (const sub of typoSubjects) ensureGlobalSub(sub, "typoResponse", io)
+
+      if (tenantId != null) {
+        if (ALERT_DESTINATION === "tenant") ensureTenantSub(ALERT_PRODUCER, tenantId, "eventAdjudicator", io)
+        if (TP_INTERDICTION_DESTINATION === "tenant")
+          ensureTenantSub(TP_INTERDICTION_PRODUCER, tenantId, "interdiction-service-tp", io)
+        if (EF_INTERDICTION_DESTINATION === "tenant")
+          ensureTenantSub(EF_INTERDICTION_PRODUCER, tenantId, "interdiction-service-ef", io)
+      }
+    }
   })
 
   server.listen(port, (err) => {

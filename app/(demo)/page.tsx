@@ -22,7 +22,7 @@ import ProcessorContext from "store/processors/processor.context"
 
 import { Rule, TypoEFRuP, Typology } from "store/processors/processor.interface"
 
-let socket
+let socket: ReturnType<typeof io> | undefined
 const Web = () => {
   const entityCtx = useContext(EntityContext)
   const processCtx = useContext(ProcessorContext)
@@ -204,6 +204,19 @@ const Web = () => {
       }
     }
     socketInitializer()
+    // Cleanup so React Strict Mode re-mounts (dev) do not leak duplicate
+    // sockets and stacked listeners. socketInitializer is async and assigns
+    // the module-scoped `socket` after a network round-trip, so the cleanup
+    // checks for the assignment before tearing down.
+    return () => {
+      if (socket) {
+        socket.off("connect")
+        socket.off("welcome")
+        socket.off("connection:status")
+        socket.off("eventAdjudicator")
+        socket.disconnect()
+      }
+    }
   }, [])
 
   useEffect(() => {

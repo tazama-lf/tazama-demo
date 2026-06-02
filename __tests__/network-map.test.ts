@@ -62,13 +62,21 @@ describe("fetchNetworkMapWithRetry", () => {
       .fn()
       .mockResolvedValueOnce({ ok: false, status: 503, json: () => Promise.resolve({}) } as Response)
       .mockResolvedValueOnce(okResponse({ data: { transactions: [] } })) as unknown as typeof fetch
+    const onAttempt = jest.fn()
 
     const result = await fetchNetworkMapWithRetry({
       jwt: undefined,
       backoff: { initialDelayMs: 1, multiplier: 2, maxDelayMs: 10, jitterRatio: 0 },
+      onAttempt,
     })
 
     expect(result.attempts).toBe(2)
+    // Regression guard: onAttempt must fire exactly once per attempt.
+    // A non-2xx response previously fired both the non-2xx branch and the
+    // catch branch, producing two notifications for one attempt.
+    expect(onAttempt).toHaveBeenCalledTimes(result.attempts)
+    expect(onAttempt).toHaveBeenNthCalledWith(1, expect.objectContaining({ attempt: 1, ok: false, status: 503 }))
+    expect(onAttempt).toHaveBeenNthCalledWith(2, expect.objectContaining({ attempt: 2, ok: true, status: 200 }))
   })
 
   it("invokes onAttempt callback with attempt number and outcome before each retry", async () => {
