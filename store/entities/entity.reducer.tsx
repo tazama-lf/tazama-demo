@@ -466,6 +466,8 @@ const EntityReducer = (state: any, action: any) => {
         pacs008: pacs008InitialState,
         pacs002: pacs002InitialState,
       }
+    default:
+      return state
   }
 }
 

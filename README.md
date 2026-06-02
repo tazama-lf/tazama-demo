@@ -83,19 +83,44 @@ add your GH_TOKEN to the .npmrc file ${GH_TOKEN}
 npm install
 ```
 
-4. Create a new .env file and copy the contents of the `env_sample` file to the newly created .env
+4. Create a `.env` file from the template:
 
-```text
-NODE_ENV=development
-PORT=3001
-NATS_SERVER_URL=nats://user:password@{server_ip_address}:4222
-ADMIN_SERVICE_URL=http://{server_ip_address}:5100
-TMS_SERVER_URL=http://{server_ip_address}:5000
-NEXT_PUBLIC_URL=http://{server_ip_address}:3001
-NEXT_PUBLIC_WS_URL=http://{server_ip_address}:3001
-AUTHENTICATED=false
-TEST_MODE=false
+```bash
+cp .env.template .env
 ```
+
+`.env.template` is the committed reference for all supported environment variables with inline comments. Copy it to `.env` and fill in the values for your environment. The `.env` file itself is git-ignored and must never be committed.
+
+**Required - server-to-server service URLs (never exposed to the browser):**
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `NATS_SERVER_URL` | NATS messaging server used by the custom Node server for real-time transaction streaming. Must be reachable from the server process - not the browser. | `nats://192.168.1.10:4222` |
+| `ADMIN_SERVICE_URL` | Tazama admin service. Used server-side by the BFF API routes (`/api/conditions/*`) to read and write conditions. Must not be a `NEXT_PUBLIC_` variable - it is a Docker-internal address unreachable from the browser. | `http://192.168.1.10:5100` |
+| `TMS_SERVER_URL` | Tazama Transaction Monitoring Service. Used server-side to submit transactions. | `http://192.168.1.10:5000` |
+
+**Optional - client-visible config (no credentials, safe to expose):**
+
+| Variable | Default | Purpose | Example |
+|---|---|---|---|
+| `NEXT_PUBLIC_URL` | `http://localhost:3001` | Public base URL of this app. Used for OAuth redirect URIs and absolute URL construction. Change this when running behind a reverse proxy or on a non-default port. | `http://demo.example.com` |
+| `NEXT_PUBLIC_WS_URL` | `http://localhost:3001` | WebSocket server URL. The custom Node server serves Socket.IO on this address. Must be reachable from the browser. | `http://demo.example.com` |
+
+**Authentication (disabled by default):**
+
+| Variable | Default | Purpose | Example |
+|---|---|---|---|
+| `AUTHENTICATED` | `false` | Set to `true` to require Keycloak OIDC login. When `false`, all other auth variables are ignored. | `true` |
+| `AUTH_SERVICE_URL` | _(none)_ | Keycloak realm URL. Required when `AUTHENTICATED=true`. | `http://keycloak.example.com/realms/tazama` |
+| `NEXTAUTH_SECRET` | _(none)_ | Secret used to sign Auth.js session tokens. Required when `AUTHENTICATED=true`. Generate with: `openssl rand -base64 32` | _(generated value)_ |
+
+**Condition type dropdowns (optional overrides):**
+
+| Variable | Default | Purpose | Example |
+|---|---|---|---|
+| `CONDITION_TYPES` | built-in list of 3 | JSON array of condition type strings shown in the condition creation dropdown. Leave commented to use the built-in defaults. | `["non-overridable-block","overridable-block","override"]` |
+| `EVENT_TYPES` | built-in list of 4 | JSON array of event type strings for the condition event type filter. | `["pacs.008.001.10","pacs.002.001.12"]` |
+| `CONDITION_REASONS` | built-in list of 18 | JSON array of reason strings shown in the condition reason dropdown. | `["Fraudulent Activity","Sanction Screening Exception"]` |
 
 5. Run the development server:
 
