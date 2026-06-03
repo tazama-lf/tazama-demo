@@ -144,7 +144,7 @@ export function transformNetworkMap(
 
   // Hydrate rules with description and band/case/exitCondition data.
   for (const rule of finalRules) {
-    if (rule.title === EFRUP_TITLE) {
+    if (rule.rule === EFRUP_RULE_ID) {
       // v3 reassigned id to the cfg string and forced the description.
       rule.id = EFRUP_RULE_ID as unknown as number
       rule.title = EFRUP_TITLE
@@ -160,7 +160,7 @@ export function transformNetworkMap(
     const cfg = ruleDoc.config
     if (!cfg) continue
 
-    const sourceBands = cfg.bands ?? cfg.cases ?? []
+    const sourceBands = (cfg.bands?.length ? cfg.bands : cfg.cases) ?? []
     for (const band of sourceBands) {
       rule.ruleBands.push({
         subRuleRef: band.subRuleRef,
@@ -189,9 +189,8 @@ export function transformNetworkMap(
 
     typology.typoDescription = typoDoc.desc ?? ""
     const wf = typoDoc.workflow ?? {}
-    typology.workflow.interdictionThreshold =
-      wf.interdictionThreshold !== undefined ? (wf.interdictionThreshold ?? null) : null
-    typology.workflow.alertThreshold = wf.alertThreshold !== undefined ? (wf.alertThreshold ?? null) : null
+    typology.workflow.interdictionThreshold = wf.interdictionThreshold ?? null
+    typology.workflow.alertThreshold = wf.alertThreshold ?? null
   }
 
   // Sort alphabetically by title.
@@ -199,7 +198,7 @@ export function transformNetworkMap(
   typologiesRes.sort((a, b) => a.title.localeCompare(b.title))
 
   // Move EFRuP to the end of the rule list (v3 behaviour).
-  const efrupIdx = finalRules.findIndex((r) => r.title === EFRUP_TITLE)
+  const efrupIdx = finalRules.findIndex((r) => (r.id as unknown as string) === EFRUP_RULE_ID)
   if (efrupIdx !== -1) {
     const efrup = finalRules[efrupIdx]!
     finalRules.splice(efrupIdx, 1)

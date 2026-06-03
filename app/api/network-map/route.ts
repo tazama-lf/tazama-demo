@@ -7,6 +7,10 @@ import { adminGet, TazamaClientError } from "lib/tazama-client"
 
 const AUTHENTICATED = process.env.AUTHENTICATED === "true"
 
+type NetworkMapResponse = NonNullable<Parameters<typeof transformNetworkMap>[0]>
+type RuleResponse = NonNullable<Parameters<typeof transformNetworkMap>[1]>
+type TypologyResponse = NonNullable<Parameters<typeof transformNetworkMap>[2]>
+
 export async function GET() {
   let jwt: string | undefined
 
@@ -24,12 +28,12 @@ export async function GET() {
     // the BFF directly against Postgres; v4 must rebuild it from three
     // admin-service calls. See issue #116.
     const [networkMapResponse, ruleResponse, typologyResponse] = await Promise.all([
-      adminGet("/v1/admin/configuration/network_map?filters[active]=true", jwt),
-      adminGet("/v1/admin/configuration/rule", jwt),
-      adminGet("/v1/admin/configuration/typology", jwt),
+      adminGet<NetworkMapResponse>("/v1/admin/configuration/network_map?filters[active]=true", jwt),
+      adminGet<RuleResponse>("/v1/admin/configuration/rule", jwt),
+      adminGet<TypologyResponse>("/v1/admin/configuration/typology", jwt),
     ])
 
-    const transformed = transformNetworkMap(networkMapResponse as any, ruleResponse as any, typologyResponse as any)
+    const transformed = transformNetworkMap(networkMapResponse, ruleResponse, typologyResponse)
     return NextResponse.json(transformed)
   } catch (err) {
     if (err instanceof TazamaClientError) {
