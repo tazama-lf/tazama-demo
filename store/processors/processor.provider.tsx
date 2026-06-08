@@ -83,6 +83,12 @@ const ProcessorProvider = ({ children }: Props) => {
   const [wsAddress, setWsAddress] = useState<string>(process.env.NEXT_PUBLIC_WS_URL ?? "")
   const msgId: any = useRef("")
   const efrupIdRef = useRef<string | undefined>(undefined)
+  // Holds the most recent eventAdjudicator message that arrived before
+  // the network-map-driven state (state.rules / state.typologies) had
+  // finished loading. The drain useEffect below replays it once the
+  // state is ready, so a fast Tazama pipeline that beats the network-map
+  // fetch does not silently drop the message and leave the lights blank.
+  const pendingAdjudicatorMsg = useRef<any>(null)
 
   useEffect(() => {
     try {
@@ -135,13 +141,22 @@ const ProcessorProvider = ({ children }: Props) => {
   }, [state.linkedTypologies, state.rules])
 
   useEffect(() => {
+    // Guard against the page-load race: until state.rules has been
+    // populated by createUIFromNetworkMap, every findIndex in
+    // updateTadpLights would return -1 and we would dispatch an empty
+    // rules array, wiping the just-loaded rules. The deps include
+    // state.rules.length so when it transitions from 0 to N this effect
+    // re-fires and processes any tadProcResults that was buffered while
+    // we were waiting. UPDATE_RULES_SUCCESS keeps the length unchanged,
+    // so no infinite loop.
+    if (state.rules.length === 0) return
     const test = { ...state.tadProcResults }
     if ("results" in test) {
       if (test.results.length > 0) {
         updateTadpLights(state.tadProcResults)
       }
     }
-  }, [state.tadProcResults])
+  }, [state.tadProcResults, state.rules.length])
 
   useEffect(() => {
     const newSocket: any = io(wsAddress!, {
@@ -201,6 +216,16 @@ const ProcessorProvider = ({ children }: Props) => {
       if (currentMsgId && incomingMsgId && incomingMsgId !== currentMsgId) return
       const tadpResult = msg?.report?.tadpResult
       if (!tadpResult || !Object.keys(tadpResult).includes("typologyResult")) return
+      // Page-load race guard: if the network-map driven state has not been
+      // populated yet, stash the message in a ref and let the drain effect
+      // below replay it once state.typologies / state.rules are loaded.
+      // Without this, every typology findIndex returns -1 and the message
+      // is silently dropped (lights blank intermittently when the Tazama
+      // pipeline finishes before /api/network-map).
+      if (state.typologies.length === 0 || state.rules.length === 0) {
+        pendingAdjudicatorMsg.current = msg
+        return
+      }
       const typoResults: any[] = tadpResult.typologyResult ?? []
       // Build the next typologies array in one pass and dispatch once, so a
       // burst of typology results does not race against React's render cycle
@@ -220,6 +245,23 @@ const ProcessorProvider = ({ children }: Props) => {
       }
     }
   })
+
+  // Drain a pending eventAdjudicator message once the network-map driven
+  // state is ready. Both lengths are in deps because the adjudicator
+  // pipeline needs both rules (for updateTadpLights, fed via
+  // SET_ADJUDICATOR_RESULTS dispatched from app/(demo)/page.tsx's G-socket)
+  // and typologies (for the P-socket handler above).
+  useEffect(() => {
+    if (state.rules.length === 0 || state.typologies.length === 0) return
+    const pending = pendingAdjudicatorMsg.current
+    if (!pending) return
+    pendingAdjudicatorMsg.current = null
+    // Re-feed through the adjudicator handler ref so the same code path
+    // runs. handleAdjudicatorLive feeds the rule pipeline via
+    // SET_ADJUDICATOR_RESULTS; the typology side is handled by the ref.
+    adjudicatorHandlerRef.current(pending)
+    handleAdjudicatorLive(pending)
+  }, [state.rules.length, state.typologies.length])
 
   useEffect(() => {
     if (!socket) return
