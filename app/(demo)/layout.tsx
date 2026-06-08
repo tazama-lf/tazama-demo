@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
+import { extractTenant } from "@tazama-lf/auth-lib"
 import Link from "next/link"
+import type { Session } from "next-auth"
+import { ClearAllButton } from "components/Header/ClearAllButton"
+import { HeaderUserInfo } from "components/Header/HeaderUserInfo"
+import { auth } from "lib/auth"
 import EntityProvider from "store/entities/entity.provider"
 import ProcessorProvider from "store/processors/processor.provider"
-import { auth } from "lib/auth"
-import { extractTenant } from "@tazama-lf/auth-lib"
-import { HeaderUserInfo } from "components/Header/HeaderUserInfo"
-import type { Session } from "next-auth"
 
 const AUTHENTICATED = process.env.AUTHENTICATED === "true"
 
@@ -80,8 +81,12 @@ export default async function DemoLayout({ children }: { children: React.ReactNo
             </svg>
           </Link>
 
-          {AUTHENTICATED && displayName && tenantId && (
-            <HeaderUserInfo displayName={displayName} tenantId={tenantId} />
+          {AUTHENTICATED && displayName && tenantId ? (
+            <HeaderUserInfo displayName={displayName} tenantId={tenantId}>
+              <ClearAllButton />
+            </HeaderUserInfo>
+          ) : (
+            <ClearAllButton />
           )}
         </div>
         {children}

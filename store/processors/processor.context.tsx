@@ -78,6 +78,14 @@ interface Context {
   setShowCreditorConditionsCreate: (option: boolean) => void
   setLinkedTypologies: (linkedTypos: LinkedTypo[]) => void
   clearLinkedTypologies: () => void
+  // Counter incremented every time the user clicks the header "Clear All"
+  // button. The page-level component (app/(demo)/page.tsx) subscribes via
+  // useEffect to flush its local selection / hover state alongside the
+  // context-side clears. This keeps the button decoupled from page.tsx so
+  // it can live in the layout header instead of being absolutely positioned
+  // on top of it.
+  clearAllSignal: number
+  triggerClearAll: () => void
 }
 
 const ProcessorContext = createContext<Context>({
@@ -138,6 +146,8 @@ const ProcessorContext = createContext<Context>({
   setShowCreditorConditionsCreate: (option: boolean) => {},
   setLinkedTypologies: (linkedTypos: LinkedTypo[]) => {},
   clearLinkedTypologies: () => {},
+  clearAllSignal: 0,
+  triggerClearAll: () => {},
 })
 
 export default ProcessorContext

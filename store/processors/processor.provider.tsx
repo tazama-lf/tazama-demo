@@ -81,6 +81,12 @@ const ProcessorProvider = ({ children }: Props) => {
   const [socket, setSocket] = useState<Socket>()
   const [isConnected, setIsConnected] = useState<boolean>(false)
   const [wsAddress, setWsAddress] = useState<string>(process.env.NEXT_PUBLIC_WS_URL ?? "")
+  // Counter bumped by triggerClearAll() so the page-level component can
+  // subscribe via useEffect and flush its local selection / hover state
+  // when the header Clear All button is clicked. Starts at 0; effects guard
+  // against the initial-mount fire.
+  const [clearAllSignal, setClearAllSignal] = useState<number>(0)
+  const triggerClearAll = () => setClearAllSignal((n) => n + 1)
   const msgId: any = useRef("")
   const efrupIdRef = useRef<string | undefined>(undefined)
   // Holds the most recent eventAdjudicator message that arrived before
@@ -1094,6 +1100,8 @@ const ProcessorProvider = ({ children }: Props) => {
         setShowCreditorConditionsCreate,
         setLinkedTypologies,
         clearLinkedTypologies,
+        clearAllSignal,
+        triggerClearAll,
       }}
     >
       {children}

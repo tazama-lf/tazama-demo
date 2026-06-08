@@ -285,6 +285,28 @@ const Web = () => {
     }
   }, [])
 
+  // Subscribe to the header Clear All button. Skip the initial mount fire
+  // (clearAllSignal starts at 0) so a fresh page load does not gratuitously
+  // clear state. On each subsequent bump from triggerClearAll(), flush all
+  // page-local selection / hover state alongside the four context-side
+  // clears that the button itself does not have direct access to.
+  useEffect(() => {
+    if (processCtx.clearAllSignal === 0) return
+    setSelectedRule(null)
+    setSelectedRules([])
+    setSelectedType(null)
+    setSelectedTypes([])
+    setHoverRules([])
+    setHoveredRule(null)
+    setHoverTypes([])
+    setHoveredType(null)
+    processCtx.clearLinkedTypologies()
+    entityCtx.clearUIData()
+    processCtx.resetAllLights()
+    processCtx.clearResults()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processCtx.clearAllSignal])
+
   if (loading) return <Loader />
   if (error) return <p>Error: {error}</p>
 
@@ -376,27 +398,6 @@ const Web = () => {
   return (
     <div className="flex min-h-full w-full flex-col">
       <ConnectionStatusBanner status={connectionStatus} />
-      <div className="z-99 absolute right-[100px] top-5 cursor-pointer">
-        <button
-          className="content-right-center ml-auto rounded-md bg-gradient-to-b from-gray-100 to-gray-200 p-2 shadow-lg"
-          onClick={() => {
-            setSelectedRule(null)
-            setSelectedRules([])
-            setSelectedType(null)
-            setSelectedTypes([])
-            setHoverRules([])
-            setHoveredRule(null)
-            setHoverTypes([])
-            setHoveredType(null)
-            processCtx.clearLinkedTypologies()
-            entityCtx.clearUIData()
-            processCtx.resetAllLights()
-            processCtx.clearResults()
-          }}
-        >
-          Clear All
-        </button>
-      </div>
       <div className="bg-slate-300/25 px-3 pb-1 pt-4">
         <div className="grid grid-cols-12 gap-5">
           {/* Debtors */}

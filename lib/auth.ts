@@ -56,7 +56,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           accessToken = await response.text()
         }
         if (!accessToken) return null
-        return { id: credentials.username as string, accessToken }
+        // Capture the username as `name` so NextAuth auto-copies it into
+        // the JWT (jwt callback) and the session (session callback). The
+        // header's HeaderUserInfo then reads session.user.name to label
+        // the signed-in account; without this it would fall through to a
+        // literal "User" string. We do not have an email address - the
+        // auth-service returns only the JWT.
+        return { id: credentials.username as string, name: credentials.username as string, accessToken }
       },
     }),
   ],
