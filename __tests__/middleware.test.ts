@@ -182,6 +182,17 @@ describe("middleware - config.matcher", () => {
       ["/some/nested/asset.webp"],
       ["/fonts/inter.woff2"],
       ["/styles/site.css"],
+      // One case per remaining suffix token in the matcher regex, so the
+      // matrix exercises every excluded extension and catches regex drift.
+      ["/image.jpeg"],
+      ["/anim.gif"],
+      ["/touch-icon.ico"],
+      ["/bundle.js"],
+      ["/bundle.js.map"],
+      ["/fonts/inter.woff"],
+      ["/fonts/inter.ttf"],
+      ["/fonts/inter.eot"],
+      ["/fonts/inter.otf"],
     ])("excludes %s", (path) => {
       expect(matcher.test(path)).toBe(false)
     })

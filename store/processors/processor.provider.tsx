@@ -480,7 +480,6 @@ const ProcessorProvider = ({ children }: Props) => {
         updated.color = "y"
       } else if (msg.result >= interThreshold) {
         updated.color = "r"
-        ;(updated as any).stop = true
       }
     } else if (alertThreshold !== null && interThreshold === null) {
       if (msg.result < alertThreshold) {
@@ -493,6 +492,11 @@ const ProcessorProvider = ({ children }: Props) => {
         updated.color = "y"
       }
     }
+    // Keep `stop` synchronised with `color`. `updated` starts as a spread of
+    // the previous typology, so without this reset a prior interdiction
+    // (stop: true) would latch even after follow-up results drop below the
+    // interdiction threshold.
+    ;(updated as any).stop = updated.color === "r"
     next[idx] = updated
     return next
   }
