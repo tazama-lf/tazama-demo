@@ -205,7 +205,13 @@ function decodeMsg(data) {
  */
 function ensureGlobalSub(subject, room, io) {
   if (!nc || globalSubs.has(subject)) return
-  const sub = nc.subscribe(subject, { queue: "DEMO_MONITORING" })
+  // No queue group: the demo UI backend is one independent observer per
+  // process. A queue group would cause NATS to round-robin messages between
+  // any other consumer registered under the same queue (other dev box,
+  // stale process, deployed instance), silently breaking the live pipeline
+  // view. Each backend must receive every message and fan out to its own
+  // Socket.IO clients; tenant filtering happens at emit time.
+  const sub = nc.subscribe(subject)
   globalSubs.set(subject, sub)
   ;(async () => {
     for await (const msg of sub) {
@@ -246,7 +252,10 @@ function ensureTenantSub(producer, tenantId, room, io) {
     existing.refCount++
     return
   }
-  const sub = nc.subscribe(subject, { queue: "DEMO_MONITORING" })
+  // No queue group - see ensureGlobalSub for rationale. The tenant-scoped
+  // subject already isolates messages to this tenant; sharing them via a
+  // queue group would just steal them from other demo observers.
+  const sub = nc.subscribe(subject)
   tenantSubs.set(key, { sub, refCount: 1 })
   ;(async () => {
     for await (const msg of sub) {
