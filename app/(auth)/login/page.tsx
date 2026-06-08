@@ -1,14 +1,41 @@
 "use client"
 // SPDX-License-Identifier: Apache-2.0
 import Image from "next/image"
-import { useState, FormEvent } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { FormEvent, Suspense, useState } from "react"
 import tazamaLogo from "public/tazamaLogo.svg"
 import treeImage from "public/treeImage.png"
 
+// Only accept safe, same-origin paths as post-login redirect targets. This
+// blocks protocol-relative URLs (`//evil.com`), absolute off-origin URLs,
+// and anything that would let an attacker craft `/login?callbackUrl=...` to
+// bounce a freshly-authenticated user to a phishing page.
+function safeCallbackUrl(raw: string | null): string {
+  if (!raw) return "/"
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/"
+  // Never loop back to /login on success - the user would see the form
+  // again and assume the login failed (which is the bug this fix exists
+  // to prevent in the first place).
+  if (raw === "/login" || raw.startsWith("/login?") || raw.startsWith("/login/")) return "/"
+  return raw
+}
+
 export default function LoginPage() {
+  // useSearchParams() opts the subtree into dynamic rendering; wrap in
+  // Suspense so the rest of the (statically-renderable) page chrome can
+  // still be prerendered without build-time warnings.
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
+  )
+}
+
+function LoginPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"))
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -22,14 +49,16 @@ export default function LoginPage() {
       const result = await signIn("credentials", {
         username: email,
         password,
+        // Pass an explicit, safe callbackUrl - without this, Auth.js v5
+        // defaults to `window.location.href` (= /login), which on success
+        // bounces the user straight back to this form.
+        callbackUrl,
         redirect: false,
       })
       if (result?.error) {
         setError("Invalid credentials. Please try again.")
-      } else if (result?.url) {
-        router.push(result.url)
       } else {
-        router.push("/")
+        router.push(safeCallbackUrl(result?.url ?? callbackUrl))
       }
     } catch {
       setError("An unexpected error occurred. Please try again.")
@@ -51,9 +80,7 @@ export default function LoginPage() {
         <section className="flex flex-1 items-center justify-center px-8 py-12">
           <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-8 shadow-md">
             <h1 className="mb-1 text-2xl font-bold text-gray-800">Tazama Demo</h1>
-            <p className="mb-6 text-sm text-gray-500">
-              Please enter your login credentials to access the portal.
-            </p>
+            <p className="mb-6 text-sm text-gray-500">Please enter your login credentials to access the portal.</p>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>

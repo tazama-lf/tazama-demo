@@ -26,7 +26,13 @@ export default AUTHENTICATED
         if (request.nextUrl.pathname.startsWith("/login")) {
           return NextResponse.next()
         }
-        return NextResponse.redirect(new URL("/login", request.url))
+        // Propagate the original path (+ query) as `?callbackUrl=` so the
+        // login page can return the user to where they were trying to go
+        // after a successful sign-in. Without this, every protected-route
+        // redirect lands the user at `/` regardless of intent.
+        const loginUrl = new URL("/login", request.url)
+        loginUrl.searchParams.set("callbackUrl", request.nextUrl.pathname + request.nextUrl.search)
+        return NextResponse.redirect(loginUrl)
       }
       return NextResponse.next()
     })
