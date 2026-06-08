@@ -393,8 +393,9 @@ const ProcessorProvider = ({ children }: Props) => {
 
   const updateTypologies = async (msg: any) => {
     try {
+      const index: number = state.typologies.findIndex((r: Typology) => r.title === msg?.cfg?.split("@")?.[0])
+      if (index === -1) return
       dispatch({ type: ACTIONS.UPDATE_TYPO_LOADING })
-      const index: number = state.typologies.findIndex((r: Typology) => r.title === msg.cfg.split("@")[0])
 
       const updatedTypo: any[] = [...state.typologies]
 
