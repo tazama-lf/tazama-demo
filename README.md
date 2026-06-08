@@ -110,9 +110,9 @@ cp .env.template .env
 
 | Variable | Default | Purpose | Example |
 |---|---|---|---|
-| `AUTHENTICATED` | `false` | Set to `true` to require Keycloak OIDC login. When `false`, all other auth variables are ignored. | `true` |
-| `AUTH_SERVICE_URL` | _(none)_ | Keycloak realm URL. Required when `AUTHENTICATED=true`. | `http://keycloak.example.com/realms/tazama` |
-| `NEXTAUTH_SECRET` | _(none)_ | Secret used to sign Auth.js session tokens. Required when `AUTHENTICATED=true`. Generate with: `openssl rand -base64 32` | _(generated value)_ |
+| `AUTHENTICATED` | `false` | Set to `true` to require login via the Tazama auth-service (which federates to Keycloak). When `false`, all other auth variables are ignored. | `true` |
+| `AUTH_SERVICE_URL` | _(none)_ | Base URL of the Tazama [auth-service](https://github.com/tazama-lf/auth-service). The demo POSTs credentials to `${AUTH_SERVICE_URL}/v1/auth/login` and receives a Tazama JWT - this is **not** a direct Keycloak realm URL. Required when `AUTHENTICATED=true`. | `http://auth-service.example.com:3020` |
+| `NEXTAUTH_SECRET` | _(none)_ | Secret used by Auth.js v5 to encrypt the browser session cookie that wraps the Tazama JWT. Local to this app - never sent to auth-service or downstream Tazama services. Required when `AUTHENTICATED=true`. Generate with: `openssl rand -base64 32` | _(generated value)_ |
 
 **Condition type dropdowns (optional overrides):**
 
