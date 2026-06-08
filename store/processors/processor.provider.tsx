@@ -83,7 +83,6 @@ const ProcessorProvider = ({ children }: Props) => {
   const [wsAddress, setWsAddress] = useState<string>(process.env.NEXT_PUBLIC_WS_URL ?? "")
   const msgId: any = useRef("")
   const efrupIdRef = useRef<string | undefined>(undefined)
-  const currentMsgIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     try {
@@ -145,10 +144,6 @@ const ProcessorProvider = ({ children }: Props) => {
   }, [state.tadProcResults])
 
   useEffect(() => {
-    currentMsgIdRef.current = entityCtx.currentMsgId ?? null
-  }, [entityCtx.currentMsgId])
-
-  useEffect(() => {
     const newSocket: any = io(wsAddress!, {
       reconnectionAttempts: 5,
       reconnectionDelay: 3000,
@@ -192,8 +187,18 @@ const ProcessorProvider = ({ children }: Props) => {
 
   useEffect(() => {
     adjudicatorHandlerRef.current = (msg: any) => {
-      const currentMsgId = currentMsgIdRef.current
-      if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId !== currentMsgId) return
+      const incomingMsgId = msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
+      // Lenient MsgId filter, matching the G-socket in app/(demo)/page.tsx:
+      // only reject when we know the message belongs to a different
+      // transaction (currentMsgId is set AND mismatches). When currentMsgId
+      // is not yet set we MUST process the message - NATS routinely beats
+      // React's commit-then-flush-effects cycle for the first transaction
+      // after page load, so any strict equality check here drops the very
+      // first event-adjudicator message intermittently and the typology
+      // lights silently fail to paint. Reading entityCtx.currentMsgId
+      // directly keeps the filter as fresh as React allows.
+      const currentMsgId = entityCtx.currentMsgId
+      if (currentMsgId && incomingMsgId && incomingMsgId !== currentMsgId) return
       const tadpResult = msg?.report?.tadpResult
       if (!tadpResult || !Object.keys(tadpResult).includes("typologyResult")) return
       const typoResults: any[] = tadpResult.typologyResult ?? []
@@ -210,7 +215,6 @@ const ProcessorProvider = ({ children }: Props) => {
       if (nextTypologies !== state.typologies) {
         dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: nextTypologies })
       }
-      const incomingMsgId = msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
       if (msgId.current !== incomingMsgId) {
         msgId.current = incomingMsgId
       }
