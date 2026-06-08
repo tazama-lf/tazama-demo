@@ -35,9 +35,13 @@ const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET
 // ---------------------------------------------------------------------------
 // Inline filter helpers (mirrors lib/nats-helpers.ts)
 // ---------------------------------------------------------------------------
+// The decoded payload follows the frms-coe-lib pacs.002/pacs.008 envelope,
+// where the tenant id lives inside `transaction.TenantId` rather than at
+// the top level. Reading from the top level (as an earlier version did)
+// silently dropped every message under AUTHENTICATED=true.
 function filterByTenantId(message, tenantId) {
   if (message === null || typeof message !== "object") return false
-  return message["TenantId"] === tenantId
+  return message.transaction?.TenantId === tenantId
 }
 
 function computeTerminalSubject(producer, destination, tenantId) {
