@@ -43,12 +43,29 @@ export default AUTHENTICATED
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes - auth route handler must remain public)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico
+     * Match all request paths except for:
+     *
+     * - api               (API routes - auth route handler must remain public)
+     * - _next/static      (build-emitted static chunks)
+     * - _next/image       (the image optimizer endpoint itself)
+     * - favicon.ico       (browser convention)
+     * - *.{png,jpg,...}   (public/-folder static assets - see note below)
+     *
+     * The trailing extension list is essential when AUTHENTICATED=true.
+     * Components that reference public-folder assets by string path (e.g.
+     * `<Image src="/neutral-light-1.png" />`) get rewritten to
+     * `/_next/image?url=%2Fneutral-light-1.png&...`. The browser request to
+     * that URL is excluded by `_next/image` above, but the optimizer then
+     * makes a SERVER-side internal fetch back to `/neutral-light-1.png` to
+     * read the source bytes - and that internal fetch carries no cookies.
+     * Without an extension exclusion it would hit this middleware, fail the
+     * auth check, get redirected to /login, and the optimizer would receive
+     * HTML instead of an image (logged as "received null").
+     *
+     * Public-folder assets are public by design, so excluding their paths
+     * from auth checks is the correct behaviour and the standard Next.js
+     * pattern.
      */
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico|css|js|map|woff2?|ttf|eot|otf)$).*)",
   ],
 }

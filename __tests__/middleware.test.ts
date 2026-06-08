@@ -122,3 +122,68 @@ describe("middleware - AUTHENTICATED=true", () => {
     })
   })
 })
+
+// ─── config.matcher (executed by the Next runtime, not the handler) ──────────
+//
+// Next.js compiles `config.matcher` patterns to regexes at build time and
+// decides BEFORE invoking middleware which requests it gates. The handler
+// tests above cannot exercise this layer, so the only way to assert on
+// matcher behaviour from a unit test is to compile the pattern string into
+// a RegExp ourselves and probe it directly. The pattern in `middleware.ts`
+// is a valid JS regex literal, so `new RegExp(...)` is a faithful enough
+// approximation of what the Next runtime does for these assertions.
+
+function loadMatcher(): RegExp {
+  let config: { matcher: string[] } | undefined
+  jest.isolateModules(() => {
+    config = (require("middleware") as { config: { matcher: string[] } }).config
+  })
+  if (!config) throw new Error("failed to load middleware config")
+  return new RegExp("^" + config.matcher[0] + "$")
+}
+
+describe("middleware - config.matcher", () => {
+  const matcher = loadMatcher()
+
+  describe("matches application paths (so middleware runs)", () => {
+    it.each([["/"], ["/login"], ["/dashboard"], ["/reports/xyz"], ["/login/forgot-password"]])("matches %s", (path) => {
+      expect(matcher.test(path)).toBe(true)
+    })
+  })
+
+  describe("excludes Next.js internals (so middleware is bypassed)", () => {
+    it.each([
+      ["/api/version"],
+      ["/api/auth/callback/credentials"],
+      ["/_next/static/chunks/main.js"],
+      ["/_next/image"],
+      ["/favicon.ico"],
+    ])("excludes %s", (path) => {
+      expect(matcher.test(path)).toBe(false)
+    })
+  })
+
+  describe("excludes public-folder static assets (so the image optimizer's internal fetch is not redirected)", () => {
+    // These are the literal string paths emitted by components that
+    // reference public/ assets directly (e.g. StatusIndicator's light icons,
+    // logo files, favicons, fonts). If any of these were matched by the
+    // middleware, the optimizer's server-side fetch back to the public URL
+    // would carry no session cookie, be redirected to /login, and return
+    // HTML instead of bytes - logged as "received null".
+    it.each([
+      ["/neutral-light-1.png"],
+      ["/green-light-1.png"],
+      ["/red-light-1.png"],
+      ["/yellow-light-1.png"],
+      ["/blue-light-1.png"],
+      ["/tazamaLogo.svg"],
+      ["/treeImage.png"],
+      ["/Tazama_logo_400x400.jpg"],
+      ["/some/nested/asset.webp"],
+      ["/fonts/inter.woff2"],
+      ["/styles/site.css"],
+    ])("excludes %s", (path) => {
+      expect(matcher.test(path)).toBe(false)
+    })
+  })
+})
