@@ -81,9 +81,20 @@ const ProcessorProvider = ({ children }: Props) => {
   const [socket, setSocket] = useState<Socket>()
   const [isConnected, setIsConnected] = useState<boolean>(false)
   const [wsAddress, setWsAddress] = useState<string>(process.env.NEXT_PUBLIC_WS_URL ?? "")
+  // Counter bumped by triggerClearAll() so the page-level component can
+  // subscribe via useEffect and flush its local selection / hover state
+  // when the header Clear All button is clicked. Starts at 0; effects guard
+  // against the initial-mount fire.
+  const [clearAllSignal, setClearAllSignal] = useState<number>(0)
+  const triggerClearAll = () => setClearAllSignal((n) => n + 1)
   const msgId: any = useRef("")
   const efrupIdRef = useRef<string | undefined>(undefined)
-  const currentMsgIdRef = useRef<string | null>(null)
+  // Holds the most recent eventAdjudicator message that arrived before
+  // the network-map-driven state (state.rules / state.typologies) had
+  // finished loading. The drain useEffect below replays it once the
+  // state is ready, so a fast Tazama pipeline that beats the network-map
+  // fetch does not silently drop the message and leave the lights blank.
+  const pendingAdjudicatorMsg = useRef<any>(null)
 
   useEffect(() => {
     try {
@@ -136,17 +147,22 @@ const ProcessorProvider = ({ children }: Props) => {
   }, [state.linkedTypologies, state.rules])
 
   useEffect(() => {
+    // Guard against the page-load race: until state.rules has been
+    // populated by createUIFromNetworkMap, every findIndex in
+    // updateTadpLights would return -1 and we would dispatch an empty
+    // rules array, wiping the just-loaded rules. The deps include
+    // state.rules.length so when it transitions from 0 to N this effect
+    // re-fires and processes any tadProcResults that was buffered while
+    // we were waiting. UPDATE_RULES_SUCCESS keeps the length unchanged,
+    // so no infinite loop.
+    if (state.rules.length === 0) return
     const test = { ...state.tadProcResults }
     if ("results" in test) {
       if (test.results.length > 0) {
         updateTadpLights(state.tadProcResults)
       }
     }
-  }, [state.tadProcResults])
-
-  useEffect(() => {
-    currentMsgIdRef.current = entityCtx.currentMsgId ?? null
-  }, [entityCtx.currentMsgId])
+  }, [state.tadProcResults, state.rules.length])
 
   useEffect(() => {
     const newSocket: any = io(wsAddress!, {
@@ -184,30 +200,83 @@ const ProcessorProvider = ({ children }: Props) => {
     }
   }, [isConnected])
 
-  useEffect(() => {
-    if (socket !== undefined) {
-      socket.on("eventAdjudicator", (msg) => {
-        const currentMsgId = currentMsgIdRef.current
-        if (msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId === currentMsgId) {
-          const typoResult = Object.keys(msg.report.tadpResult).includes("typologyResult")
-          if (typoResult) {
-            msg.report.tadpResult.typologyResult.map((tpRes: any) => {
-              setTimeout(
-                async () => {
-                  await updateTypologies(tpRes)
-                },
-                Math.floor(Math.random() * (500 - 200)) + 200
-              )
+  // Keep an always-current reference to the eventAdjudicator handler so the
+  // listener registered against the socket can read the latest state without
+  // being re-registered on every state change. Re-registering created stale
+  // closures and accumulated listeners (each fired N times for the Nth message).
+  const adjudicatorHandlerRef = useRef<(msg: any) => void>(() => {})
 
-              if (msgId.current !== msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId) {
-                msgId.current = msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
-              }
-            })
-          }
-        }
+  useEffect(() => {
+    adjudicatorHandlerRef.current = (msg: any) => {
+      const incomingMsgId = msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
+      // Lenient MsgId filter, matching the G-socket in app/(demo)/page.tsx:
+      // only reject when we know the message belongs to a different
+      // transaction (currentMsgId is set AND mismatches). When currentMsgId
+      // is not yet set we MUST process the message - NATS routinely beats
+      // React's commit-then-flush-effects cycle for the first transaction
+      // after page load, so any strict equality check here drops the very
+      // first event-adjudicator message intermittently and the typology
+      // lights silently fail to paint. Reading entityCtx.currentMsgId
+      // directly keeps the filter as fresh as React allows.
+      const currentMsgId = entityCtx.currentMsgId
+      if (currentMsgId && incomingMsgId && incomingMsgId !== currentMsgId) return
+      const tadpResult = msg?.report?.tadpResult
+      if (!tadpResult || !Object.keys(tadpResult).includes("typologyResult")) return
+      // Page-load race guard: if the network-map driven state has not been
+      // populated yet, stash the message in a ref and let the drain effect
+      // below replay it once state.typologies / state.rules are loaded.
+      // Without this, every typology findIndex returns -1 and the message
+      // is silently dropped (lights blank intermittently when the Tazama
+      // pipeline finishes before /api/network-map).
+      if (state.typologies.length === 0 || state.rules.length === 0) {
+        pendingAdjudicatorMsg.current = msg
+        return
+      }
+      const typoResults: any[] = tadpResult.typologyResult ?? []
+      // Build the next typologies array in one pass and dispatch once, so a
+      // burst of typology results does not race against React's render cycle
+      // (each updateTypologies dispatch would otherwise read the same stale
+      // state.typologies and clobber its predecessor).
+      let nextTypologies = state.typologies
+      typoResults.forEach((tpRes: any) => {
+        const idx: number = nextTypologies.findIndex((r: Typology) => r.title === tpRes?.cfg?.split("@")?.[0])
+        if (idx === -1) return
+        nextTypologies = applyTypologyUpdate(nextTypologies, idx, tpRes)
       })
+      if (nextTypologies !== state.typologies) {
+        dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: nextTypologies })
+      }
+      if (msgId.current !== incomingMsgId) {
+        msgId.current = incomingMsgId
+      }
     }
-  }, [state.typologies])
+  })
+
+  // Drain a pending eventAdjudicator message once the network-map driven
+  // state is ready. Both lengths are in deps because the adjudicator
+  // pipeline needs both rules (for updateTadpLights, fed via
+  // SET_ADJUDICATOR_RESULTS dispatched from app/(demo)/page.tsx's G-socket)
+  // and typologies (for the P-socket handler above).
+  useEffect(() => {
+    if (state.rules.length === 0 || state.typologies.length === 0) return
+    const pending = pendingAdjudicatorMsg.current
+    if (!pending) return
+    pendingAdjudicatorMsg.current = null
+    // Re-feed through the adjudicator handler ref so the same code path
+    // runs. handleAdjudicatorLive feeds the rule pipeline via
+    // SET_ADJUDICATOR_RESULTS; the typology side is handled by the ref.
+    adjudicatorHandlerRef.current(pending)
+    handleAdjudicatorLive(pending)
+  }, [state.rules.length, state.typologies.length])
+
+  useEffect(() => {
+    if (!socket) return
+    const handler = (msg: any) => adjudicatorHandlerRef.current(msg)
+    socket.on("eventAdjudicator", handler)
+    return () => {
+      socket.off("eventAdjudicator", handler)
+    }
+  }, [socket])
 
   const handleLinkedTypologies = async (msg: any) => {
     const typoResults: Typology[] = msg.report.tadpResult.typologyResult
@@ -391,50 +460,53 @@ const ProcessorProvider = ({ children }: Props) => {
     }
   }
 
+  // Returns a new typologies array with index `idx` updated by `msg`.
+  // Pure helper so callers can chain multiple updates in a single dispatch.
+  const applyTypologyUpdate = (typologies: any[], idx: number, msg: any): any[] => {
+    const next = [...typologies]
+    const updated = { ...next[idx], result: msg.result, color: "g" } as Typology
+    let interThreshold: number | null = null
+    let alertThreshold: number | null = null
+    if (msg?.workflow && Object.keys(msg.workflow).includes("interdictionThreshold")) {
+      interThreshold = msg.workflow.interdictionThreshold
+    }
+    if (msg?.workflow && Object.keys(msg.workflow).includes("alertThreshold")) {
+      alertThreshold = msg.workflow.alertThreshold
+    }
+    if (alertThreshold !== null && interThreshold !== null) {
+      if (msg.result < alertThreshold) {
+        updated.color = "g"
+      } else if (msg.result >= alertThreshold && msg.result < interThreshold) {
+        updated.color = "y"
+      } else if (msg.result >= interThreshold) {
+        updated.color = "r"
+      }
+    } else if (alertThreshold !== null && interThreshold === null) {
+      if (msg.result < alertThreshold) {
+        updated.color = "g"
+      } else if (msg.result >= alertThreshold) {
+        updated.color = "y"
+      }
+    } else {
+      if (msg.result < 0) {
+        updated.color = "y"
+      }
+    }
+    // Keep `stop` synchronised with `color`. `updated` starts as a spread of
+    // the previous typology, so without this reset a prior interdiction
+    // (stop: true) would latch even after follow-up results drop below the
+    // interdiction threshold.
+    ;(updated as any).stop = updated.color === "r"
+    next[idx] = updated
+    return next
+  }
+
   const updateTypologies = async (msg: any) => {
     try {
+      const index: number = state.typologies.findIndex((r: Typology) => r.title === msg?.cfg?.split("@")?.[0])
+      if (index === -1) return
       dispatch({ type: ACTIONS.UPDATE_TYPO_LOADING })
-      const index: number = state.typologies.findIndex((r: Typology) => r.title === msg.cfg.split("@")[0])
-
-      const updatedTypo: any[] = [...state.typologies]
-
-      updatedTypo[index].result = msg.result
-
-      let interThreshold = null
-      let alertThreshold = null
-
-      if (Object.keys(msg.workflow).includes("interdictionThreshold")) {
-        interThreshold = msg.workflow.interdictionThreshold
-      }
-
-      if (Object.keys(msg.workflow).includes("alertThreshold")) {
-        alertThreshold = msg.workflow.alertThreshold
-      }
-
-      updatedTypo[index].color = "g"
-
-      if (alertThreshold !== null && interThreshold !== null) {
-        if (msg.result < alertThreshold) {
-          updatedTypo[index].color = "g"
-        } else if (msg.result >= alertThreshold && msg.result < interThreshold) {
-          updatedTypo[index].color = "y"
-        } else if (msg.result >= interThreshold) {
-          updatedTypo[index].color = "r"
-          updatedTypo[index].stop = true
-        }
-      }
-      if (alertThreshold !== null && interThreshold === null) {
-        if (msg.result < alertThreshold) {
-          updatedTypo[index].color = "g"
-        } else if (msg.result >= alertThreshold) {
-          updatedTypo[index].color = "y"
-        }
-      } else {
-        if (msg.result < 0) {
-          updatedTypo[index].color = "y"
-        }
-      }
-
+      const updatedTypo = applyTypologyUpdate(state.typologies, index, msg)
       dispatch({ type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: updatedTypo })
     } catch (error: any) {
       dispatch({ type: ACTIONS.UPDATE_TYPO_FAIL })
@@ -465,48 +537,50 @@ const ProcessorProvider = ({ children }: Props) => {
 
     try {
       dispatch({ type: ACTIONS.UPDATE_ADJUDICATOR_LOADING })
-      await data.results.forEach(async (result) => {
-        result.ruleResults.map(async (ruleResult) => {
-          if (efrupIdRef.current !== undefined && ruleResult.id === efrupIdRef.current) {
-            const index = await state.rules.findIndex((r: Rule) => r.rule === ruleResult.id)
 
-            if (!state.rules[index]) {
+      // Build a fresh rules array with new objects so React detects the change
+      // and re-renders the rule lights. The previous implementation mutated
+      // state.rules[i] in place, which silently dropped paint updates because
+      // the array reference never changed.
+      const updatedRules: any[] = state.rules.map((r: Rule) => ({ ...r }))
+
+      data.results.forEach((result) => {
+        result.ruleResults.forEach((ruleResult) => {
+          if (efrupIdRef.current !== undefined && ruleResult.id === efrupIdRef.current) {
+            const index = updatedRules.findIndex((r: Rule) => r.rule === ruleResult.id)
+            if (index === -1) {
               console.log("Missing rule")
               console.dir(state.rules)
               return
             }
-
             if (ruleResult.subRuleRef === "override") {
-              state.rules[index].color = "g"
+              updatedRules[index].color = "g"
             } else if (ruleResult.subRuleRef === "block") {
-              state.rules[index].color = "r"
+              updatedRules[index].color = "r"
             } else if (ruleResult.subRuleRef === "none") {
-              state.rules[index].color = "n"
+              updatedRules[index].color = "n"
             }
-            state.rules[index].result = ruleResult.subRuleRef
+            updatedRules[index].result = ruleResult.subRuleRef
           } else {
-            const index = await state.rules.findIndex((r: Rule) => r.title === ruleResult.id.split("@")[0])
-            if (index !== -1) {
-              if ((ruleResult.wght ?? 0) > 0) {
-                state.rules[index].result = ruleResult.subRuleRef
-
-                state.rules[index].color = "r"
-
-                if (state.rules[index].wght < (ruleResult.wght ?? 0)) state.rules[index].wght = ruleResult.wght
-
-                if (!resIndex.includes(index)) {
-                  resIndex.push({ index: index, wght: ruleResult.wght })
-                }
-              } else {
-                state.rules[index].result = ruleResult.subRuleRef
-                state.rules[index].color = "g"
-                state.rules[index].wght = ruleResult.wght
+            const index = updatedRules.findIndex((r: Rule) => r.title === ruleResult.id.split("@")[0])
+            if (index === -1) return
+            if ((ruleResult.wght ?? 0) > 0) {
+              updatedRules[index].result = ruleResult.subRuleRef
+              updatedRules[index].color = "r"
+              if (updatedRules[index].wght < (ruleResult.wght ?? 0)) updatedRules[index].wght = ruleResult.wght
+              if (!resIndex.includes(index)) {
+                resIndex.push({ index: index, wght: ruleResult.wght })
               }
+            } else {
+              updatedRules[index].result = ruleResult.subRuleRef
+              updatedRules[index].color = "g"
+              updatedRules[index].wght = ruleResult.wght
             }
           }
         })
       })
 
+      dispatch({ type: ACTIONS.UPDATE_RULES_SUCCESS, payload: updatedRules })
       dispatch({ type: ACTIONS.UPDATE_ADJUDICATOR_SUCCESS, payload: data })
     } catch (error) {
       dispatch({ type: ACTIONS.UPDATE_ADJUDICATOR_FAIL })
@@ -1030,6 +1104,8 @@ const ProcessorProvider = ({ children }: Props) => {
         setShowCreditorConditionsCreate,
         setLinkedTypologies,
         clearLinkedTypologies,
+        clearAllSignal,
+        triggerClearAll,
       }}
     >
       {children}

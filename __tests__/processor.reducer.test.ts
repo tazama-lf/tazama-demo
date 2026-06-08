@@ -134,18 +134,18 @@ describe("UPDATE_TYPO", () => {
     expect(next.typologyLoading).toBe(true)
   })
 
-  it("SUCCESS clears flag and stores typology (singular) payload", () => {
-    // Note: UPDATE_TYPO_SUCCESS stores to `typology` (singular), not `typologies`
-    const next = ProcessorReducer(baseState, { type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: TYPO_SINGLE_PAYLOAD })
+  it("SUCCESS clears flag and stores updated typologies array payload", () => {
+    // Reducer contract: typologies is always an array. Wrap the single-object
+    // fixture so this regression test actually exercises the array shape.
+    const next = ProcessorReducer(baseState, { type: ACTIONS.UPDATE_TYPO_SUCCESS, payload: [TYPO_SINGLE_PAYLOAD] })
     expect(next.typologyLoading).toBe(false)
-    expect(next.typology).toEqual(TYPO_SINGLE_PAYLOAD)
-    expect(next.typologies).toBe(baseState.typologies) // list unchanged
+    expect(next.typologies).toEqual([TYPO_SINGLE_PAYLOAD])
   })
 
-  it("FAIL clears flag and empties typology (singular) to []", () => {
+  it("FAIL clears flag and empties typologies array", () => {
     const next = ProcessorReducer(baseState, { type: ACTIONS.UPDATE_TYPO_FAIL })
     expect(next.typologyLoading).toBe(false)
-    expect(next.typology).toEqual([])
+    expect(next.typologies).toEqual([])
   })
 })
 

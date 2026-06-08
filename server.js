@@ -35,9 +35,13 @@ const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET
 // ---------------------------------------------------------------------------
 // Inline filter helpers (mirrors lib/nats-helpers.ts)
 // ---------------------------------------------------------------------------
+// The decoded payload follows the frms-coe-lib pacs.002/pacs.008 envelope,
+// where the tenant id lives inside `transaction.TenantId` rather than at
+// the top level. Reading from the top level (as an earlier version did)
+// silently dropped every message under AUTHENTICATED=true.
 function filterByTenantId(message, tenantId) {
   if (message === null || typeof message !== "object") return false
-  return message["TenantId"] === tenantId
+  return message.transaction?.TenantId === tenantId
 }
 
 function computeTerminalSubject(producer, destination, tenantId) {
@@ -201,7 +205,13 @@ function decodeMsg(data) {
  */
 function ensureGlobalSub(subject, room, io) {
   if (!nc || globalSubs.has(subject)) return
-  const sub = nc.subscribe(subject, { queue: "DEMO_MONITORING" })
+  // No queue group: the demo UI backend is one independent observer per
+  // process. A queue group would cause NATS to round-robin messages between
+  // any other consumer registered under the same queue (other dev box,
+  // stale process, deployed instance), silently breaking the live pipeline
+  // view. Each backend must receive every message and fan out to its own
+  // Socket.IO clients; tenant filtering happens at emit time.
+  const sub = nc.subscribe(subject)
   globalSubs.set(subject, sub)
   ;(async () => {
     for await (const msg of sub) {
@@ -242,7 +252,10 @@ function ensureTenantSub(producer, tenantId, room, io) {
     existing.refCount++
     return
   }
-  const sub = nc.subscribe(subject, { queue: "DEMO_MONITORING" })
+  // No queue group - see ensureGlobalSub for rationale. The tenant-scoped
+  // subject already isolates messages to this tenant; sharing them via a
+  // queue group would just steal them from other demo observers.
+  const sub = nc.subscribe(subject)
   tenantSubs.set(key, { sub, refCount: 1 })
   ;(async () => {
     for await (const msg of sub) {

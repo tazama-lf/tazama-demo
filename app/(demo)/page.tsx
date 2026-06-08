@@ -182,39 +182,50 @@ const Web = () => {
   const [selectedCreditorEntity, setSelectedCreditorEntity] = useState<number>(0)
 
   useEffect(() => {
-    const socketInitializer = async () => {
+    // Capture the socket in a closure-local so each effect run owns its own
+    // connection. The previous implementation assigned to a module-scope
+    // `socket` from an async initializer, which leaks in dev: React Strict
+    // Mode mounts the effect twice and Fast Refresh re-runs it on every save,
+    // but the `await fetch("/api/health")` suspends past the cleanup window.
+    // The cleanup then ran with `socket` still undefined (no-op), while every
+    // subsequent initializer overwrote the module var with a fresh `io()`,
+    // leaving 2-3 live socket connections per browser tab. Symptoms: every
+    // eventAdjudicator log line shows count >=2, and intermittent messages
+    // get lost when the server tears down a stale leaked connection just as a
+    // new one is being bound.
+    let aborted = false
+    let localSocket: ReturnType<typeof io> | undefined
+    ;(async () => {
       try {
         await fetch("/api/health")
-        socket = io()
-        socket.on("connect", () => {
+        if (aborted) return
+        localSocket = io()
+        socket = localSocket
+        localSocket.on("connect", () => {
           console.log("connected")
         })
-        socket.on("welcome", (msg) => {
+        localSocket.on("welcome", (msg) => {
           console.log("received", msg)
         })
-        socket.on("connection:status", (status: ConnectionStatus) => {
+        localSocket.on("connection:status", (status: ConnectionStatus) => {
           setConnectionStatus(status)
         })
-        socket.on("eventAdjudicator", async (msg) => {
+        localSocket.on("eventAdjudicator", async (msg) => {
           if (processCtx.activeMsgId && msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId !== processCtx.activeMsgId) return
           await processCtx.handleAdjudicatorLive(msg)
         })
       } catch (error) {
         console.log(error)
       }
-    }
-    socketInitializer()
-    // Cleanup so React Strict Mode re-mounts (dev) do not leak duplicate
-    // sockets and stacked listeners. socketInitializer is async and assigns
-    // the module-scoped `socket` after a network round-trip, so the cleanup
-    // checks for the assignment before tearing down.
+    })()
     return () => {
-      if (socket) {
-        socket.off("connect")
-        socket.off("welcome")
-        socket.off("connection:status")
-        socket.off("eventAdjudicator")
-        socket.disconnect()
+      aborted = true
+      if (localSocket) {
+        localSocket.off("connect")
+        localSocket.off("welcome")
+        localSocket.off("connection:status")
+        localSocket.off("eventAdjudicator")
+        localSocket.disconnect()
       }
     }
   }, [])
@@ -273,6 +284,28 @@ const Web = () => {
       setLoading(false)
     }
   }, [])
+
+  // Subscribe to the header Clear All button. Skip the initial mount fire
+  // (clearAllSignal starts at 0) so a fresh page load does not gratuitously
+  // clear state. On each subsequent bump from triggerClearAll(), flush all
+  // page-local selection / hover state alongside the four context-side
+  // clears that the button itself does not have direct access to.
+  useEffect(() => {
+    if (processCtx.clearAllSignal === 0) return
+    setSelectedRule(null)
+    setSelectedRules([])
+    setSelectedType(null)
+    setSelectedTypes([])
+    setHoverRules([])
+    setHoveredRule(null)
+    setHoverTypes([])
+    setHoveredType(null)
+    processCtx.clearLinkedTypologies()
+    entityCtx.clearUIData()
+    processCtx.resetAllLights()
+    processCtx.clearResults()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processCtx.clearAllSignal])
 
   if (loading) return <Loader />
   if (error) return <p>Error: {error}</p>
@@ -365,27 +398,6 @@ const Web = () => {
   return (
     <div className="flex min-h-full w-full flex-col">
       <ConnectionStatusBanner status={connectionStatus} />
-      <div className="z-99 absolute right-[100px] top-5 cursor-pointer">
-        <button
-          className="content-right-center ml-auto rounded-md bg-gradient-to-b from-gray-100 to-gray-200 p-2 shadow-lg"
-          onClick={() => {
-            setSelectedRule(null)
-            setSelectedRules([])
-            setSelectedType(null)
-            setSelectedTypes([])
-            setHoverRules([])
-            setHoveredRule(null)
-            setHoverTypes([])
-            setHoveredType(null)
-            processCtx.clearLinkedTypologies()
-            entityCtx.clearUIData()
-            processCtx.resetAllLights()
-            processCtx.clearResults()
-          }}
-        >
-          Clear All
-        </button>
-      </div>
       <div className="bg-slate-300/25 px-3 pb-1 pt-4">
         <div className="grid grid-cols-12 gap-5">
           {/* Debtors */}
