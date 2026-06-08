@@ -251,13 +251,13 @@ const ProcessorReducer = (state: any, action: any) => {
       return {
         ...state,
         typologyLoading: false,
-        typology: action.payload,
+        typologies: action.payload,
       }
     case ACTIONS.UPDATE_TYPO_FAIL:
       return {
         ...state,
         typologyLoading: false,
-        typology: [],
+        typologies: [],
       }
 
     case ACTIONS.UPDATE_ADJUDICATOR_LOADING:
