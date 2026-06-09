@@ -41,13 +41,24 @@ interface AdminListEnvelope<T> {
   data?: T[]
 }
 
+interface RuleCaseExpression {
+  subRuleRef: string
+  reason: string
+  value?: unknown
+}
+
+interface RuleCases {
+  expressions?: RuleCaseExpression[]
+  alternative?: { subRuleRef: string; reason: string }
+}
+
 interface RuleConfigDoc {
   id?: string
   rule?: string
   desc?: string
   config?: {
     bands?: RuleBand[]
-    cases?: RuleBand[]
+    cases?: RuleCases
     exitConditions?: RuleBand[]
   }
 }
@@ -160,14 +171,36 @@ export function transformNetworkMap(
     const cfg = ruleDoc.config
     if (!cfg) continue
 
-    const sourceBands = (cfg.bands?.length ? cfg.bands : cfg.cases) ?? []
-    for (const band of sourceBands) {
-      rule.ruleBands.push({
-        subRuleRef: band.subRuleRef,
-        lowerLimit: band.lowerLimit ?? null,
-        upperLimit: band.upperLimit ?? null,
-        reason: band.reason,
-      })
+    if (cfg.bands?.length) {
+      for (const band of cfg.bands) {
+        rule.ruleBands.push({
+          subRuleRef: band.subRuleRef,
+          lowerLimit: band.lowerLimit ?? null,
+          upperLimit: band.upperLimit ?? null,
+          reason: band.reason,
+        })
+      }
+    } else if (cfg.cases) {
+      // admin-service `cases` shape: { expressions: [...], alternative?: {...} }.
+      // Each expression / the alternative becomes a band with null limits; the
+      // expression `value` is intentionally dropped because RuleBand has no
+      // slot for it and the UI's lookup in utils/rules.tsx keys on subRuleRef.
+      for (const expr of cfg.cases.expressions ?? []) {
+        rule.ruleBands.push({
+          subRuleRef: expr.subRuleRef,
+          lowerLimit: null,
+          upperLimit: null,
+          reason: expr.reason,
+        })
+      }
+      if (cfg.cases.alternative) {
+        rule.ruleBands.push({
+          subRuleRef: cfg.cases.alternative.subRuleRef,
+          lowerLimit: null,
+          upperLimit: null,
+          reason: cfg.cases.alternative.reason,
+        })
+      }
     }
 
     if (cfg.exitConditions) {

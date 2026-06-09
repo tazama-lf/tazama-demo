@@ -119,7 +119,39 @@ describe("transformNetworkMap", () => {
     expect(out.rules[0].ruleBands[0]).toEqual({ subRuleRef: ".01", lowerLimit: 0, upperLimit: 100, reason: "low" })
   })
 
-  it("hydrates rules from the `cases` config shape", () => {
+  it("hydrates rules from the `cases` config shape (admin-service: { expressions, alternative })", () => {
+    const networkMap = {
+      data: [{ messages: [{ typologies: [{ cfg: "999@1.0.0", rules: [{ id: "901@1.0.0" }] }] }] }],
+    }
+    // Real admin-service shape (e.g. rule 078@1.0.0): `cases` is an object, not an array.
+    const rules = {
+      data: [
+        {
+          id: "901@1.0.0",
+          desc: "Cases rule",
+          config: {
+            cases: {
+              expressions: [
+                { subRuleRef: ".01", reason: "MP2B match", value: "MP2B" },
+                { subRuleRef: ".02", reason: "MP2P match", value: "MP2P" },
+              ],
+              alternative: { subRuleRef: ".00", reason: "unrecognised" },
+            },
+          },
+        },
+      ],
+    }
+
+    const out = transformNetworkMap(networkMap, rules, { data: [] })
+
+    expect(out.rules[0].ruleBands).toEqual([
+      { subRuleRef: ".01", lowerLimit: null, upperLimit: null, reason: "MP2B match" },
+      { subRuleRef: ".02", lowerLimit: null, upperLimit: null, reason: "MP2P match" },
+      { subRuleRef: ".00", lowerLimit: null, upperLimit: null, reason: "unrecognised" },
+    ])
+  })
+
+  it("hydrates rules from `cases` with only expressions (no alternative)", () => {
     const networkMap = {
       data: [{ messages: [{ typologies: [{ cfg: "999@1.0.0", rules: [{ id: "901@1.0.0" }] }] }] }],
     }
@@ -127,15 +159,19 @@ describe("transformNetworkMap", () => {
       data: [
         {
           id: "901@1.0.0",
-          desc: "Cases rule",
-          config: { cases: [{ subRuleRef: ".01", lowerLimit: null, upperLimit: null, reason: "match" }] },
+          desc: "Cases rule no alt",
+          config: {
+            cases: {
+              expressions: [{ subRuleRef: ".01", reason: "only", value: "X" }],
+            },
+          },
         },
       ],
     }
 
     const out = transformNetworkMap(networkMap, rules, { data: [] })
 
-    expect(out.rules[0].ruleBands).toEqual([{ subRuleRef: ".01", lowerLimit: null, upperLimit: null, reason: "match" }])
+    expect(out.rules[0].ruleBands).toEqual([{ subRuleRef: ".01", lowerLimit: null, upperLimit: null, reason: "only" }])
   })
 
   it("appends `exitConditions` to ruleBands in addition to bands/cases", () => {
