@@ -1,6 +1,4 @@
 "use client"
-import { useContext } from "react"
-import ProcessorContext from "store/processors/processor.context"
 import { Rule } from "store/processors/processor.interface"
 
 interface RuleProps {
@@ -16,10 +14,17 @@ interface RuleProps {
   setHoverTypes: (data: any[]) => void
 }
 
-export const getRuleDescriptions = (result: string, rule_id: number) => {
-  const procCtx = useContext(ProcessorContext)
-  const desc: any = procCtx.rules.find((rule: Rule) => rule.id === rule_id)
-  const description = desc.ruleBands.find((item: any) => item.subRuleRef === result)
+/**
+ * Look up the human-readable reason for a rule's sub-result band.
+ *
+ * Pure function on purpose: callers must read `rules` from `ProcessorContext`
+ * once at the top of their component and pass it in, otherwise invoking this
+ * inside a `.map()` violates the Rules of Hooks (the hook count would change
+ * with `linkedTypologies.length`).
+ */
+export const getRuleDescriptions = (rules: Rule[], result: string, rule_id: number): string | undefined => {
+  const desc = rules.find((rule: Rule) => rule.id === rule_id)
+  const description = desc?.ruleBands?.find((item) => item.subRuleRef === result)
   return description?.reason
 }
 
