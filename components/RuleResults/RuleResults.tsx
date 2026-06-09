@@ -18,6 +18,12 @@ interface RuleProps {
 }
 
 const RuleResult = ({ ...props }: RuleProps) => {
+  // Call useContext exactly once per render at the top level - Rules of Hooks.
+  // The lookup was previously done inside getRuleDescriptions which was invoked
+  // from within a .map() callback below; the hook count then varied with
+  // linkedTypologies.length and React would error on re-render. See issue #120.
+  const procCtx = useContext(ProcessorContext)
+
   let ruleTPS: any
   if (props.hoveredRule) {
     ruleTPS = props.hoveredRule?.linkedTypologies.map((tp) => {
@@ -34,7 +40,7 @@ const RuleResult = ({ ...props }: RuleProps) => {
           </div>
           <div className="align-center flex w-full grow items-center border-black text-center text-xs">
             <p className="w-full text-center text-xs">
-              {getRuleDescriptions(tp.subRuleRef, parseFloat(tp.rule)) || "None"}
+              {getRuleDescriptions(procCtx.rules, tp.subRuleRef, parseFloat(tp.rule)) || "None"}
             </p>
           </div>
         </div>
@@ -55,7 +61,7 @@ const RuleResult = ({ ...props }: RuleProps) => {
           </div>
           <div className="align-center flex w-full grow items-center border-black text-center text-xs">
             <p className="w-full text-center text-xs">
-              {getRuleDescriptions(tp.subRuleRef, parseFloat(tp.rule)) || "None"}
+              {getRuleDescriptions(procCtx.rules, tp.subRuleRef, parseFloat(tp.rule)) || "None"}
             </p>
           </div>
         </div>

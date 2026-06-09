@@ -100,33 +100,74 @@ describe("GET /api/network-map", () => {
     expect(body).toEqual({ rules: [], typologies: [], typologiesEFRuP: [] })
   })
 
-  it("mirrors the status code from TazamaClientError", async () => {
-    mockAdminGet.mockRejectedValueOnce(new TazamaClientError(503, "Service unavailable"))
+  it("mirrors the status from a TazamaClientError and reports the failing source (network_map)", async () => {
+    mockAdminGet
+      .mockRejectedValueOnce(new TazamaClientError(503, "Service unavailable"))
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({ data: [] })
 
     const response = await GET()
     const body = await response.json()
 
     expect(response.status).toBe(503)
-    expect(body.error).toBe("Service unavailable")
+    expect(body.failures).toEqual([{ source: "network_map", status: 503, message: "Service unavailable" }])
+    expect(body.error).toContain("network_map")
   })
 
-  it("returns 504 for a DOMException TimeoutError", async () => {
-    mockAdminGet.mockRejectedValueOnce(new DOMException("timed out", "TimeoutError"))
+  it("returns 504 for a DOMException TimeoutError on the rule call and identifies the source", async () => {
+    mockAdminGet
+      .mockResolvedValueOnce({ data: [] })
+      .mockRejectedValueOnce(new DOMException("timed out", "TimeoutError"))
+      .mockResolvedValueOnce({ data: [] })
 
     const response = await GET()
     const body = await response.json()
 
     expect(response.status).toBe(504)
-    expect(body.error).toContain("timed out")
+    expect(body.failures).toHaveLength(1)
+    expect(body.failures[0]).toMatchObject({ source: "rule", status: 504 })
+    expect(body.failures[0].message).toMatch(/timed out/i)
   })
 
-  it("returns 502 for any other unexpected error", async () => {
-    mockAdminGet.mockRejectedValueOnce(new Error("connection refused"))
+  it("returns 502 for an unexpected error on the typology call and identifies the source", async () => {
+    mockAdminGet
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({ data: [] })
+      .mockRejectedValueOnce(new Error("connection refused"))
 
     const response = await GET()
     const body = await response.json()
 
     expect(response.status).toBe(502)
-    expect(body.error).toContain("Failed to reach")
+    expect(body.failures).toHaveLength(1)
+    expect(body.failures[0]).toMatchObject({ source: "typology", status: 502 })
+  })
+
+  it("reports every failed source and uses the worst status when multiple calls fail", async () => {
+    mockAdminGet
+      .mockRejectedValueOnce(new TazamaClientError(503, "nm down"))
+      .mockRejectedValueOnce(new DOMException("timed out", "TimeoutError"))
+      .mockResolvedValueOnce({ data: [] })
+
+    const response = await GET()
+    const body = await response.json()
+
+    // 504 (timeout) > 503 (service unavailable) -> worst status wins.
+    expect(response.status).toBe(504)
+    expect(body.failures).toHaveLength(2)
+    expect(body.failures.map((f: { source: string }) => f.source).sort()).toEqual(["network_map", "rule"])
+  })
+
+  it("succeeds when admin-service calls succeed even if one of them returns an empty list", async () => {
+    mockAdminGet
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({ data: [] })
+
+    const response = await GET()
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body.failures).toBeUndefined()
   })
 })
