@@ -160,10 +160,8 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
                   }
                   const dateAttempt = new Date(e.target.value)
                   if (isNaN(dateAttempt.getTime())) return
-                  const min_date = new Date().toISOString()
-                  const checkDate = new Date(min_date.substring(0, 16)).getTime()
                   setExpDtTm({ idx: index, expDtTm: dateAttempt.toISOString() })
-                  if (dateAttempt.getTime() <= checkDate) {
+                  if (dateAttempt.getTime() <= Date.now()) {
                     setExpError(true)
                   }
                 }}
