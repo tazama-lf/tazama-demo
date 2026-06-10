@@ -8,10 +8,12 @@ import { adminGet, adminPost, adminPut, TazamaClientError, tmsPost } from "lib/t
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function mockFetchOk(body: unknown, status = 200) {
+  const text = body === undefined ? "" : JSON.stringify(body)
   return jest.fn().mockResolvedValue({
     ok: true,
     status,
     json: () => Promise.resolve(body),
+    text: () => Promise.resolve(text),
   })
 }
 
@@ -20,6 +22,17 @@ function mockFetchError(status: number) {
     ok: false,
     status,
     json: () => Promise.resolve({ error: "upstream error" }),
+  })
+}
+
+// Simulates a real 204 No Content (or any 2xx with empty body): res.json() rejects
+// with SyntaxError("Unexpected end of JSON input") and res.text() resolves to "".
+function mockFetchEmpty(status = 204) {
+  return jest.fn().mockResolvedValue({
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.reject(new SyntaxError("Unexpected end of JSON input")),
+    text: () => Promise.resolve(""),
   })
 }
 
@@ -141,6 +154,22 @@ describe("adminGet", () => {
     await expect(adminGet("/v1/rules")).rejects.toMatchObject({ status: 503 })
     expect(global.fetch).not.toHaveBeenCalled()
   })
+
+  it("returns undefined on a 204 No Content response (does not throw SyntaxError)", async () => {
+    global.fetch = mockFetchEmpty(204)
+
+    const result = await adminGet("/v1/admin/event-flow-control/entity?id=x&schmenm=y")
+
+    expect(result).toBeUndefined()
+  })
+
+  it("returns undefined when a 2xx response has an empty body", async () => {
+    global.fetch = mockFetchEmpty(200)
+
+    const result = await adminGet("/v1/something")
+
+    expect(result).toBeUndefined()
+  })
 })
 
 // ─── adminPost ───────────────────────────────────────────────────────────────
@@ -213,6 +242,14 @@ describe("adminPost", () => {
     await expect(adminPost("/v1/conditions", {})).rejects.toMatchObject({ status: 503 })
     expect(global.fetch).not.toHaveBeenCalled()
   })
+
+  it("returns undefined on a 204 No Content response (does not throw SyntaxError)", async () => {
+    global.fetch = mockFetchEmpty(204)
+
+    const result = await adminPost("/v1/conditions", { foo: "bar" })
+
+    expect(result).toBeUndefined()
+  })
 })
 
 // ─── adminPut ────────────────────────────────────────────────────────────────
@@ -284,6 +321,14 @@ describe("adminPut", () => {
 
     await expect(adminPut("/v1/conditions/x", {})).rejects.toMatchObject({ status: 503 })
     expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it("returns undefined on a 204 No Content response (does not throw SyntaxError)", async () => {
+    global.fetch = mockFetchEmpty(204)
+
+    const result = await adminPut("/v1/conditions/cond-123", { condSts: "XPRD" })
+
+    expect(result).toBeUndefined()
   })
 })
 
@@ -376,5 +421,13 @@ describe("tmsPost", () => {
 
     await expect(tmsPost("/execute", {})).rejects.toMatchObject({ status: 503 })
     expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it("returns undefined on a 204 No Content response (does not throw SyntaxError)", async () => {
+    global.fetch = mockFetchEmpty(204)
+
+    const result = await tmsPost("/execute", { TxTp: "pacs.008.001.10" })
+
+    expect(result).toBeUndefined()
   })
 })

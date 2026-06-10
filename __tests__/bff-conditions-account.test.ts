@@ -115,6 +115,17 @@ describe("GET /api/conditions/account", () => {
 
     expect(response.status).toBe(502)
   })
+
+  it("returns 204 No Content when admin-service has no conditions for the account", async () => {
+    // adminGet returns undefined when upstream responds 204 (account exists, no conditions).
+    // The BFF must propagate that as 204 - NOT mask it as a 502.
+    mockAdminGet.mockResolvedValueOnce(undefined)
+
+    const req = getRequest({ id: "acct-001", schmenm: "MSISDN", agt: "bank-001" })
+    const response = await GET(req)
+
+    expect(response.status).toBe(204)
+  })
 })
 
 // ---------------------------------------------------------------------------

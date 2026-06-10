@@ -11,7 +11,7 @@
 export class TazamaClientError extends Error {
   constructor(
     public readonly status: number,
-    message: string,
+    message: string
   ) {
     super(message)
     this.name = "TazamaClientError"
@@ -29,12 +29,26 @@ function buildHeaders(jwt?: string): HeadersInit {
 }
 
 /**
+ * Parse the response body as JSON, returning undefined for 204 No Content or any
+ * other 2xx response with an empty body. Avoids the SyntaxError that the native
+ * `res.json()` throws on empty payloads, which previously bubbled up through the
+ * BFF catch-all and was misreported to clients as a 502.
+ */
+async function parseJsonBody<T>(res: Response): Promise<T | undefined> {
+  if (res.status === 204) return undefined
+  const text = await res.text()
+  if (!text) return undefined
+  return JSON.parse(text) as T
+}
+
+/**
  * GET request to admin-service.
  * Throws TazamaClientError on non-2xx.
  * Throws DOMException (name="TimeoutError") on timeout.
  * Throws TypeError on network failure.
+ * Returns undefined on 204 No Content or empty body.
  */
-export async function adminGet<T = unknown>(path: string, jwt?: string, timeoutMs = 5000): Promise<T> {
+export async function adminGet<T = unknown>(path: string, jwt?: string, timeoutMs = 5000): Promise<T | undefined> {
   const baseUrl = process.env.ADMIN_SERVICE_URL
   if (!baseUrl) throw new TazamaClientError(503, "ADMIN_SERVICE_URL is not configured")
   const res = await fetch(`${baseUrl}${path}`, {
@@ -44,7 +58,7 @@ export async function adminGet<T = unknown>(path: string, jwt?: string, timeoutM
   if (!res.ok) {
     throw new TazamaClientError(res.status, `Admin service returned ${res.status} for ${path}`)
   }
-  return res.json() as Promise<T>
+  return parseJsonBody<T>(res)
 }
 
 /**
@@ -52,8 +66,14 @@ export async function adminGet<T = unknown>(path: string, jwt?: string, timeoutM
  * Throws TazamaClientError on non-2xx.
  * Throws DOMException (name="TimeoutError") on timeout.
  * Throws TypeError on network failure.
+ * Returns undefined on 204 No Content or empty body.
  */
-export async function adminPost<T = unknown>(path: string, body: unknown, jwt?: string, timeoutMs = 5000): Promise<T> {
+export async function adminPost<T = unknown>(
+  path: string,
+  body: unknown,
+  jwt?: string,
+  timeoutMs = 5000
+): Promise<T | undefined> {
   const baseUrl = process.env.ADMIN_SERVICE_URL
   if (!baseUrl) throw new TazamaClientError(503, "ADMIN_SERVICE_URL is not configured")
   const res = await fetch(`${baseUrl}${path}`, {
@@ -65,7 +85,7 @@ export async function adminPost<T = unknown>(path: string, body: unknown, jwt?: 
   if (!res.ok) {
     throw new TazamaClientError(res.status, `Admin service returned ${res.status} for ${path}`)
   }
-  return res.json() as Promise<T>
+  return parseJsonBody<T>(res)
 }
 
 /**
@@ -73,8 +93,14 @@ export async function adminPost<T = unknown>(path: string, body: unknown, jwt?: 
  * Throws TazamaClientError on non-2xx.
  * Throws DOMException (name="TimeoutError") on timeout.
  * Throws TypeError on network failure.
+ * Returns undefined on 204 No Content or empty body.
  */
-export async function adminPut<T = unknown>(path: string, body: unknown, jwt?: string, timeoutMs = 5000): Promise<T> {
+export async function adminPut<T = unknown>(
+  path: string,
+  body: unknown,
+  jwt?: string,
+  timeoutMs = 5000
+): Promise<T | undefined> {
   const baseUrl = process.env.ADMIN_SERVICE_URL
   if (!baseUrl) throw new TazamaClientError(503, "ADMIN_SERVICE_URL is not configured")
   const res = await fetch(`${baseUrl}${path}`, {
@@ -86,17 +112,22 @@ export async function adminPut<T = unknown>(path: string, body: unknown, jwt?: s
   if (!res.ok) {
     throw new TazamaClientError(res.status, `Admin service returned ${res.status} for ${path}`)
   }
-  return res.json() as Promise<T>
+  return parseJsonBody<T>(res)
 }
-
 
 /**
  * POST request to TMS.
  * Throws TazamaClientError on non-2xx.
  * Throws DOMException (name="TimeoutError") on timeout.
  * Throws TypeError on network failure.
+ * Returns undefined on 204 No Content or empty body.
  */
-export async function tmsPost<T = unknown>(path: string, body: unknown, jwt?: string, timeoutMs = 10000): Promise<T> {
+export async function tmsPost<T = unknown>(
+  path: string,
+  body: unknown,
+  jwt?: string,
+  timeoutMs = 10000
+): Promise<T | undefined> {
   const baseUrl = process.env.TMS_SERVER_URL
   if (!baseUrl) throw new TazamaClientError(503, "TMS_SERVER_URL is not configured")
   const res = await fetch(`${baseUrl}${path}`, {
@@ -108,5 +139,5 @@ export async function tmsPost<T = unknown>(path: string, body: unknown, jwt?: st
   if (!res.ok) {
     throw new TazamaClientError(res.status, `TMS returned ${res.status} for ${path}`)
   }
-  return res.json() as Promise<T>
+  return parseJsonBody<T>(res)
 }

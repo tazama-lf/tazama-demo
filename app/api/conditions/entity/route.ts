@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { NextRequest, NextResponse } from "next/server"
+import type { Session } from "next-auth"
 import { auth } from "lib/auth"
 import { adminGet, adminPost, adminPut, TazamaClientError } from "lib/tazama-client"
-import type { Session } from "next-auth"
 
 const AUTHENTICATED = process.env.AUTHENTICATED === "true"
 
@@ -39,6 +39,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const data = await adminGet(path, jwt)
+    if (data === undefined) {
+      return new NextResponse(null, { status: 204 })
+    }
     return NextResponse.json(data)
   } catch (err) {
     return errorResponse(err)

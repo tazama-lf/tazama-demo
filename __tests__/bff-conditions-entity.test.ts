@@ -109,6 +109,17 @@ describe("GET /api/conditions/entity", () => {
 
     expect(response.status).toBe(502)
   })
+
+  it("returns 204 No Content when admin-service has no conditions for the entity", async () => {
+    // adminGet returns undefined when upstream responds 204 (entity exists, no conditions).
+    // The BFF must propagate that as 204 - NOT mask it as a 502.
+    mockAdminGet.mockResolvedValueOnce(undefined)
+
+    const req = getRequest({ id: "entity-001", schmenm: "MSISDN" })
+    const response = await GET(req)
+
+    expect(response.status).toBe(204)
+  })
 })
 
 // ---------------------------------------------------------------------------
