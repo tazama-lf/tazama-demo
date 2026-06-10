@@ -14,6 +14,7 @@ import { ACTIONS } from "./processor.actions"
 import ProcessorContext from "./processor.context"
 import {
   defaultAdjudicatorLights,
+  defaultAlerts,
   defaultConditionsData,
   defaultEDLights,
   defaultEntityEventType,
@@ -74,6 +75,8 @@ const ProcessorProvider = ({ children }: Props) => {
     conditionReasons: [],
     createConError: undefined,
     txId: null,
+    // ALERTS panel slice (spec §5.1, §6.1)
+    alerts: defaultAlerts,
   }
   const [state, dispatch] = useReducer(ProcessorReducer, initialProcessorState)
   const nttyCtx = useContext(EntityContext)
@@ -196,9 +199,26 @@ const ProcessorProvider = ({ children }: Props) => {
 
   useEffect(() => {
     if (socket !== undefined) {
-      socket.emit("subscriptions", { subscriptions: ["connection", ">", "typology-processor@1.0.0", "cms"] })
+      // ALERTS panel (spec §6.2, G1a): append "ruleResponse" and
+      // "interdiction-service-tp" to the existing subscriptions list. The
+      // pre-existing entries are intentionally left untouched here; their
+      // cleanup is out of scope and tracked in #123. Deps now include
+      // `socket` so the emit fires on socket creation (in addition to
+      // each connect/reconnect) - the previous `[isConnected]`-only deps
+      // missed the emit entirely in test environments where the mocked
+      // socket never fires `connect`.
+      socket.emit("subscriptions", {
+        subscriptions: [
+          "connection",
+          ">",
+          "typology-processor@1.0.0",
+          "cms",
+          "ruleResponse",
+          "interdiction-service-tp",
+        ],
+      })
     }
-  }, [isConnected])
+  }, [socket, isConnected])
 
   // Keep an always-current reference to the eventAdjudicator handler so the
   // listener registered against the socket can read the latest state without
@@ -220,6 +240,15 @@ const ProcessorProvider = ({ children }: Props) => {
       // directly keeps the filter as fresh as React allows.
       const currentMsgId = entityCtx.currentMsgId
       if (currentMsgId && incomingMsgId && incomingMsgId !== currentMsgId) return
+      // ALERTS panel (spec §5.2): map report.status to the EVENT
+      // ADJUDICATOR sub-panel outcome. "ALRT" -> alrt, "NALT" -> nalt,
+      // anything else (including missing report) -> none. Dispatched
+      // unconditionally for any MsgId-matching message so a stale outcome
+      // never lingers when the upstream status flips.
+      const adjudicatorStatus = msg?.report?.status
+      const adjudicatorOutcome: "alrt" | "nalt" | "none" =
+        adjudicatorStatus === "ALRT" ? "alrt" : adjudicatorStatus === "NALT" ? "nalt" : "none"
+      dispatch({ type: ACTIONS.SET_ADJUDICATOR_STATUS, payload: adjudicatorOutcome })
       const tadpResult = msg?.report?.tadpResult
       if (!tadpResult || !Object.keys(tadpResult).includes("typologyResult")) return
       // Page-load race guard: if the network-map driven state has not been
@@ -275,6 +304,70 @@ const ProcessorProvider = ({ children }: Props) => {
     socket.on("eventAdjudicator", handler)
     return () => {
       socket.off("eventAdjudicator", handler)
+    }
+  }, [socket])
+
+  // ─── ALERTS panel: ruleResponse handler (spec §5.2, §6.2, A-EF7, G4a) ────
+  // The BFF forwards every `pub-rule-${rule.id}` NATS subject to the
+  // `ruleResponse` Socket.IO room (see server.js#L450). EVENT FLOW only
+  // cares about EFRuP rule results; the substring match (G4a) allows the
+  // EFRuP name to appear anywhere in the rule id (prefix, infix, suffix).
+  // The ref-updater pattern matches the eventAdjudicator handler above so
+  // the closure always reads the latest entityCtx.currentMsgId without
+  // re-registering the socket listener on every render (which would stack
+  // duplicate listeners and fire the handler N times for the Nth message).
+  const ruleResponseHandlerRef = useRef<(msg: any) => void>(() => {})
+
+  useEffect(() => {
+    ruleResponseHandlerRef.current = (msg: any) => {
+      const incomingMsgId = msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
+      const currentMsgId = entityCtx.currentMsgId
+      if (currentMsgId && incomingMsgId && incomingMsgId !== currentMsgId) return
+      const ruleResult = msg?.ruleResult
+      const ruleId: string | undefined = ruleResult?.id
+      if (!ruleId || !ruleId.includes("EFRuP")) return
+      const subRuleRef: string | undefined = ruleResult?.subRuleRef
+      if (subRuleRef === ".err") {
+        // A-EF7: log and leave the slice on its previous state. No dispatch.
+        console.error("EFRuP error", ruleResult?.reason)
+        return
+      }
+      if (subRuleRef === "block" || subRuleRef === "override" || subRuleRef === "none") {
+        dispatch({ type: ACTIONS.SET_EVENT_FLOW, payload: subRuleRef })
+      }
+    }
+  })
+
+  useEffect(() => {
+    if (!socket) return
+    const handler = (msg: any) => ruleResponseHandlerRef.current(msg)
+    socket.on("ruleResponse", handler)
+    return () => {
+      socket.off("ruleResponse", handler)
+    }
+  }, [socket])
+
+  // ─── ALERTS panel: interdiction-service-tp handler (spec §5.2, §6.5) ─────
+  // Any message on this room signals an interdicting typology. The slice
+  // is terminal ("interdict") so repeated dispatches for the same
+  // transaction are reducer-idempotent (no flicker, no count).
+  const interdictionTpHandlerRef = useRef<(msg: any) => void>(() => {})
+
+  useEffect(() => {
+    interdictionTpHandlerRef.current = (msg: any) => {
+      const incomingMsgId = msg?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
+      const currentMsgId = entityCtx.currentMsgId
+      if (currentMsgId && incomingMsgId && incomingMsgId !== currentMsgId) return
+      dispatch({ type: ACTIONS.SET_TYPOLOGY_INTERDICTION })
+    }
+  })
+
+  useEffect(() => {
+    if (!socket) return
+    const handler = (msg: any) => interdictionTpHandlerRef.current(msg)
+    socket.on("interdiction-service-tp", handler)
+    return () => {
+      socket.off("interdiction-service-tp", handler)
     }
   }, [socket])
 
@@ -1078,6 +1171,7 @@ const ProcessorProvider = ({ children }: Props) => {
         eventTypes: state.eventTypes,
         conditionReasons: state.conditionReasons,
         createConError: state.createConError,
+        alerts: state.alerts,
         updateEntityEventType,
         updateEntityAllChecked,
         createRules,
