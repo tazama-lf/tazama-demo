@@ -13,6 +13,7 @@ const { createServer } = require("http")
 const { parse } = require("url")
 const { extractTenant } = require("@tazama-lf/auth-lib")
 const { fetchNetworkMapWithRetry } = require("./lib/network-map")
+const { deriveSubjectsFromNetworkMap } = require("./lib/network-map-subjects")
 const { RetryAbortedError } = require("./lib/retry")
 
 // ---------------------------------------------------------------------------
@@ -146,36 +147,10 @@ async function fetchNetworkMap(jwt, socket) {
 
 /**
  * Extracts rule and typology NATS subjects from a network map response.
- * @param {object | null} networkMap
- * @returns {{ ruleSubjects: string[], typoSubjects: string[] }}
+ *
+ * Implementation lives in `lib/network-map-subjects.js` so it can be unit
+ * tested without booting the HTTP server.
  */
-function deriveSubjectsFromNetworkMap(networkMap) {
-  const ruleSubjects = []
-  const typoSubjects = []
-  if (!networkMap) return { ruleSubjects, typoSubjects }
-
-  try {
-    const transactions = networkMap.data?.transactions ?? []
-    for (const tx of transactions) {
-      for (const channel of tx.channels ?? []) {
-        for (const typology of channel.typologies ?? []) {
-          if (typology.cfg && !typoSubjects.includes(`typology-${typology.cfg}`)) {
-            typoSubjects.push(`typology-${typology.cfg}`)
-          }
-          for (const rule of typology.rules ?? []) {
-            if (rule.id && !ruleSubjects.includes(`pub-rule-${rule.id}`)) {
-              ruleSubjects.push(`pub-rule-${rule.id}`)
-            }
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.error("Failed to derive subjects from network map:", err.message)
-  }
-
-  return { ruleSubjects, typoSubjects }
-}
 
 // ---------------------------------------------------------------------------
 // NATS helpers
