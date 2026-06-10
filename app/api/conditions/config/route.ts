@@ -51,6 +51,17 @@ function parseEnvList(envVar: string | undefined, defaults: string[]): string[] 
 }
 
 /**
+ * Shapes a string list into the { id, option } items the dropdown
+ * components in components/Inputs/ consume directly. `visible` and
+ * `selected` are intentionally omitted - the components treat
+ * missing values as their default (visible, not selected) - so the
+ * BFF stays agnostic of which dropdown variant renders the list.
+ */
+function toItems(values: string[]): { id: number; option: string }[] {
+  return values.map((option, id) => ({ id, option }))
+}
+
+/**
  * Returns condition type configuration from server-side env vars.
  * No auth required - values are non-sensitive dropdown options.
  * Override defaults by setting CONDITION_TYPES, EVENT_TYPES, CONDITION_REASONS
@@ -58,8 +69,8 @@ function parseEnvList(envVar: string | undefined, defaults: string[]): string[] 
  */
 export async function GET() {
   return NextResponse.json({
-    conditionTypes: parseEnvList(process.env.CONDITION_TYPES, DEFAULT_CONDITION_TYPES),
-    eventTypes: parseEnvList(process.env.EVENT_TYPES, DEFAULT_EVENT_TYPES),
-    conditionReasons: parseEnvList(process.env.CONDITION_REASONS, DEFAULT_CONDITION_REASONS),
+    conditionTypes: toItems(parseEnvList(process.env.CONDITION_TYPES, DEFAULT_CONDITION_TYPES)),
+    eventTypes: toItems(parseEnvList(process.env.EVENT_TYPES, DEFAULT_EVENT_TYPES)),
+    conditionReasons: toItems(parseEnvList(process.env.CONDITION_REASONS, DEFAULT_CONDITION_REASONS)),
   })
 }
