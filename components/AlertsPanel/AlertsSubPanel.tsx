@@ -8,7 +8,7 @@ export interface AlertsSubPanelProps {
   title: string
   /** Status-light colour (derived from outcome by the parent via the display selectors). */
   colour: AlertColour
-  /** Pill text. Empty string renders no pill (used for the "none" state of TYPOLOGY / ADJUDICATOR). */
+  /** Pill text. Empty string renders an empty pill (the element is always present per §4.2). */
   label: string
 }
 
@@ -20,6 +20,15 @@ export interface AlertsSubPanelProps {
  *  - Body row: status light vertically centred on the left, pill centred horizontally
  *    in the space to its right. The pill uses an inset / recessed neumorphic shadow
  *    so it reads as "engraved" rather than "raised button".
+ *
+ * Pill behaviour (§4.2):
+ *  - The pill <p> element is ALWAYS rendered, regardless of `label` value, so
+ *    the layout slot is reserved across renders. The pill text is only the
+ *    value of `label`, which is the empty string in the initial / reset
+ *    state of every sub-panel.
+ *  - `min-w-36` gives the pill a uniform width sized for the longest label in
+ *    the union (`INTERDICT`, 9 chars) so all three sub-panel pills are the
+ *    same width regardless of which outcome each is currently rendering.
  *
  * Sizing:
  *  - The outer element is `flex flex-1 flex-col` so when the parent (AlertsPanel)
@@ -40,14 +49,12 @@ export function AlertsSubPanel({ title, colour, label }: AlertsSubPanelProps) {
           <StatusIndicator colour={colour} customSize={28} />
         </div>
         <div className="flex flex-1 justify-center">
-          {label !== "" && (
-            <p
-              data-testid={`alerts-pill-${title.toLowerCase().replace(/\s+/g, "-")}`}
-              className="rounded-lg bg-gray-100 px-4 py-1 text-xs uppercase shadow-[inset_0.25rem_0.25rem_0.4rem_rgb(225,226,228),inset_-0.25rem_-0.25rem_0.4rem_rgb(255,255,255)]"
-            >
-              {label}
-            </p>
-          )}
+          <p
+            data-testid={`alerts-pill-${title.toLowerCase().replace(/\s+/g, "-")}`}
+            className="min-w-36 rounded-lg bg-gray-100 px-4 py-1 text-center text-xs uppercase shadow-[inset_0.25rem_0.25rem_0.4rem_rgb(225,226,228),inset_-0.25rem_-0.25rem_0.4rem_rgb(255,255,255)]"
+          >
+            {label}
+          </p>
         </div>
       </div>
     </div>

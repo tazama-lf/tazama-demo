@@ -3,9 +3,13 @@
 
 import { getAdjudicatorDisplay, getEventFlowDisplay, getTypologyDisplay } from "../components/AlertsPanel/alertsDisplay"
 
-describe("getEventFlowDisplay (§5.3)", () => {
-  it("maps 'none' to grey light with NONE pill (the panel never renders blank)", () => {
-    expect(getEventFlowDisplay("none")).toEqual({ colour: "n", label: "NONE" })
+describe("getEventFlowDisplay (§5.3, §4.2)", () => {
+  it("maps 'none' to grey light with BLANK pill - the initial/reset state is no-data, distinct from a live 'NONE' arriving on the wire (see §4.2)", () => {
+    // Spec resolution: §4.2 ("pill text is blank on initial state / transaction
+    // reset") wins over the earlier §5.3/§6.1 wording that gave EVENT FLOW an
+    // explicit NONE default. EVENT FLOW only shows NONE in response to a live
+    // EFRuP `subRuleRef === "none"` message - never as the absence-of-data state.
+    expect(getEventFlowDisplay("none")).toEqual({ colour: "n", label: "" })
   })
 
   it("maps 'block' to red light with BLOCK pill", () => {

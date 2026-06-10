@@ -41,15 +41,28 @@ describe("<AlertsPanel />", () => {
     expect(subHeadings).toEqual(["event flow", "typology processor", "event adjudicator"])
   })
 
-  it("renders NONE pill on the eventFlow sub-panel when state is 'none' (panel is never visually blank for EF)", () => {
+  it("renders an empty pill on ALL THREE sub-panels in the initial/reset state (§4.2 - both elements persist across renders, pill text is blank on reset)", () => {
     renderWithAlerts("none", "none", "none")
-    expect(screen.getByTestId("alerts-pill-event-flow")).toHaveTextContent("NONE")
+    const eventFlowPill = screen.getByTestId("alerts-pill-event-flow")
+    const typologyPill = screen.getByTestId("alerts-pill-typology-processor")
+    const adjudicatorPill = screen.getByTestId("alerts-pill-event-adjudicator")
+    expect(eventFlowPill).toBeInTheDocument()
+    expect(typologyPill).toBeInTheDocument()
+    expect(adjudicatorPill).toBeInTheDocument()
+    expect(eventFlowPill).toBeEmptyDOMElement()
+    expect(typologyPill).toBeEmptyDOMElement()
+    expect(adjudicatorPill).toBeEmptyDOMElement()
   })
 
-  it("renders no pill on typology or adjudicator sub-panels when state is 'none'", () => {
+  it("the EVENT FLOW selector returns blank for the 'none' outcome (live or initial - selectors are agnostic of provenance, see alertsDisplay.ts §5.3/§4.2)", () => {
+    // 'none' as an outcome value is still valid (live EFRuP messages with
+    // subRuleRef='none' continue to flow through SET_EVENT_FLOW). The display
+    // selector now emits an empty label for it so the visual outcome of the
+    // 'no data' initial state and the 'live none' state collapse - both
+    // render an empty pill. This matches the user's explicit instruction
+    // that the default display is blank.
     renderWithAlerts("none", "none", "none")
-    expect(screen.queryByTestId("alerts-pill-typology-processor")).not.toBeInTheDocument()
-    expect(screen.queryByTestId("alerts-pill-event-adjudicator")).not.toBeInTheDocument()
+    expect(screen.getByTestId("alerts-pill-event-flow")).toBeEmptyDOMElement()
   })
 
   it("renders BLOCK + red light when eventFlow outcome is 'block'", () => {

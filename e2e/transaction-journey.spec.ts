@@ -94,21 +94,20 @@ test.describe("Transaction journey", () => {
     await page.waitForSelector("text=Debtors", { timeout: 15000 })
 
     // ALERTS panel (replaces legacy EVENT ADJUDICATOR panel - spec §4, §6.5).
-    // Before submission, the three sub-panels show their default state:
-    //   - EVENT FLOW         outcome "none" -> grey "NONE" pill (label "NONE")
-    //   - TYPOLOGY PROCESSOR outcome "none" -> no pill rendered (label "")
-    //   - EVENT ADJUDICATOR  outcome "none" -> no pill rendered (label "")
-    //
-    // The pill <p> element is only rendered when its label is non-empty
-    // (see AlertsSubPanel), so the "none" state of TYPOLOGY and ADJUDICATOR
-    // has zero matching elements rather than an empty-text pill.
+    // Before submission, all three sub-panel pills are rendered but EMPTY
+    // (spec §4.2: "both elements persist across renders; the pill text is
+    // blank on initial state / transaction reset"). The pill <p> element is
+    // always present in the DOM regardless of label state - only the text
+    // content is gated. The historical EVENT FLOW default of "NONE" was
+    // dropped in favour of a uniformly blank initial state across all three
+    // sub-panels (resolves §5.3 / §6.1 / §4.2 contradiction in favour of §4.2).
     const eventFlowPill = page.getByTestId("alerts-pill-event-flow")
     const typologyPill = page.getByTestId("alerts-pill-typology-processor")
     const adjudicatorPill = page.getByTestId("alerts-pill-event-adjudicator")
 
-    await expect(eventFlowPill).toHaveText("NONE")
-    await expect(typologyPill).toHaveCount(0)
-    await expect(adjudicatorPill).toHaveCount(0)
+    await expect(eventFlowPill).toHaveText("")
+    await expect(typologyPill).toHaveText("")
+    await expect(adjudicatorPill).toHaveText("")
 
     // Click Send to submit the transaction
     const sendBtn = page.getByRole("button", { name: /^send$/i })

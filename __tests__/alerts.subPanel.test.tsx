@@ -30,14 +30,33 @@ describe("<AlertsSubPanel />", () => {
     expect(screen.getByText("OVERRIDE")).toBeInTheDocument()
   })
 
-  it("does NOT render any pill element when label is empty (none state for typology/adjudicator)", () => {
+  it("ALWAYS renders the pill element, even when label is empty (§4.2 'both elements persist across renders')", () => {
     render(<AlertsSubPanel title="Typology Processor" colour="n" label="" />)
-    // pill is the only <p> in the component
-    expect(screen.queryByTestId("alerts-pill-typology-processor")).not.toBeInTheDocument()
+    const pill = screen.getByTestId("alerts-pill-typology-processor")
+    expect(pill).toBeInTheDocument()
+    // No text content but the element occupies its slot in the layout.
+    expect(pill).toBeEmptyDOMElement()
+  })
+
+  it("renders an empty pill on the EVENT FLOW sub-panel in the initial/reset state (§4.2 wins over old §5.3 NONE default)", () => {
+    render(<AlertsSubPanel title="Event Flow" colour="n" label="" />)
+    const pill = screen.getByTestId("alerts-pill-event-flow")
+    expect(pill).toBeInTheDocument()
+    expect(pill).toBeEmptyDOMElement()
   })
 
   it("derives the pill testid from the title (kebab-case of lowercased title)", () => {
     render(<AlertsSubPanel title="Event Adjudicator" colour="r" label="ALRT" />)
     expect(screen.getByTestId("alerts-pill-event-adjudicator")).toHaveTextContent("ALRT")
+  })
+
+  it("pill carries a min-width Tailwind class so all three sub-panel pills are uniformly sized for the longest label (INTERDICT)", () => {
+    // User requirement (post-spec): pills must be sized to accommodate the
+    // widest label in the union (BLOCK | OVERRIDE | NONE | INTERDICT | ALRT | NALT).
+    // INTERDICT (9 chars) is the longest; min-w-36 (9rem) comfortably fits it at
+    // text-xs with the px-4 padding.
+    render(<AlertsSubPanel title="Event Flow" colour="n" label="" />)
+    const pill = screen.getByTestId("alerts-pill-event-flow")
+    expect(pill.className).toMatch(/\bmin-w-36\b/)
   })
 })

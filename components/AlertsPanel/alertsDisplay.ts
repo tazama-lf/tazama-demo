@@ -19,7 +19,17 @@ export interface AlertDisplay {
   label: string
 }
 
-/** EVENT FLOW: none → grey/NONE, block → red/BLOCK, override → green/OVERRIDE. */
+/**
+ * EVENT FLOW: none -> grey/BLANK, block -> red/BLOCK, override -> green/OVERRIDE.
+ *
+ * Note on the `none` outcome: §4.2 mandates that pill text is blank on the
+ * initial state and on transaction reset. The user has resolved an internal
+ * spec contradiction (§5.3 / §6.1 previously gave EVENT FLOW an explicit
+ * `NONE` default) in favour of §4.2 - selectors are agnostic of provenance,
+ * so both the initial / reset state AND a live EFRuP message carrying
+ * `subRuleRef === "none"` collapse to the same empty-pill render. The
+ * status-light stays neutral grey in either case.
+ */
 export function getEventFlowDisplay(outcome: EventFlowOutcome): AlertDisplay {
   switch (outcome) {
     case "block":
@@ -28,7 +38,7 @@ export function getEventFlowDisplay(outcome: EventFlowOutcome): AlertDisplay {
       return { colour: "g", label: "OVERRIDE" }
     case "none":
     default:
-      return { colour: "n", label: "NONE" }
+      return { colour: "n", label: "" }
   }
 }
 
