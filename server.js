@@ -416,13 +416,18 @@ function emitTestFixtures(io, msgId) {
 
   // 7. Non-EFRuP ruleResponse - the EVENT FLOW filter (G4a) must reject this;
   //    the slice should remain on "block" from fixture #6.
+  //    `subRuleRef` is deliberately set to "none" (NOT "block") so that any
+  //    filter leak would produce a visibly different terminal state
+  //    (grey NONE instead of red BLOCK), making the bug detectable by an
+  //    e2e assertion on the final pill content. Using "block" here would
+  //    mask leakage because both branches converge on the same outcome.
   io.emit("ruleResponse", {
     ...envelope,
     ruleResult: {
       id: "Rule-999@1.0.0",
       cfg: "1.0.0",
       tenantId: "DEFAULT",
-      subRuleRef: "block",
+      subRuleRef: "none",
     },
   })
 }
