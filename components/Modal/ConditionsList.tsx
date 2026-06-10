@@ -1,11 +1,11 @@
-import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
-import React, { useEffect, useState, useContext } from "react"
-import { displayDate, generateString, handleAdjustTime, viewLocalTime } from "utils/helpers"
-import { ListCondition } from "store/processors/processor.interface"
-import { Seperator } from "components/Inputs/Seperator"
+import React, { useContext, useEffect, useState } from "react"
 import ExpireModel from "components/Inputs/ExpireModal"
-import ProcessorContext from "store/processors/processor.context"
+import { Seperator } from "components/Inputs/Seperator"
+import { ConditionIndicator } from "ConditionsIndicator/ConditionIndicator"
 import EntityContext from "store/entities/entity.context"
+import ProcessorContext from "store/processors/processor.context"
+import { ListCondition } from "store/processors/processor.interface"
+import { displayDate, generateString, handleAdjustTime, viewLocalTime } from "utils/helpers"
 
 interface Props {
   entity_type: string // debtor or creditor
@@ -100,7 +100,7 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
       return (
         <div
           key={generateString(5)}
-          className="my-[1px] flex h-[45px] w-full max-w-[1260px] rounded-md bg-gray-200 text-[14px] drop-shadow-md"
+          className="my-px flex h-[45px] w-full max-w-[1260px] rounded-md bg-gray-200 text-[14px] drop-shadow-md"
         >
           <div className="flex w-1/4 w-[160px] content-center items-center gap-1 pl-1">
             <ConditionIndicator colour={colour} />
@@ -151,24 +151,20 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
                 value={
                   expDtTm !== undefined && expDtTm.idx === index
                     ? handleAdjustTime(expDtTm.expDtTm).substring(0, 16)
-                    : undefined
+                    : ""
                 }
-                onBlur={(e) => {
-                  if (e.target.value) {
-                    let min_date = new Date().toISOString()
-                    let dateAttempt = new Date(e.target.value)
-                    let checkDate = new Date(min_date.substring(0, 16)).getTime()
-                    if (dateAttempt) {
-                      if (dateAttempt.getTime() > checkDate) {
-                        setExpDtTm({ idx: index, expDtTm: dateAttempt.toISOString() })
-                      } else {
-                        let new_date = new Date().getTime() + 10000
-                        setExpDtTm({ idx: index, expDtTm: dateAttempt.toISOString() })
-                        setExpError(true)
-                      }
-                    }
-                  } else {
+                onChange={(e) => {
+                  if (!e.target.value) {
                     setExpDtTm(undefined)
+                    return
+                  }
+                  const dateAttempt = new Date(e.target.value)
+                  if (isNaN(dateAttempt.getTime())) return
+                  const min_date = new Date().toISOString()
+                  const checkDate = new Date(min_date.substring(0, 16)).getTime()
+                  setExpDtTm({ idx: index, expDtTm: dateAttempt.toISOString() })
+                  if (dateAttempt.getTime() <= checkDate) {
+                    setExpError(true)
                   }
                 }}
               />
@@ -179,7 +175,8 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
           <div className="ml-1 flex w-[40px] content-center items-center">
             {con.xprtnDtTm === null || con.xprtnDtTm === undefined ? (
               <button
-                className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 px-1 py-1 text-center drop-shadow-lg"
+                data-testid="row-expire-button"
+                className="align-center flex justify-center gap-2 rounded-full border-[0.5px] border-neutral-300 bg-gradient-to-r from-gray-200 to-gray-100 p-1 text-center drop-shadow-lg"
                 onClick={() => {
                   setSelectedCondition(con)
                   setShowExpire(true)
@@ -255,8 +252,8 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
 
         <div className="grid max-w-[1100px] grid-cols-2 content-between items-center pt-5">
           <div className="flex flex-row">
-            <p className="ml-2 flex p-1 pt-1 text-xl font-medium">Conditions</p>
-            <p className="ml-1 flex p-1 pt-1 text-lg font-thin">- {activeDetails}</p>
+            <p className="ml-2 flex p-1 text-xl font-medium">Conditions</p>
+            <p className="ml-1 flex p-1 text-lg font-thin">- {activeDetails}</p>
           </div>
         </div>
 
@@ -274,12 +271,12 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
               </tr>
             </thead>
           </table>
-          <div className="flex w-[1260px] flex-col overflow-y-auto p-[1px]">{conditions}</div>
+          <div className="flex w-[1260px] flex-col overflow-y-auto p-px">{conditions}</div>
         </div>
         <div className="align-center flex w-full grow justify-end p-5">
           <button
             type="button"
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 p-2 shadow-inner drop-shadow-md"
             onClick={handleCreate}
           >
             <svg
@@ -361,7 +358,7 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
         )}
       </div>
       {expError && (
-        <div className="absolute left-0 top-0 z-[999] flex h-full w-full flex-col items-center justify-center bg-black/10 p-5">
+        <div className="absolute left-0 top-0 z-[999] flex size-full flex-col items-center justify-center bg-black/10 p-5">
           <div className="relative flex min-h-[150px] w-[350px] flex-col justify-center gap-4 rounded-md bg-gradient-to-r from-gray-200 to-gray-100 text-center drop-shadow-lg">
             <div className="m-5 flex flex-col items-center justify-center gap-3">
               <svg
@@ -393,7 +390,7 @@ const ConditionsList = ({ activeDetails, conditions_data, entity_type, handleClo
             <div className="align-center mb-5 flex max-h-[50px] w-full grow justify-center">
               <button
                 type="button"
-                className="flex items-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
+                className="flex items-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 p-2 shadow-inner drop-shadow-md"
                 onClick={() => {
                   setExpError(false)
                 }}
