@@ -29,6 +29,12 @@ export interface AlertsSubPanelProps {
  *  - `min-w-36` gives the pill a uniform width sized for the longest label in
  *    the union (`INTERDICT`, 9 chars) so all three sub-panel pills are the
  *    same width regardless of which outcome each is currently rendering.
+ *  - `h-7` (1.75rem ≡ 28px) matches the `customSize={28}` of the
+ *    StatusIndicator dot to its left, so the pill and the light share the
+ *    same vertical weight and the row reads as one composed unit. The
+ *    padding-driven height (`py-1`) is dropped so the explicit height is the
+ *    sole source of truth; `leading-7` (line-height 1.75rem) vertically
+ *    centres any non-empty label inside the 28 px box.
  *
  * Sizing:
  *  - The outer element is `flex flex-1 flex-col` so when the parent (AlertsPanel)
@@ -51,7 +57,7 @@ export function AlertsSubPanel({ title, colour, label }: AlertsSubPanelProps) {
         <div className="flex flex-1 justify-center">
           <p
             data-testid={`alerts-pill-${title.toLowerCase().replace(/\s+/g, "-")}`}
-            className="min-w-36 rounded-lg bg-gray-100 px-4 py-1 text-center text-xs uppercase shadow-[inset_0.25rem_0.25rem_0.4rem_rgb(225,226,228),inset_-0.25rem_-0.25rem_0.4rem_rgb(255,255,255)]"
+            className="h-7 min-w-36 rounded-lg bg-gray-100 px-4 text-center text-xs uppercase leading-7 shadow-[inset_0.25rem_0.25rem_0.4rem_rgb(225,226,228),inset_-0.25rem_-0.25rem_0.4rem_rgb(255,255,255)]"
           >
             {label}
           </p>
