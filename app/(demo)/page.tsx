@@ -1,7 +1,6 @@
 "use client"
 
 import { DragDropContext } from "@hello-pangea/dnd"
-import Image from "next/image"
 import React, { useContext, useEffect, useState } from "react"
 import io from "socket.io-client"
 import { AlertsPanel } from "components/AlertsPanel/AlertsPanel"
@@ -16,7 +15,9 @@ import DebtorModal from "components/Modal/Modal"
 import { ProcessIndicator } from "components/ProcessIndicator/ProcessIndicator"
 import RuleResult from "components/RuleResults/RuleResults"
 import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
+import { StopOverlay } from "components/StopOverlay/StopOverlay"
 import TypeResult from "components/TypologyResults/TypologyResults"
+import { getIndicatorMode } from "lib/stopOverlay"
 import EntityContext from "store/entities/entity.context"
 import { CdtrEntity, Entity } from "store/entities/entity.interface"
 import ProcessorContext from "store/processors/processor.context"
@@ -402,42 +403,9 @@ const Web = () => {
               <div className="relative col-span-4 flex items-center justify-between px-5">
                 <ProcessIndicator
                   started={started}
-                  stop={processCtx.adjudicatorLights.stop}
-                  efrup={processCtx.adjudicatorLights.efrup}
+                  mode={getIndicatorMode(processCtx.alerts.eventFlow.outcome, processCtx.alerts.typology.outcome)}
                 />
-                {processCtx.adjudicatorLights.efrup === "block" ? (
-                  <Image
-                    src="/stop.png"
-                    width="250"
-                    height="250"
-                    className="absolute inset-0 m-auto"
-                    style={{
-                      position: "absolute",
-                      zIndex: 1,
-                      minWidth: "280px",
-                    }}
-                    alt="stop"
-                    priority={true}
-                  />
-                ) : (
-                  processCtx.adjudicatorLights.stop &&
-                  processCtx.adjudicatorLights.efrup !== "override" && (
-                    <Image
-                      src="/stop.png"
-                      width="250"
-                      height="250"
-                      className="absolute inset-0 m-auto"
-                      style={{
-                        position: "absolute",
-                        zIndex: 1,
-                        // maxWidth: "280px",
-                        minWidth: "280px",
-                      }}
-                      alt="stop"
-                      priority={true}
-                    />
-                  )
-                )}
+                <StopOverlay />
               </div>
               <div className="col-span-4">
                 <DebtorDevice
