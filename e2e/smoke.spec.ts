@@ -24,6 +24,12 @@ test.describe("Smoke tests", () => {
     await expect(page.getByRole("heading", { name: /event director/i })).toBeVisible()
     await expect(page.getByRole("heading", { name: /rules/i })).toBeVisible()
     await expect(page.getByRole("heading", { name: /typologies/i })).toBeVisible()
-    await expect(page.getByRole("heading", { name: /event adjudicator/i })).toBeVisible()
+    // The legacy "Event Adjudicator" h2 panel has been replaced by the ALERTS panel
+    // (spec §4, §6.5). The new panel's outer h2 is "Alerts" and contains three
+    // h3 sub-panels titled "Event Flow", "Typology Processor", "Event Adjudicator".
+    await expect(page.getByRole("heading", { name: /^alerts$/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /^event flow$/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /^typology processor$/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /^event adjudicator$/i })).toBeVisible()
   })
 })
