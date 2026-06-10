@@ -287,17 +287,29 @@ const ProcessorProvider = ({ children }: Props) => {
   // pipeline needs both rules (for updateTadpLights, fed via
   // SET_ADJUDICATOR_RESULTS dispatched from app/(demo)/page.tsx's G-socket)
   // and typologies (for the P-socket handler above).
+  //
+  // Stale-buffer guard: if the user has moved on to a different transaction
+  // before the network-map finishes loading, the buffered message belongs
+  // to a previous MsgId and must NOT be replayed - otherwise the alerts /
+  // light state for the current transaction is silently overwritten with
+  // stale data from the previous one. We compare the buffered envelope's
+  // MsgId against entityCtx.currentMsgId and drop the buffer if it has
+  // gone stale. entityCtx.currentMsgId is added to the dep array so the
+  // effect re-runs when the active transaction changes.
   useEffect(() => {
     if (state.rules.length === 0 || state.typologies.length === 0) return
     const pending = pendingAdjudicatorMsg.current
     if (!pending) return
+    const pendingMsgId = pending?.transaction?.FIToFIPmtSts?.GrpHdr?.MsgId
+    const currentMsgId = entityCtx.currentMsgId
     pendingAdjudicatorMsg.current = null
+    if (pendingMsgId && currentMsgId && pendingMsgId !== currentMsgId) return
     // Re-feed through the adjudicator handler ref so the same code path
     // runs. handleAdjudicatorLive feeds the rule pipeline via
     // SET_ADJUDICATOR_RESULTS; the typology side is handled by the ref.
     adjudicatorHandlerRef.current(pending)
     handleAdjudicatorLive(pending)
-  }, [state.rules.length, state.typologies.length])
+  }, [state.rules.length, state.typologies.length, entityCtx.currentMsgId])
 
   useEffect(() => {
     if (!socket) return

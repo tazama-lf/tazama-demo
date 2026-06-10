@@ -66,40 +66,38 @@ describe("<AlertsPanel />", () => {
   })
 
   it("renders BLOCK + red light when eventFlow outcome is 'block'", () => {
-    const { container } = renderWithAlerts("block", "none", "none")
+    renderWithAlerts("block", "none", "none")
     expect(screen.getByTestId("alerts-pill-event-flow")).toHaveTextContent("BLOCK")
-    // first <img> in DOM order is the eventFlow sub-panel's light
-    const imgs = container.querySelectorAll("img")
-    expect(imgs[0].src).toContain("red-light")
+    const img = screen.getByTestId("alerts-light-event-flow").querySelector("img")
+    expect(img?.src).toContain("red-light")
   })
 
   it("renders OVERRIDE + green light when eventFlow outcome is 'override'", () => {
-    const { container } = renderWithAlerts("override", "none", "none")
+    renderWithAlerts("override", "none", "none")
     expect(screen.getByTestId("alerts-pill-event-flow")).toHaveTextContent("OVERRIDE")
-    const imgs = container.querySelectorAll("img")
-    expect(imgs[0].src).toContain("green-light")
+    const img = screen.getByTestId("alerts-light-event-flow").querySelector("img")
+    expect(img?.src).toContain("green-light")
   })
 
   it("renders INTERDICT + red light when typology outcome is 'interdict'", () => {
-    const { container } = renderWithAlerts("none", "interdict", "none")
+    renderWithAlerts("none", "interdict", "none")
     expect(screen.getByTestId("alerts-pill-typology-processor")).toHaveTextContent("INTERDICT")
-    const imgs = container.querySelectorAll("img")
-    // sub-panels rendered in order EF, TYPO, ADJ -> typology light is imgs[1]
-    expect(imgs[1].src).toContain("red-light")
+    const img = screen.getByTestId("alerts-light-typology-processor").querySelector("img")
+    expect(img?.src).toContain("red-light")
   })
 
   it("renders ALRT + red light when adjudicator outcome is 'alrt' (no longer yellow per spec)", () => {
-    const { container } = renderWithAlerts("none", "none", "alrt")
+    renderWithAlerts("none", "none", "alrt")
     expect(screen.getByTestId("alerts-pill-event-adjudicator")).toHaveTextContent("ALRT")
-    const imgs = container.querySelectorAll("img")
-    expect(imgs[2].src).toContain("red-light")
+    const img = screen.getByTestId("alerts-light-event-adjudicator").querySelector("img")
+    expect(img?.src).toContain("red-light")
   })
 
   it("renders NALT + green light when adjudicator outcome is 'nalt'", () => {
-    const { container } = renderWithAlerts("none", "none", "nalt")
+    renderWithAlerts("none", "none", "nalt")
     expect(screen.getByTestId("alerts-pill-event-adjudicator")).toHaveTextContent("NALT")
-    const imgs = container.querySelectorAll("img")
-    expect(imgs[2].src).toContain("green-light")
+    const img = screen.getByTestId("alerts-light-event-adjudicator").querySelector("img")
+    expect(img?.src).toContain("green-light")
   })
 
   it("reflects all three outcomes simultaneously (independent sub-panels - spec §5.2 'no cross-coupling')", () => {

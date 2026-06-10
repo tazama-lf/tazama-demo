@@ -306,7 +306,7 @@ function releaseTenantSub(producer, tenantId) {
  * @param {string} msgId
  */
 function emitTestFixtures(io, msgId) {
-  const envelope = { transaction: { FIToFIPmtSts: { GrpHdr: { MsgId: msgId } } } }
+  const envelope = { transaction: { TenantId: "DEFAULT", FIToFIPmtSts: { GrpHdr: { MsgId: msgId } } } }
 
   // 1. EVENT ADJUDICATOR (existing fixture - drives the legacy rules pipeline
   //    via handleAdjudicatorLive AND the new ALERTS adjudicator sub-panel).

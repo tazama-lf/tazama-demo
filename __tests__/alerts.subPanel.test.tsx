@@ -57,7 +57,7 @@ describe("<AlertsSubPanel />", () => {
     // text-xs with the px-4 padding.
     render(<AlertsSubPanel title="Event Flow" colour="n" label="" />)
     const pill = screen.getByTestId("alerts-pill-event-flow")
-    expect(pill.className).toMatch(/\bmin-w-36\b/)
+    expect(pill).toHaveClass("min-w-36")
   })
 
   it("pill height matches the StatusIndicator dot diameter (h-7 ≡ 1.75rem ≡ 28px ≡ customSize)", () => {
@@ -70,8 +70,8 @@ describe("<AlertsSubPanel />", () => {
     // leading-7 (line-height: 1.75rem) which matches the box height.
     render(<AlertsSubPanel title="Event Flow" colour="r" label="BLOCK" />)
     const pill = screen.getByTestId("alerts-pill-event-flow")
-    expect(pill.className).toMatch(/\bh-7\b/)
-    expect(pill.className).toMatch(/\bleading-7\b/)
-    expect(pill.className).not.toMatch(/\bpy-1\b/)
+    expect(pill).toHaveClass("h-7")
+    expect(pill).toHaveClass("leading-7")
+    expect(pill).not.toHaveClass("py-1")
   })
 })

@@ -31,7 +31,7 @@ import ProcessorReducer from "store/processors/processor.reducer"
 // slice and sentinel sibling fields so unrelated-state preservation can be
 // asserted on each new action.
 
-const baseState: any = {
+const baseState = {
   rules: [{ id: "rule1", color: "n" }],
   typologies: [{ id: "typo1", color: "n" }],
   rulesLoading: false,
@@ -84,14 +84,16 @@ describe("SET_EVENT_FLOW", () => {
     expect(next.alerts.eventFlow.outcome).toBe("none")
   })
 
-  it("does not mutate typology or adjudicator slices", () => {
+  it("does not mutate typology or adjudicator slices (preserves object references)", () => {
     const next = ProcessorReducer(baseState, {
       type: ACTIONS.SET_EVENT_FLOW,
       payload: "block",
     })
 
-    expect(next.alerts.typology.outcome).toBe(baseState.alerts.typology.outcome)
-    expect(next.alerts.adjudicator.outcome).toBe(baseState.alerts.adjudicator.outcome)
+    // Reference equality is the stronger immutability assertion: not only is
+    // the value unchanged, the reducer did not replace the slice object.
+    expect(next.alerts.typology).toBe(baseState.alerts.typology)
+    expect(next.alerts.adjudicator).toBe(baseState.alerts.adjudicator)
   })
 
   it("preserves unrelated state slices", () => {
@@ -129,13 +131,13 @@ describe("SET_TYPOLOGY_INTERDICTION", () => {
     expect(twice.alerts.typology.outcome).toBe("interdict")
   })
 
-  it("does not mutate eventFlow or adjudicator slices", () => {
+  it("does not mutate eventFlow or adjudicator slices (preserves object references)", () => {
     const next = ProcessorReducer(baseState, {
       type: ACTIONS.SET_TYPOLOGY_INTERDICTION,
     })
 
-    expect(next.alerts.eventFlow.outcome).toBe(baseState.alerts.eventFlow.outcome)
-    expect(next.alerts.adjudicator.outcome).toBe(baseState.alerts.adjudicator.outcome)
+    expect(next.alerts.eventFlow).toBe(baseState.alerts.eventFlow)
+    expect(next.alerts.adjudicator).toBe(baseState.alerts.adjudicator)
   })
 
   it("preserves unrelated state slices", () => {
@@ -179,14 +181,14 @@ describe("SET_ADJUDICATOR_STATUS", () => {
     expect(next.alerts.adjudicator.outcome).toBe("none")
   })
 
-  it("does not mutate eventFlow or typology slices", () => {
+  it("does not mutate eventFlow or typology slices (preserves object references)", () => {
     const next = ProcessorReducer(baseState, {
       type: ACTIONS.SET_ADJUDICATOR_STATUS,
       payload: "alrt",
     })
 
-    expect(next.alerts.eventFlow.outcome).toBe(baseState.alerts.eventFlow.outcome)
-    expect(next.alerts.typology.outcome).toBe(baseState.alerts.typology.outcome)
+    expect(next.alerts.eventFlow).toBe(baseState.alerts.eventFlow)
+    expect(next.alerts.typology).toBe(baseState.alerts.typology)
   })
 
   it("preserves unrelated state slices", () => {

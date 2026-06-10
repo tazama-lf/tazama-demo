@@ -87,6 +87,7 @@ import { act, render, waitFor } from "@testing-library/react"
 import axios from "axios"
 import React, { useContext } from "react"
 import EntityContext from "store/entities/entity.context"
+import getNetworkMapSetup from "store/processors/networkMap"
 import ProcessorContext from "store/processors/processor.context"
 import ProcessorProvider from "store/processors/processor.provider"
 
@@ -533,5 +534,85 @@ describe("ProcessorProvider - transaction boundary (§6.5)", () => {
     })
 
     expect(getCtx().alerts.adjudicator.outcome).toBe("alrt")
+  })
+})
+
+// ─── Buffered-adjudicator stale-replay guard (§6.5) ──────────────────────────
+// Regression for the race surfaced in PR #124 CodeRabbit review: when an
+// eventAdjudicator message arrives BEFORE the network-map driven state is
+// ready, the handler stashes it in pendingAdjudicatorMsg.current and a
+// useEffect drains it once state.rules + state.typologies are populated.
+// Without a stale-buffer guard, if the active transaction has moved on
+// (currentMsgId changed) by the time the drain fires, the buffered message
+// is replayed and silently overwrites the alerts/lights for the CURRENT
+// transaction with state from the previous one.
+//
+// Contract: the drain effect must compare the buffered envelope's MsgId
+// to entityCtx.currentMsgId and drop the buffer (without dispatching) when
+// they differ.
+
+describe("ProcessorProvider - buffered eventAdjudicator stale-replay guard (§6.5)", () => {
+  it("drops the buffered adjudicator message if currentMsgId has changed before the network-map drain fires", async () => {
+    const OLD_MSG_ID = "msg-buffered-old"
+    const NEW_MSG_ID = "msg-buffered-new"
+
+    // Defer the network-map load so state.rules.length stays 0 long enough
+    // for the eventAdjudicator handler to enter its buffer branch (which
+    // requires state.rules.length === 0 || state.typologies.length === 0).
+    const networkMapMock = getNetworkMapSetup as jest.Mock
+    let resolveNetworkMap!: (value: any) => void
+    const deferred = new Promise((resolve) => {
+      resolveNetworkMap = resolve
+    })
+    networkMapMock.mockReturnValueOnce(deferred)
+
+    const { getCtx, rerender } = setup({ currentMsgId: OLD_MSG_ID })
+
+    await waitFor(() => {
+      expect(getSocketHandler("eventAdjudicator")).toBeDefined()
+    })
+
+    // Fire eventAdjudicator with OLD_MSG_ID. state.rules.length is 0 (the
+    // network-map promise is still pending), so the handler buffers the
+    // message in pendingAdjudicatorMsg.current and returns early WITHOUT
+    // dispatching SET_ADJUDICATOR_STATUS. Note: the handler dispatches the
+    // adjudicator outcome BEFORE the buffer branch, so it will read "alrt"
+    // here - that's the live arrival, not the buffered replay.
+    await act(async () => {
+      getSocketHandler("eventAdjudicator")!({
+        transaction: { FIToFIPmtSts: { GrpHdr: { MsgId: OLD_MSG_ID } } },
+        report: {
+          status: "ALRT",
+          tadpResult: { typologyResult: [{ id: "typology", cfg: "stub-typology@1.0.0" }] },
+        },
+      })
+    })
+
+    // Simulate the user submitting a new transaction before the network
+    // map finishes loading: currentMsgId flips, and the transaction
+    // boundary reset clears alerts to none.
+    await act(async () => {
+      rerender({ currentMsgId: NEW_MSG_ID })
+    })
+    expect(getCtx().alerts.adjudicator.outcome).toBe("none")
+
+    // Now the network map resolves, populating state.rules / state.typologies
+    // and triggering the drain effect. With the stale-buffer guard, the
+    // pending MsgId (OLD_MSG_ID) no longer matches currentMsgId (NEW_MSG_ID)
+    // so the buffer is dropped without dispatch. Without the guard, the
+    // buffered message would be replayed and adjudicator.outcome would flip
+    // back to "alrt" for the NEW transaction - silent stale-state leak.
+    await act(async () => {
+      resolveNetworkMap({
+        rules: [{ title: "stub-rule" }],
+        typologies: [{ title: "stub-typology" }],
+        typologiesEFRuP: [],
+      })
+      // Flush microtasks so the dispatch chain completes inside this act.
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    expect(getCtx().alerts.adjudicator.outcome).toBe("none")
   })
 })

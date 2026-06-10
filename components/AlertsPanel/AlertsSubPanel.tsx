@@ -51,7 +51,7 @@ export function AlertsSubPanel({ title, colour, label }: AlertsSubPanelProps) {
         {title}
       </h3>
       <div className="flex flex-1 items-center px-6">
-        <div className="flex-none">
+        <div data-testid={`alerts-light-${title.toLowerCase().replace(/\s+/g, "-")}`} className="flex-none">
           <StatusIndicator colour={colour} customSize={28} />
         </div>
         <div className="flex flex-1 justify-center">
