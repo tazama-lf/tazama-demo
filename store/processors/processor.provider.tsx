@@ -198,15 +198,16 @@ const ProcessorProvider = ({ children }: Props) => {
   }, [wsAddress])
 
   useEffect(() => {
-    if (socket !== undefined) {
+    if (socket !== undefined && isConnected) {
       // ALERTS panel (spec §6.2, G1a): append "ruleResponse" and
       // "interdiction-service-tp" to the existing subscriptions list. The
       // pre-existing entries are intentionally left untouched here; their
-      // cleanup is out of scope and tracked in #123. Deps now include
-      // `socket` so the emit fires on socket creation (in addition to
-      // each connect/reconnect) - the previous `[isConnected]`-only deps
-      // missed the emit entirely in test environments where the mocked
-      // socket never fires `connect`.
+      // cleanup is out of scope and tracked in #123. The emit is gated on
+      // `isConnected` so it fires exactly once per connect cycle (avoiding a
+      // double-emit on each connect/reconnect when socket and isConnected
+      // both change). Including `socket` in the deps is what guarantees the
+      // effect re-runs after a new socket instance is created on `wsAddress`
+      // change - without it, the post-reconnect emit would not fire.
       socket.emit("subscriptions", {
         subscriptions: [
           "connection",

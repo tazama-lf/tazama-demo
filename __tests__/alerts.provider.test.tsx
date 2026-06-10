@@ -32,8 +32,18 @@ process.env.NEXT_PUBLIC_WS_URL = "http://localhost:3001"
 // `mock*` prefixes are required for Jest hoisting: variables so-named are
 // permitted inside jest.mock factories. Capturing socket handlers in module
 // scope lets each test invoke them directly with crafted payloads.
+//
+// The `mockSocketOn` factory auto-fires the `connect` handler immediately on
+// registration. This faithfully simulates the socket.io handshake (the real
+// client fires `connect` once the transport completes its initial open) so
+// that production wiring gated on `isConnected` is exercised end-to-end in
+// jest rather than only along an artificial pre-connect code path.
 
-const mockSocketOn = jest.fn()
+const mockSocketOn = jest.fn((event: string, handler: (...args: any[]) => void) => {
+  if (event === "connect" && typeof handler === "function") {
+    handler()
+  }
+})
 const mockSocketEmit = jest.fn()
 const mockSocketOff = jest.fn()
 const mockSocketDisconnect = jest.fn()
