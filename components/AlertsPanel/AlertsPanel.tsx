@@ -26,7 +26,7 @@ export function AlertsPanel() {
       <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
         Alerts
       </h2>
-      <div className="flex flex-col gap-3 px-3 pb-3">
+      <div className="flex min-h-80 flex-col gap-3 px-3 pb-3">
         <AlertsSubPanel title="Event Flow" colour={eventFlow.colour} label={eventFlow.label} />
         <AlertsSubPanel title="Typology Processor" colour={typology.colour} label={typology.label} />
         <AlertsSubPanel title="Event Adjudicator" colour={adjudicator.colour} label={adjudicator.label} />

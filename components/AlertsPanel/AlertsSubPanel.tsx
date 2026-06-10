@@ -20,14 +20,22 @@ export interface AlertsSubPanelProps {
  *  - Body row: status light vertically centred on the left, pill centred horizontally
  *    in the space to its right. The pill uses an inset / recessed neumorphic shadow
  *    so it reads as "engraved" rather than "raised button".
+ *
+ * Sizing:
+ *  - The outer element is `flex flex-1 flex-col` so when the parent (AlertsPanel)
+ *    sets a fixed body height, the three sub-panels share it equally per §4
+ *    ("three sub-panels of equal height"). The body row uses `flex-1` instead of
+ *    a fixed `min-h-*` so it absorbs the height left over after the header strip.
+ *    This couples the component to being rendered as a flex child of a column
+ *    container - acceptable because it is single-use under `components/AlertsPanel/`.
  */
 export function AlertsSubPanel({ title, colour, label }: AlertsSubPanelProps) {
   return (
-    <div className="rounded-lg bg-white/40">
+    <div className="flex flex-1 flex-col rounded-lg bg-white/40">
       <h3 className="rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-2 text-center text-sm uppercase shadow-md">
         {title}
       </h3>
-      <div className="flex min-h-20 items-center px-6">
+      <div className="flex flex-1 items-center px-6">
         <div className="flex-none">
           <StatusIndicator colour={colour} customSize={28} />
         </div>
