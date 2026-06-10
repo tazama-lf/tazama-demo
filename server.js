@@ -25,8 +25,6 @@ const ALERT_PRODUCER = process.env.ALERT_PRODUCER || "investigation-service"
 const ALERT_DESTINATION = process.env.ALERT_DESTINATION || "global"
 const TP_INTERDICTION_PRODUCER = process.env.TP_INTERDICTION_PRODUCER || "interdiction-service-tp"
 const TP_INTERDICTION_DESTINATION = process.env.TP_INTERDICTION_DESTINATION || "global"
-const EF_INTERDICTION_PRODUCER = process.env.EF_INTERDICTION_PRODUCER || "interdiction-service-ef"
-const EF_INTERDICTION_DESTINATION = process.env.EF_INTERDICTION_DESTINATION || "global"
 
 const ADMIN_SERVICE_URL = process.env.ADMIN_SERVICE_URL
 const NATS_SERVER_URL = process.env.NATS_SERVER_URL
@@ -453,10 +451,6 @@ app.prepare().then(() => {
         const subj = computeTerminalSubject(TP_INTERDICTION_PRODUCER, TP_INTERDICTION_DESTINATION, "")
         ensureGlobalSub(subj, "interdiction-service-tp", io)
       }
-      if (EF_INTERDICTION_DESTINATION !== "tenant") {
-        const subj = computeTerminalSubject(EF_INTERDICTION_PRODUCER, EF_INTERDICTION_DESTINATION, "")
-        ensureGlobalSub(subj, "interdiction-service-ef", io)
-      }
     } catch (err) {
       console.error("NATS connection failed:", err.message)
     }
@@ -491,7 +485,6 @@ app.prepare().then(() => {
       if (nc && tenantId != null) {
         if (ALERT_DESTINATION === "tenant") releaseTenantSub(ALERT_PRODUCER, tenantId)
         if (TP_INTERDICTION_DESTINATION === "tenant") releaseTenantSub(TP_INTERDICTION_PRODUCER, tenantId)
-        if (EF_INTERDICTION_DESTINATION === "tenant") releaseTenantSub(EF_INTERDICTION_PRODUCER, tenantId)
       }
     })
 
@@ -507,8 +500,6 @@ app.prepare().then(() => {
         if (ALERT_DESTINATION === "tenant") ensureTenantSub(ALERT_PRODUCER, tenantId, "eventAdjudicator", io)
         if (TP_INTERDICTION_DESTINATION === "tenant")
           ensureTenantSub(TP_INTERDICTION_PRODUCER, tenantId, "interdiction-service-tp", io)
-        if (EF_INTERDICTION_DESTINATION === "tenant")
-          ensureTenantSub(EF_INTERDICTION_PRODUCER, tenantId, "interdiction-service-ef", io)
       }
     }
   })
