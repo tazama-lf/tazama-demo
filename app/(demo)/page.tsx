@@ -4,6 +4,7 @@ import { DragDropContext } from "@hello-pangea/dnd"
 import Image from "next/image"
 import React, { useContext, useEffect, useState } from "react"
 import io from "socket.io-client"
+import { AlertsPanel } from "components/AlertsPanel/AlertsPanel"
 import { type ConnectionStatus, ConnectionStatusBanner } from "components/ConnectionStatusBanner/ConnectionStatusBanner"
 import CreditorProfileComponent from "components/CreditorProfileComponent/CreditorProfileComponent"
 import DebtorProfileComponent from "components/DebtorProfileComponent/DebtorProfileComponent"
@@ -38,8 +39,6 @@ const Web = () => {
   const [showModal, setModal] = useState(false)
   const [started, setStarted] = useState(false)
   const [showCreditorModal, setShowCreditorModal] = useState(false)
-  const [flashing, setFlashing] = useState(false)
-  const [flashColor, setFlashColor] = useState<"r" | "g">("r")
   const [displayOverridden, setDisplayOverridden] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({ state: "idle" })
 
@@ -176,7 +175,6 @@ const Web = () => {
   }
 
   const [loading, setLoading] = useState<boolean>(true)
-  const [start, setStart] = useState<boolean>(false)
   const [error, setError] = useState(null)
   const [selectedEntity, setSelectedEntity] = useState<number>(0)
   const [selectedCreditorEntity, setSelectedCreditorEntity] = useState<number>(0)
@@ -229,38 +227,6 @@ const Web = () => {
       }
     }
   }, [])
-
-  useEffect(() => {
-    if (start) {
-      for (let i = 0; i < 2; i++) {
-        setTimeout(() => {
-          if (flashColor === "r") {
-            setFlashColor("g")
-          } else if (flashColor === "g") {
-            setFlashColor("r")
-          }
-        }, 500)
-      }
-    }
-  }, [start, flashColor])
-
-  useEffect(() => {
-    if (flashing) {
-      setStart(true)
-      setTimeout(() => {
-        setStart(false)
-        setFlashing(false)
-      }, 3000)
-    }
-  }, [flashing])
-
-  useEffect(() => {
-    if (processCtx.adjudicatorLights.efrup === "override") {
-      setFlashing(true)
-    } else {
-      setFlashing(false)
-    }
-  }, [processCtx.adjudicatorLights.efrup])
 
   useEffect(() => {
     processCtx.getAllDebtorConditions()
@@ -581,7 +547,6 @@ const Web = () => {
                   }}
                 >
                   <RuleResult
-                    started={started}
                     setSelectedRule={setSelectedRule}
                     setSelectedTypes={setSelectedTypes}
                     setHoveredRule={setHoveredRule}
@@ -641,45 +606,8 @@ const Web = () => {
               </div>
             </div>
 
-            {/* Event Adjudicator */}
-            <div className="col-span-1 rounded-lg shadow-[0.625rem_0.625rem_0.875rem_0_rgb(225,226,228),-0.5rem_-0.5rem_1.125rem_0_rgb(255,255,255)]">
-              <h2 className="mb-5 rounded-t-lg bg-gradient-to-r from-gray-100 to-gray-200 py-5 text-center uppercase shadow-lg">
-                Event Adjudicator
-              </h2>
-              <div className="relative flex min-h-80 items-center justify-center">
-                {processCtx.adjudicatorLights.efrup === "override" &&
-                processCtx.adjudicatorLights.color === "r" &&
-                flashing ? (
-                  <StatusIndicator large={true} colour={flashColor} />
-                ) : (
-                  <StatusIndicator large={true} colour={processCtx.adjudicatorLights.color} />
-                )}
-
-                {(processCtx.adjudicatorLights.color === "y" || processCtx.adjudicatorLights.color === "r") && (
-                  <div className="absolute bottom-16 flex items-center justify-center text-center">
-                    <p className="mb-5 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 px-5 py-2 text-center text-xs uppercase shadow-lg">
-                      {processCtx.adjudicatorLights.status}
-                    </p>
-                  </div>
-                )}
-                {processCtx.adjudicatorLights.efrup !== undefined && (
-                  <div className="absolute bottom-16 flex items-center justify-center text-center">
-                    {processCtx.adjudicatorLights.efrup === "block" ? (
-                      <p className="mb-5 rounded-lg border border-red-500 bg-gradient-to-r from-red-100 to-red-200 px-5 py-2 text-center text-xs uppercase text-red-500 shadow-lg">
-                        BLOCKED
-                      </p>
-                    ) : (
-                      processCtx.adjudicatorLights.efrup === "override" &&
-                      processCtx.adjudicatorLights.color === "r" && (
-                        <p className="mb-5 flex max-w-[120px] rounded-lg border border-green-500 bg-gradient-to-r from-green-100 to-green-200 px-5 py-2 text-center text-xs uppercase text-green-500 shadow-lg">
-                          INTERDICTION OVERRIDDEN
-                        </p>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Alerts panel (replaces legacy EVENT ADJUDICATOR panel - spec §4, §6.5) */}
+            <AlertsPanel />
           </div>
         </ErrorBoundary>
 
