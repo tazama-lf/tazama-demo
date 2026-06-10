@@ -387,6 +387,101 @@ describe("ProcessorProvider - expireCondition BFF routing and dispatch", () => {
     expect(getCtx().conditionsList).toHaveLength(0)
     expect(getCtx().expireConError).toBeUndefined()
   })
+
+  // ─── #134: expireCondition body shape ──────────────────────────────────────
+  // Admin-service rejects `{ xprtnDtTm: null }` (the schema is
+  // `Type.Optional(Type.String())` which accepts absent OR string, not null).
+  // The provider must omit the key when no date was supplied.
+
+  it("omits xprtnDtTm from the PUT body when no expiry date is supplied (account, regression for #134)", async () => {
+    const { getCtx } = setup()
+
+    await waitFor(() => {
+      expect(getCtx().conditionTypes).toHaveLength(3)
+    })
+
+    await act(async () => {
+      await getCtx().expireCondition({
+        type: "account",
+        accountId: "acct-001",
+        schmeNm: "BBAN",
+        agt: "bank-001",
+        condId: "cond-noexpiry-acct",
+      })
+    })
+
+    const putCall = (mockPut.mock.calls as [string, any][]).find(([url]) => url.includes("/api/conditions/account"))
+    expect(putCall).toBeDefined()
+    expect(putCall![1]).toEqual({})
+    expect(putCall![1]).not.toHaveProperty("xprtnDtTm")
+  })
+
+  it("omits xprtnDtTm from the PUT body when no expiry date is supplied (entity, regression for #134)", async () => {
+    const { getCtx } = setup()
+
+    await waitFor(() => {
+      expect(getCtx().conditionTypes).toHaveLength(3)
+    })
+
+    await act(async () => {
+      await getCtx().expireCondition({
+        type: "entity",
+        entityId: "eid-001",
+        schmeNm: "MSISDN",
+        condId: "cond-noexpiry-entity",
+      })
+    })
+
+    const putCall = (mockPut.mock.calls as [string, any][]).find(([url]) => url.includes("/api/conditions/entity"))
+    expect(putCall).toBeDefined()
+    expect(putCall![1]).toEqual({})
+    expect(putCall![1]).not.toHaveProperty("xprtnDtTm")
+  })
+
+  it("includes xprtnDtTm in the PUT body when a date is supplied (account, regression for #134)", async () => {
+    const { getCtx } = setup()
+
+    await waitFor(() => {
+      expect(getCtx().conditionTypes).toHaveLength(3)
+    })
+
+    await act(async () => {
+      await getCtx().expireCondition({
+        type: "account",
+        accountId: "acct-001",
+        schmeNm: "BBAN",
+        agt: "bank-001",
+        condId: "cond-withexpiry-acct",
+        xprtnDtTm: "2025-12-31T23:59:59Z",
+      })
+    })
+
+    const putCall = (mockPut.mock.calls as [string, any][]).find(([url]) => url.includes("/api/conditions/account"))
+    expect(putCall).toBeDefined()
+    expect(putCall![1]).toEqual({ xprtnDtTm: "2025-12-31T23:59:59Z" })
+  })
+
+  it("includes xprtnDtTm in the PUT body when a date is supplied (entity, regression for #134)", async () => {
+    const { getCtx } = setup()
+
+    await waitFor(() => {
+      expect(getCtx().conditionTypes).toHaveLength(3)
+    })
+
+    await act(async () => {
+      await getCtx().expireCondition({
+        type: "entity",
+        entityId: "eid-001",
+        schmeNm: "MSISDN",
+        condId: "cond-withexpiry-entity",
+        xprtnDtTm: "2025-12-31T23:59:59Z",
+      })
+    })
+
+    const putCall = (mockPut.mock.calls as [string, any][]).find(([url]) => url.includes("/api/conditions/entity"))
+    expect(putCall).toBeDefined()
+    expect(putCall![1]).toEqual({ xprtnDtTm: "2025-12-31T23:59:59Z" })
+  })
 })
 
 describe("ProcessorProvider - createCondition BFF routing", () => {
