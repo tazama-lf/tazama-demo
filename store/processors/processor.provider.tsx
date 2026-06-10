@@ -899,13 +899,17 @@ const ProcessorProvider = ({ children }: Props) => {
   const expireCondition = async ({ type, accountId, entityId, schmeNm, agt, xprtnDtTm, condId }: ExpireProps) => {
     try {
       dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_LOADING })
+      // Admin-service schema is Type.Optional(Type.String()) for xprtnDtTm and
+      // rejects null. Omit the key entirely when the user did not supply a
+      // date so admin-service treats it as "expire now". See tazama-demo#134.
+      const reqBody = xprtnDtTm ? { xprtnDtTm } : {}
       if (type === "account") {
         const acctURL = `/api/conditions/account?${new URLSearchParams({ id: String(accountId), schmenm: String(schmeNm), agt: String(agt), condid: String(condId) })}`
-        const res: AxiosResponse = await axios.put(acctURL, { xprtnDtTm: xprtnDtTm ? xprtnDtTm : null })
+        const res: AxiosResponse = await axios.put(acctURL, reqBody)
         dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_SUCCESS, payload: [] })
       } else if (type === "entity") {
         const nttyURL = `/api/conditions/entity?${new URLSearchParams({ id: String(entityId), schmenm: schmeNm, condid: String(condId) })}`
-        const res: AxiosResponse = await axios.put(nttyURL, { xprtnDtTm: xprtnDtTm ? xprtnDtTm : null })
+        const res: AxiosResponse = await axios.put(nttyURL, reqBody)
         dispatch({ type: ACTIONS.EXPIRE_CONDITIONS_SUCCESS, payload: [] })
       }
     } catch (error) {
