@@ -1,13 +1,13 @@
-import React from "react"
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons"
-import { sentanceCase } from "utils/helpers"
+import React from "react"
 import { useState } from "react"
 import { NewCondition } from "store/processors/processor.interface"
+import { sentanceCase } from "utils/helpers"
 
 interface Item {
   id: number
   option: string
-  visible: boolean
+  visible?: boolean
 }
 
 interface Props {
@@ -15,15 +15,19 @@ interface Props {
   state: NewCondition
   onChange: (data: NewCondition) => void
   errors: string[]
+  placeholder?: string
 }
 
-const DropdownList = ({ state, options, onChange }: Props) => {
-  const [selectedItem, setSelectedItem] = useState(options[0])
+const DropdownList = ({ state, options, onChange, placeholder = "Select an option" }: Props) => {
+  // Controlled component: the parent's state.condTp is the single source of truth
+  // for what is currently selected. No internal selectedItem state - that pattern
+  // previously displayed options[0] as selected without ever calling onChange,
+  // so the parent saw an empty condTp and ValidateCondition rejected the save.
+  const selectedItem = options.find((o) => o.option === state.condTp)
   const [isOpen, setIsOpen] = useState<boolean>(false)
 
   const toggle = (id?: number) => {
     if (id !== undefined) {
-      setSelectedItem(options[id])
       onChange({
         ...state,
         condTp: options[id]!.option,
@@ -45,7 +49,7 @@ const DropdownList = ({ state, options, onChange }: Props) => {
             toggle()
           }}
         >
-          {selectedItem!.option}
+          {selectedItem ? selectedItem.option : placeholder}
           <div className={`${isOpen && "rotate-180"}`}>
             <ChevronDownIcon color="#000" />
           </div>
@@ -58,11 +62,11 @@ const DropdownList = ({ state, options, onChange }: Props) => {
               option.visible !== false && (
                 <div key={option.id} className="flex grid grid-cols-8 items-center">
                   <div className="col-span-1 flex w-3/4 justify-end pl-1">
-                    {option.id === selectedItem?.id && <CheckIcon color="#000" />}
+                    {selectedItem !== undefined && option.id === selectedItem.id && <CheckIcon color="#000" />}
                   </div>
                   <p
                     key={option.id}
-                    className="col-span-7 cursor-pointer px-1 py-1 hover:bg-zinc-400 hover:text-zinc-500"
+                    className="col-span-7 cursor-pointer p-1 hover:bg-zinc-400 hover:text-zinc-500"
                     onClick={() => toggle(option.id)}
                   >
                     {option.option}
@@ -72,11 +76,7 @@ const DropdownList = ({ state, options, onChange }: Props) => {
           )}
         </div>
       </div>
-      {isOpen ? (
-        <div className="fixed bottom-0 left-0 right-0 top-0 z-20 bg-black/20" onClick={() => toggle()}></div>
-      ) : (
-        <></>
-      )}
+      {isOpen ? <div className="fixed inset-0 z-20 bg-black/20" onClick={() => toggle()}></div> : <></>}
     </>
   )
 }

@@ -60,9 +60,19 @@ const mockPut = (axios as any).put as jest.Mock
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
 const CONFIG_FIXTURE = {
-  conditionTypes: ["non-overridable-block", "overridable-block", "override"],
-  eventTypes: ["pacs.008.001.10", "pacs.002.001.12"],
-  conditionReasons: ["Fraudulent Activity", "Sanction Screening Exception"],
+  conditionTypes: [
+    { id: 0, option: "non-overridable-block" },
+    { id: 1, option: "overridable-block" },
+    { id: 2, option: "override" },
+  ],
+  eventTypes: [
+    { id: 0, option: "pacs.008.001.10" },
+    { id: 1, option: "pacs.002.001.12" },
+  ],
+  conditionReasons: [
+    { id: 0, option: "Fraudulent Activity" },
+    { id: 1, option: "Sanction Screening Exception" },
+  ],
 }
 
 const ENTITY_CONDITIONS_FIXTURE = {
@@ -155,6 +165,12 @@ describe("ProcessorProvider - config fetch on mount", () => {
     expect(mockGet).toHaveBeenCalledWith("/api/conditions/config")
     expect(getCtx().eventTypes).toHaveLength(2)
     expect(getCtx().conditionReasons).toHaveLength(2)
+
+    // Shape contract: each item is { id, option } - the dropdown
+    // components in components/Inputs/ rely on these exact field names.
+    expect(getCtx().conditionTypes[0]).toEqual({ id: 0, option: "non-overridable-block" })
+    expect(getCtx().eventTypes[0]).toEqual({ id: 0, option: "pacs.008.001.10" })
+    expect(getCtx().conditionReasons[0]).toEqual({ id: 0, option: "Fraudulent Activity" })
   })
 
   it("leaves conditionTypes empty when config fetch fails", async () => {
