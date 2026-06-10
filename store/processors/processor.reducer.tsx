@@ -1,5 +1,5 @@
 import { ACTIONS } from "./processor.actions"
-import { defaultAdjudicatorLights, defaultEDLights } from "./processor.initialState"
+import { defaultAdjudicatorLights, defaultAlerts, defaultEDLights } from "./processor.initialState"
 
 const ProcessorReducer = (state: any, action: any) => {
   switch (action.type) {
@@ -324,6 +324,44 @@ const ProcessorReducer = (state: any, action: any) => {
         ...state,
         tadProcResults: defaultAdjudicatorLights,
         typologiesEFRuP: [],
+        alerts: defaultAlerts,
+      }
+
+    // ─── ALERTS panel slice (spec §5.2, §6.5) ──────────────────────────────
+    case ACTIONS.SET_EVENT_FLOW:
+      return {
+        ...state,
+        alerts: {
+          ...state.alerts,
+          eventFlow: { outcome: action.payload },
+        },
+      }
+    case ACTIONS.SET_TYPOLOGY_INTERDICTION:
+      // Terminal state: any message arrival -> "interdict". Repeated
+      // dispatches are idempotent because the slice already holds the
+      // terminal value (no flicker, no count).
+      return {
+        ...state,
+        alerts: {
+          ...state.alerts,
+          typology: { outcome: "interdict" },
+        },
+      }
+    case ACTIONS.SET_ADJUDICATOR_STATUS:
+      return {
+        ...state,
+        alerts: {
+          ...state.alerts,
+          adjudicator: { outcome: action.payload },
+        },
+      }
+    case ACTIONS.RESET_ALERTS:
+      // Atomic three-slice reset (spec §6.5 transaction boundary). All
+      // sibling state must be preserved so the rest of the demo (rules,
+      // typologies, EDLights, etc.) is untouched.
+      return {
+        ...state,
+        alerts: defaultAlerts,
       }
     case ACTIONS.SET_ADJUDICATOR_RESULTS:
       return {

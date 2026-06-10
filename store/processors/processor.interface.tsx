@@ -4,6 +4,22 @@ import type { RuleResult as LibRuleResult } from "@tazama-lf/frms-coe-lib"
 /** RuleResult without the server-side tenantId field */
 export type RuleResult = Omit<LibRuleResult, "tenantId">
 
+// ─── ALERTS panel state (spec: temp-files/alerts-result.md §5.1) ────────────
+// Per-sub-panel outcome enums. `color` is intentionally derived in the
+// selector / component layer per §5.3 ("may be computed in the selector /
+// component rather than persisted - implementation choice") and is therefore
+// not part of AlertsState.
+
+export type EventFlowOutcome = "none" | "block" | "override"
+export type TypologyOutcome = "none" | "interdict"
+export type AdjudicatorOutcome = "none" | "alrt" | "nalt"
+
+export interface AlertsState {
+  eventFlow: { outcome: EventFlowOutcome }
+  typology: { outcome: TypologyOutcome }
+  adjudicator: { outcome: AdjudicatorOutcome }
+}
+
 export interface RuleBand {
   subRuleRef: string
   lowerLimit: number | null
