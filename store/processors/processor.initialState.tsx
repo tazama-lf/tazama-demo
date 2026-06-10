@@ -1,4 +1,5 @@
 import {
+  AlertsState,
   ConditionStructure,
   EDLightsManager,
   NewCondition,
@@ -10,6 +11,15 @@ import {
 
 export const ruleInitialState: Rule[] = []
 export const typologiesInitialState: Typology[] = []
+
+// Initial ALERTS state (spec §6.1): all three sub-panels start at
+// outcome "none". Colour is derived in the selector / component layer
+// (spec §5.3, see processor.interface.tsx).
+export const defaultAlerts: AlertsState = {
+  eventFlow: { outcome: "none" },
+  typology: { outcome: "none" },
+  adjudicator: { outcome: "none" },
+}
 
 export const defaultAdjudicatorLights: TADPROC = {
   color: "n",

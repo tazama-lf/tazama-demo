@@ -13,6 +13,7 @@ const { createServer } = require("http")
 const { parse } = require("url")
 const { extractTenant } = require("@tazama-lf/auth-lib")
 const { fetchNetworkMapWithRetry } = require("./lib/network-map")
+const { deriveSubjectsFromNetworkMap } = require("./lib/network-map-subjects")
 const { RetryAbortedError } = require("./lib/retry")
 
 // ---------------------------------------------------------------------------
@@ -25,8 +26,6 @@ const ALERT_PRODUCER = process.env.ALERT_PRODUCER || "investigation-service"
 const ALERT_DESTINATION = process.env.ALERT_DESTINATION || "global"
 const TP_INTERDICTION_PRODUCER = process.env.TP_INTERDICTION_PRODUCER || "interdiction-service-tp"
 const TP_INTERDICTION_DESTINATION = process.env.TP_INTERDICTION_DESTINATION || "global"
-const EF_INTERDICTION_PRODUCER = process.env.EF_INTERDICTION_PRODUCER || "interdiction-service-ef"
-const EF_INTERDICTION_DESTINATION = process.env.EF_INTERDICTION_DESTINATION || "global"
 
 const ADMIN_SERVICE_URL = process.env.ADMIN_SERVICE_URL
 const NATS_SERVER_URL = process.env.NATS_SERVER_URL
@@ -148,36 +147,10 @@ async function fetchNetworkMap(jwt, socket) {
 
 /**
  * Extracts rule and typology NATS subjects from a network map response.
- * @param {object | null} networkMap
- * @returns {{ ruleSubjects: string[], typoSubjects: string[] }}
+ *
+ * Implementation lives in `lib/network-map-subjects.js` so it can be unit
+ * tested without booting the HTTP server.
  */
-function deriveSubjectsFromNetworkMap(networkMap) {
-  const ruleSubjects = []
-  const typoSubjects = []
-  if (!networkMap) return { ruleSubjects, typoSubjects }
-
-  try {
-    const transactions = networkMap.data?.transactions ?? []
-    for (const tx of transactions) {
-      for (const channel of tx.channels ?? []) {
-        for (const typology of channel.typologies ?? []) {
-          if (typology.cfg && !typoSubjects.includes(`typology-${typology.cfg}`)) {
-            typoSubjects.push(`typology-${typology.cfg}`)
-          }
-          for (const rule of typology.rules ?? []) {
-            if (rule.id && !ruleSubjects.includes(`pub-rule-${rule.id}`)) {
-              ruleSubjects.push(`pub-rule-${rule.id}`)
-            }
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.error("Failed to derive subjects from network map:", err.message)
-  }
-
-  return { ruleSubjects, typoSubjects }
-}
 
 // ---------------------------------------------------------------------------
 // NATS helpers
@@ -306,17 +279,39 @@ function releaseTenantSub(producer, tenantId) {
 // ---------------------------------------------------------------------------
 
 /**
- * Emits a synthetic eventAdjudicator message that matches `msgId` to every
- * connected Socket.IO client.  Called ~500 ms after the test POST to
+ * Emits a deterministic set of synthetic Socket.IO fixtures targeting `msgId`
+ * to every connected client. Called ~500 ms after the test POST to
  * /api/transaction is intercepted, giving the client time to register the
  * activeMsgId it is waiting for.
+ *
+ * Fixtures emitted (in order):
+ *   1. eventAdjudicator (status=ALRT)        -> ADJUDICATOR sub-panel = alrt
+ *   2. interdiction-service-tp (any payload) -> TYPOLOGY     sub-panel = interdict
+ *   3. ruleResponse EFRuP subRuleRef=override -> EVENT FLOW  sub-panel = override
+ *   4. ruleResponse EFRuP subRuleRef=.err     -> log path, slice unchanged (A-EF7)
+ *   5. ruleResponse EFRuP subRuleRef=none     -> EVENT FLOW  sub-panel = none
+ *   6. ruleResponse EFRuP subRuleRef=block    -> EVENT FLOW  sub-panel = block  (FINAL)
+ *   7. ruleResponse non-EFRuP                 -> filter rejects, slice unchanged
+ *
+ * The terminal state of all three sub-panels under TEST_MODE is therefore
+ * red-on-red-on-red: BLOCK / INTERDICT / ALRT - a single deterministic
+ * fixture set that lets e2e tests assert on every sub-panel without
+ * needing per-sub-panel transaction journeys.
+ *
+ * The eventAdjudicator fixture is emitted FIRST so its rules-pipeline side
+ * effect (handleAdjudicatorLive feeding SET_ADJUDICATOR_RESULTS) is in
+ * flight before the simpler alerts dispatches land.
  *
  * @param {Server} io
  * @param {string} msgId
  */
 function emitTestFixtures(io, msgId) {
-  const fixture = {
-    transaction: { FIToFIPmtSts: { GrpHdr: { MsgId: msgId } } },
+  const envelope = { transaction: { TenantId: "DEFAULT", FIToFIPmtSts: { GrpHdr: { MsgId: msgId } } } }
+
+  // 1. EVENT ADJUDICATOR (existing fixture - drives the legacy rules pipeline
+  //    via handleAdjudicatorLive AND the new ALERTS adjudicator sub-panel).
+  io.emit("eventAdjudicator", {
+    ...envelope,
     report: {
       status: "ALRT",
       tadpResult: {
@@ -351,8 +346,65 @@ function emitTestFixtures(io, msgId) {
         ],
       },
     },
-  }
-  io.emit("eventAdjudicator", fixture)
+  })
+
+  // 2. TYPOLOGY interdiction (any msg with matching MsgId envelope flips the
+  //    slice to "interdict" - the upstream service only emits on actual
+  //    interdict so no client-side threshold guard is needed).
+  io.emit("interdiction-service-tp", {
+    ...envelope,
+    typologyResult: {
+      id: "Typology-001@1.0.0",
+      cfg: "1.0.0",
+      result: 750,
+      tenantId: "DEFAULT",
+      workflow: { interdictionThreshold: 600 },
+    },
+  })
+
+  // 3-6. EVENT FLOW ruleResponse fixtures. The handler filters by
+  //      `ruleResult.id` containing "EFRuP" (G4a). Emit order is chosen so
+  //      that:
+  //        - all three valid subRuleRef enum values (override / none / block)
+  //          and the .err log path are exercised
+  //        - the .err is sandwiched between override (3) and none (5) so the
+  //          slice is observably non-default when .err arrives - confirms
+  //          .err leaves the slice on its previous state instead of resetting
+  //        - block is last so the final state for e2e assertions is "block"
+  //          (red BLOCK pill, matching INTERDICT + ALRT for an all-red panel)
+  const emitEfrup = (subRuleRef, extra = {}) =>
+    io.emit("ruleResponse", {
+      ...envelope,
+      ruleResult: {
+        id: "EFRuP-001@1.0.0",
+        cfg: "1.0.0",
+        tenantId: "DEFAULT",
+        subRuleRef,
+        ...extra,
+      },
+    })
+
+  emitEfrup("override")
+  emitEfrup(".err", { reason: "synthetic test fixture: upstream EFRuP error" })
+  emitEfrup("none")
+  emitEfrup("block")
+
+  // 7. Non-EFRuP ruleResponse - the EVENT FLOW filter (G4a) must reject this;
+  //    the slice should remain on "block" from fixture #6.
+  //    `subRuleRef` is deliberately set to "none" (NOT "block") so that any
+  //    filter leak would produce a visibly different terminal state
+  //    (grey NONE instead of red BLOCK), making the bug detectable by an
+  //    e2e assertion on the final pill content. Using "block" here would
+  //    mask leakage because both branches converge on the same outcome.
+  io.emit("ruleResponse", {
+    ...envelope,
+    ruleResult: {
+      id: "Rule-999@1.0.0",
+      cfg: "1.0.0",
+      tenantId: "DEFAULT",
+      subRuleRef: "none",
+    },
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -453,10 +505,6 @@ app.prepare().then(() => {
         const subj = computeTerminalSubject(TP_INTERDICTION_PRODUCER, TP_INTERDICTION_DESTINATION, "")
         ensureGlobalSub(subj, "interdiction-service-tp", io)
       }
-      if (EF_INTERDICTION_DESTINATION !== "tenant") {
-        const subj = computeTerminalSubject(EF_INTERDICTION_PRODUCER, EF_INTERDICTION_DESTINATION, "")
-        ensureGlobalSub(subj, "interdiction-service-ef", io)
-      }
     } catch (err) {
       console.error("NATS connection failed:", err.message)
     }
@@ -491,7 +539,6 @@ app.prepare().then(() => {
       if (nc && tenantId != null) {
         if (ALERT_DESTINATION === "tenant") releaseTenantSub(ALERT_PRODUCER, tenantId)
         if (TP_INTERDICTION_DESTINATION === "tenant") releaseTenantSub(TP_INTERDICTION_PRODUCER, tenantId)
-        if (EF_INTERDICTION_DESTINATION === "tenant") releaseTenantSub(EF_INTERDICTION_PRODUCER, tenantId)
       }
     })
 
@@ -507,8 +554,6 @@ app.prepare().then(() => {
         if (ALERT_DESTINATION === "tenant") ensureTenantSub(ALERT_PRODUCER, tenantId, "eventAdjudicator", io)
         if (TP_INTERDICTION_DESTINATION === "tenant")
           ensureTenantSub(TP_INTERDICTION_PRODUCER, tenantId, "interdiction-service-tp", io)
-        if (EF_INTERDICTION_DESTINATION === "tenant")
-          ensureTenantSub(EF_INTERDICTION_PRODUCER, tenantId, "interdiction-service-ef", io)
       }
     }
   })

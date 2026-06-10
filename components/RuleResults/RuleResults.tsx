@@ -6,7 +6,6 @@ import { LinkedTypo, Rule } from "store/processors/processor.interface"
 import { getRuleDescriptions } from "utils/rules"
 
 interface RuleProps {
-  started?: boolean
   hoveredRule: Rule
   setHoveredRule: (rule: Rule | null) => void
   selectedRule: Rule

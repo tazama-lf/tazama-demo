@@ -93,30 +93,37 @@ test.describe("Transaction journey", () => {
     await page.goto("/")
     await page.waitForSelector("text=Debtors", { timeout: 15000 })
 
-    // Before submission: the Event Adjudicator status indicator should be neutral
-    const adjudicatorStatusImg = page
-      .getByRole("heading", { name: /event adjudicator/i })
-      .locator("xpath=following-sibling::div//img")
-    await expect(adjudicatorStatusImg).toHaveAttribute("src", /neutral-light/)
+    // ALERTS panel (replaces legacy EVENT ADJUDICATOR panel - spec §4, §6.5).
+    // Before submission, all three sub-panel pills are rendered but EMPTY
+    // (spec §4.2: "both elements persist across renders; the pill text is
+    // blank on initial state / transaction reset"). The pill <p> element is
+    // always present in the DOM regardless of label state - only the text
+    // content is gated. The historical EVENT FLOW default of "NONE" was
+    // dropped in favour of a uniformly blank initial state across all three
+    // sub-panels (resolves §5.3 / §6.1 / §4.2 contradiction in favour of §4.2).
+    const eventFlowPill = page.getByTestId("alerts-pill-event-flow")
+    const typologyPill = page.getByTestId("alerts-pill-typology-processor")
+    const adjudicatorPill = page.getByTestId("alerts-pill-event-adjudicator")
+
+    await expect(eventFlowPill).toHaveText("")
+    await expect(typologyPill).toHaveText("")
+    await expect(adjudicatorPill).toHaveText("")
 
     // Click Send to submit the transaction
     const sendBtn = page.getByRole("button", { name: /^send$/i })
     await expect(sendBtn).toBeVisible()
     await sendBtn.click()
 
-    // TEST_MODE server intercepts POST /api/transaction and emits an eventAdjudicator fixture
-    // after 500ms. The fixture has status "ALRT" with result 500 >= alertThreshold 400 but
-    // result 500 < interdictionThreshold 600, so stop=false and color="y" (yellow/alert).
-    // The Event Adjudicator StatusIndicator changes from neutral to yellow.
-    //
-    // Wait up to 8 seconds for the socket event to arrive and the UI to update.
-    await expect(adjudicatorStatusImg).not.toHaveAttribute("src", /neutral-light/, { timeout: 8000 })
-
-    // The Event Adjudicator heading should still be present after processing
-    await expect(page.getByRole("heading", { name: /event adjudicator/i })).toBeVisible()
-
-    // The ALRT badge should appear (adjudicatorLights.status = "ALRT", color = "y")
-    await expect(page.getByText("ALRT")).toBeVisible({ timeout: 8000 })
+    // TEST_MODE server intercepts POST /api/transaction and ~500 ms later emits a
+    // deterministic fixture set (server.js emitTestFixtures - spec §10 step 7b)
+    // that drives all three ALERTS sub-panels to their non-default outcomes:
+    //   - EVENT FLOW         -> "block"     (red BLOCK pill)     from the final EFRuP ruleResponse
+    //   - TYPOLOGY PROCESSOR -> "interdict" (red INTERDICT pill) from the interdiction-service-tp fixture
+    //   - EVENT ADJUDICATOR  -> "alrt"      (red ALRT pill)      from the eventAdjudicator fixture (status=ALRT)
+    // The final state is deterministic regardless of socket.io listener order.
+    await expect(eventFlowPill).toHaveText("BLOCK", { timeout: 8000 })
+    await expect(typologyPill).toHaveText("INTERDICT", { timeout: 8000 })
+    await expect(adjudicatorPill).toHaveText("ALRT", { timeout: 8000 })
 
     // Rules: wght=1.0 > 0 for both rules → color="r" (red) via updateTadpLights()
     // following::img[n] counts only imgs AFTER the "Rules" heading in DOM order
@@ -124,7 +131,8 @@ test.describe("Transaction journey", () => {
     await expect(rulesHeading.locator("xpath=following::img[1]")).toHaveAttribute("src", /red-light/, { timeout: 8000 })
     await expect(rulesHeading.locator("xpath=following::img[2]")).toHaveAttribute("src", /red-light/, { timeout: 8000 })
 
-    // Typologies: result=500 >= alertThreshold=400 and < interdictionThreshold=600 → color="y" (yellow)
+    // Typologies analysis panel (NOT the ALERTS Typology Processor sub-panel):
+    // result=500 >= alertThreshold=400 and < interdictionThreshold=600 → color="y" (yellow)
     const typologiesHeading = page.getByRole("heading", { name: /^typologies$/i })
     await expect(typologiesHeading.locator("xpath=following::img[1]")).toHaveAttribute("src", /yellow-light/, {
       timeout: 8000,

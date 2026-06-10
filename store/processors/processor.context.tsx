@@ -1,12 +1,14 @@
 import { createContext } from "react"
 import {
   defaultAdjudicatorLights,
+  defaultAlerts,
   defaultConditionsData,
   defaultEDLights,
   defaultEntityEventType,
   ruleInitialState,
 } from "./processor.initialState"
 import {
+  AlertsState,
   ConditionStructure,
   EDLightsManager,
   ExpireProps,
@@ -19,7 +21,6 @@ import {
   TypoEFRuP,
   Typology,
 } from "./processor.interface"
-
 interface Context {
   rulesLoading: boolean
   adjudicatorLoading: boolean
@@ -52,6 +53,8 @@ interface Context {
   eventTypes: any[]
   conditionReasons: any[]
   createConError: any
+  // ALERTS panel slice (spec: temp-files/alerts-result.md §5.1, §6.5)
+  alerts: AlertsState
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -120,6 +123,7 @@ const ProcessorContext = createContext<Context>({
   eventTypes: [],
   conditionReasons: [],
   createConError: undefined,
+  alerts: defaultAlerts,
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
