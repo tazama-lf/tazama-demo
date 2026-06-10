@@ -177,4 +177,69 @@ describe("deriveSubjectsFromNetworkMap", () => {
       expect(warnSpy).not.toHaveBeenCalled()
     })
   })
+
+  describe("defensive iteration: non-array nested collections", () => {
+    // The admin service does not enforce a schema on `messages`, `typologies`
+    // or `rules` - any of these may come back as a truthy non-iterable
+    // (object, string, number). `for...of` over a non-iterable throws and
+    // would abort the entire derivation in the outer catch, silently
+    // producing an empty subject list. The Array.isArray guards must let
+    // a malformed nested node be skipped without losing the rest of the
+    // valid subjects.
+
+    it("treats a non-array messages field as empty without throwing", () => {
+      // `messages` as an object instead of an array - pre-guard this would
+      // throw `messages is not iterable` and the catch would swallow it,
+      // returning empty arrays with only a console.error.
+      const networkMap = { data: [{ messages: { bogus: true } as any }] }
+      expect(() => deriveSubjectsFromNetworkMap(networkMap)).not.toThrow()
+      expect(deriveSubjectsFromNetworkMap(networkMap)).toEqual({
+        ruleSubjects: [],
+        typoSubjects: [],
+      })
+    })
+
+    it("skips a single malformed message but still derives subjects from sibling valid messages", () => {
+      // First message has typologies as a string (non-iterable) - it must
+      // be skipped without aborting the loop, so the second message's
+      // subjects still derive.
+      const networkMap = {
+        data: [
+          {
+            messages: [
+              { id: "m-bad", typologies: "not-an-array" as any },
+              {
+                id: "m-good",
+                typologies: [{ cfg: "000@1.0.0", rules: [{ id: "001@1.0.0" }] }],
+              },
+            ],
+          },
+        ],
+      }
+      const { ruleSubjects, typoSubjects } = deriveSubjectsFromNetworkMap(networkMap)
+      expect(ruleSubjects).toEqual(["pub-rule-001@1.0.0"])
+      expect(typoSubjects).toEqual(["typology-000@1.0.0"])
+    })
+
+    it("skips a typology whose rules field is non-iterable but still records the typology subject", () => {
+      // typology.rules as a number - the typology itself is well-formed
+      // enough to contribute its `typology-${cfg}` subject; the rules loop
+      // should be a no-op rather than aborting the whole derivation.
+      const networkMap = {
+        data: [
+          {
+            messages: [
+              {
+                id: "m1",
+                typologies: [{ cfg: "000@1.0.0", rules: 42 as any }],
+              },
+            ],
+          },
+        ],
+      }
+      const { ruleSubjects, typoSubjects } = deriveSubjectsFromNetworkMap(networkMap)
+      expect(ruleSubjects).toEqual([])
+      expect(typoSubjects).toEqual(["typology-000@1.0.0"])
+    })
+  })
 })
