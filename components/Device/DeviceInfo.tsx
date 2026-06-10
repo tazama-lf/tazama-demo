@@ -1,12 +1,12 @@
 import { useContext, useEffect, useState } from "react"
-import EntityContext from "store/entities/entity.context"
-import TransactionModal from "./TransactionModal"
-import EditModal from "./EditModal"
 import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
-import ProcessorContext from "store/processors/processor.context"
+import EntityContext from "store/entities/entity.context"
 import { CreditorEntity, DebtorAccount, Entity } from "store/entities/entity.interface"
-import { checkIsActiveCreditorAccount, checkIsActiveDebtorAccount } from "utils/helpers"
+import ProcessorContext from "store/processors/processor.context"
 import { Conditions } from "store/processors/processor.interface"
+import { checkIsActiveCreditorAccount, checkIsActiveDebtorAccount } from "utils/helpers"
+import EditModal from "./EditModal"
+import TransactionModal from "./TransactionModal"
 
 interface DeviceProps {
   selectedEntity: number
@@ -40,6 +40,15 @@ export function DeviceInfo(props: DeviceProps) {
   const entity: Entity | undefined = entityCtx.entities[props.selectedEntity]
   const creditorAccountIndex = entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex
   const creditorEntity = entityCtx.creditorEntities[props.selectedEntity]
+  // Stable identity of the entity displayed in this slot. Used to clear the
+  // local "transaction created" panel when the slot's entity is swapped or
+  // emptied (issue #132). Keying off props.selectedEntity alone is not
+  // sufficient because the slot index does not change when Clear All wipes
+  // entities or a debtor is removed and a different one is added in the
+  // same slot.
+  const deviceEntityId = props.isDebtor
+    ? entity?.Entity.Dbtr.Id.PrvtId.Othr[0]?.Id
+    : creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0]?.Id
   const [nttyDebColor, setNttyDebColor] = useState<"n" | "b">("n")
   const [nttyCredColor, setNttyCredColor] = useState<"n" | "b">("n")
   const [acctDebColor, setAcctDebColor] = useState<"n" | "b">("n")
@@ -118,6 +127,7 @@ export function DeviceInfo(props: DeviceProps) {
 
   useEffect(() => {
     setIsTransaction(false)
+    setGetPacs008(undefined)
     if (props.isDebtor) {
       checkIsActiveDebtorAccount(
         entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
@@ -135,7 +145,11 @@ export function DeviceInfo(props: DeviceProps) {
         creditorEntity
       )
     }
-  }, [props.selectedEntity])
+    // Reset on slot change and, critically, on entity identity change within
+    // the same slot. Without deviceEntityId in the dep array the panel
+    // persists across Clear All and across debtor swaps (issue #132).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.selectedEntity, deviceEntityId])
 
   const handleEditClick = () => {
     setFormValues({
@@ -479,4 +493,3 @@ export function DeviceInfo(props: DeviceProps) {
     )
   }
 }
-
