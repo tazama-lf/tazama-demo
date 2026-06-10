@@ -304,17 +304,39 @@ function releaseTenantSub(producer, tenantId) {
 // ---------------------------------------------------------------------------
 
 /**
- * Emits a synthetic eventAdjudicator message that matches `msgId` to every
- * connected Socket.IO client.  Called ~500 ms after the test POST to
+ * Emits a deterministic set of synthetic Socket.IO fixtures targeting `msgId`
+ * to every connected client. Called ~500 ms after the test POST to
  * /api/transaction is intercepted, giving the client time to register the
  * activeMsgId it is waiting for.
+ *
+ * Fixtures emitted (in order):
+ *   1. eventAdjudicator (status=ALRT)        -> ADJUDICATOR sub-panel = alrt
+ *   2. interdiction-service-tp (any payload) -> TYPOLOGY     sub-panel = interdict
+ *   3. ruleResponse EFRuP subRuleRef=override -> EVENT FLOW  sub-panel = override
+ *   4. ruleResponse EFRuP subRuleRef=.err     -> log path, slice unchanged (A-EF7)
+ *   5. ruleResponse EFRuP subRuleRef=none     -> EVENT FLOW  sub-panel = none
+ *   6. ruleResponse EFRuP subRuleRef=block    -> EVENT FLOW  sub-panel = block  (FINAL)
+ *   7. ruleResponse non-EFRuP                 -> filter rejects, slice unchanged
+ *
+ * The terminal state of all three sub-panels under TEST_MODE is therefore
+ * red-on-red-on-red: BLOCK / INTERDICT / ALRT - a single deterministic
+ * fixture set that lets e2e tests assert on every sub-panel without
+ * needing per-sub-panel transaction journeys.
+ *
+ * The eventAdjudicator fixture is emitted FIRST so its rules-pipeline side
+ * effect (handleAdjudicatorLive feeding SET_ADJUDICATOR_RESULTS) is in
+ * flight before the simpler alerts dispatches land.
  *
  * @param {Server} io
  * @param {string} msgId
  */
 function emitTestFixtures(io, msgId) {
-  const fixture = {
-    transaction: { FIToFIPmtSts: { GrpHdr: { MsgId: msgId } } },
+  const envelope = { transaction: { FIToFIPmtSts: { GrpHdr: { MsgId: msgId } } } }
+
+  // 1. EVENT ADJUDICATOR (existing fixture - drives the legacy rules pipeline
+  //    via handleAdjudicatorLive AND the new ALERTS adjudicator sub-panel).
+  io.emit("eventAdjudicator", {
+    ...envelope,
     report: {
       status: "ALRT",
       tadpResult: {
@@ -349,8 +371,60 @@ function emitTestFixtures(io, msgId) {
         ],
       },
     },
-  }
-  io.emit("eventAdjudicator", fixture)
+  })
+
+  // 2. TYPOLOGY interdiction (any msg with matching MsgId envelope flips the
+  //    slice to "interdict" - the upstream service only emits on actual
+  //    interdict so no client-side threshold guard is needed).
+  io.emit("interdiction-service-tp", {
+    ...envelope,
+    typologyResult: {
+      id: "Typology-001@1.0.0",
+      cfg: "1.0.0",
+      result: 750,
+      tenantId: "DEFAULT",
+      workflow: { interdictionThreshold: 600 },
+    },
+  })
+
+  // 3-6. EVENT FLOW ruleResponse fixtures. The handler filters by
+  //      `ruleResult.id` containing "EFRuP" (G4a). Emit order is chosen so
+  //      that:
+  //        - all three valid subRuleRef enum values (override / none / block)
+  //          and the .err log path are exercised
+  //        - the .err is sandwiched between override (3) and none (5) so the
+  //          slice is observably non-default when .err arrives - confirms
+  //          .err leaves the slice on its previous state instead of resetting
+  //        - block is last so the final state for e2e assertions is "block"
+  //          (red BLOCK pill, matching INTERDICT + ALRT for an all-red panel)
+  const emitEfrup = (subRuleRef, extra = {}) =>
+    io.emit("ruleResponse", {
+      ...envelope,
+      ruleResult: {
+        id: "EFRuP-001@1.0.0",
+        cfg: "1.0.0",
+        tenantId: "DEFAULT",
+        subRuleRef,
+        ...extra,
+      },
+    })
+
+  emitEfrup("override")
+  emitEfrup(".err", { reason: "synthetic test fixture: upstream EFRuP error" })
+  emitEfrup("none")
+  emitEfrup("block")
+
+  // 7. Non-EFRuP ruleResponse - the EVENT FLOW filter (G4a) must reject this;
+  //    the slice should remain on "block" from fixture #6.
+  io.emit("ruleResponse", {
+    ...envelope,
+    ruleResult: {
+      id: "Rule-999@1.0.0",
+      cfg: "1.0.0",
+      tenantId: "DEFAULT",
+      subRuleRef: "block",
+    },
+  })
 }
 
 // ---------------------------------------------------------------------------
