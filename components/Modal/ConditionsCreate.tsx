@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useContext } from "react"
-import { NewCondition } from "store/processors/processor.interface"
-import DropdownList from "../Inputs/DropdownMenu"
-import DropdownListWide from "components/Inputs/DropdownMenuWide"
-import MultiSelect from "../Inputs/MultiSelectMenu"
-import ProcessorContext from "store/processors/processor.context"
-import PerspectiveCheckBoxes from "components/Inputs/PerspectiveCheckBoxes"
-import CancelModel from "components/Inputs/ExpireModal"
-import { ValidateCondition } from "utils/helpers"
+import React, { useContext, useEffect, useState } from "react"
 import DateSelector from "components/Inputs/DateSelector"
-import { newAccountConditionState, newEntityConditionState } from "store/processors/processor.initialState"
+import DropdownListWide from "components/Inputs/DropdownMenuWide"
+import CancelModel from "components/Inputs/ExpireModal"
+import PerspectiveCheckBoxes from "components/Inputs/PerspectiveCheckBoxes"
 import EntityContext from "store/entities/entity.context"
+import ProcessorContext from "store/processors/processor.context"
+import { newAccountConditionState, newEntityConditionState } from "store/processors/processor.initialState"
+import { NewCondition } from "store/processors/processor.interface"
+import { ValidateCondition } from "utils/helpers"
+import DropdownList from "../Inputs/DropdownMenu"
+import MultiSelect from "../Inputs/MultiSelectMenu"
 
 interface Props {
   handleClose: () => void
@@ -90,13 +90,13 @@ const ConditionsCreate = ({
 
       <div className="flex grid w-full content-between items-center pt-5">
         <div className="flex flex-row">
-          <p className="ml-1 flex p-1 pt-1 text-xl font-medium">New Condition</p>
-          <p className="ml-1 flex p-1 pt-1 text-lg font-thin">- {activeDetails}</p>
+          <p className="ml-1 flex p-1 text-xl font-medium">New Condition</p>
+          <p className="ml-1 flex p-1 text-lg font-thin">- {activeDetails}</p>
         </div>
       </div>
 
       <div className="flex h-[560px] flex-col rounded-lg">
-        <p className="mb-5 mt-5 flex items-center">
+        <p className="my-5 flex items-center">
           Condition Type:
           {errors.includes("condTp") && (
             <div className="ml-5 text-sm text-red-500">* Please select a Condition Type</div>
@@ -108,6 +108,7 @@ const ConditionsCreate = ({
           options={processCtx.conditionTypes}
           state={newCondition}
           onChange={(data: NewCondition) => setNewCondition(data)}
+          placeholder="Select Condition Type"
         />
 
         <MultiSelect
@@ -145,20 +146,21 @@ const ConditionsCreate = ({
             options={processCtx.conditionReasons}
             state={newCondition}
             onChange={(data: NewCondition) => setNewCondition(data)}
+            placeholder="Select Reason"
           />
         </div>
       </div>
       <div className="align-center mt-5 flex w-full grow justify-end gap-5 p-5">
         <button
           type="button"
-          className="flex max-h-[45px] w-[150px] items-center justify-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
+          className="flex max-h-[45px] w-[150px] items-center justify-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 p-2 shadow-inner drop-shadow-md"
           onClick={handleSave}
         >
           Save
         </button>
         <button
           type="button"
-          className="flex max-h-[45px] w-[150px] items-center justify-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 px-2 py-2 shadow-inner drop-shadow-md"
+          className="flex max-h-[45px] w-[150px] items-center justify-center rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 p-2 shadow-inner drop-shadow-md"
           onClick={handleCancel}
         >
           Cancel
