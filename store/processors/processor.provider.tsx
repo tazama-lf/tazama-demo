@@ -371,6 +371,18 @@ const ProcessorProvider = ({ children }: Props) => {
     }
   }, [socket])
 
+  // ─── ALERTS panel: transaction boundary (spec §6.5) ─────────────────────
+  // A change to entityCtx.currentMsgId signals a new transaction. Atomically
+  // reset all three sub-panels to "none" so stale outcomes from the previous
+  // transaction never carry forward into the new one. The initial mount also
+  // fires this effect, but the alerts slice is already at defaultAlerts so
+  // the dispatch is observationally a no-op then. An idempotent rerender
+  // (entityCtx changes that leave currentMsgId untouched) does NOT re-fire
+  // the effect because React compares deps by Object.is.
+  useEffect(() => {
+    dispatch({ type: ACTIONS.RESET_ALERTS })
+  }, [entityCtx.currentMsgId])
+
   const handleLinkedTypologies = async (msg: any) => {
     const typoResults: Typology[] = msg.report.tadpResult.typologyResult
     const linksResponse: LinkedTypo[] = []
