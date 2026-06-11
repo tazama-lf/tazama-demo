@@ -108,8 +108,8 @@ cp .env.template .env
 
 | Variable | Default | Purpose | Example |
 |---|---|---|---|
-| `NEXT_PUBLIC_URL` | `http://localhost:3001` | Public base URL of this app. Used for OAuth redirect URIs and absolute URL construction. Change this when running behind a reverse proxy or on a non-default port. | `http://demo.example.com` |
-| `NEXT_PUBLIC_WS_URL` | `http://localhost:3001` | WebSocket server URL. The custom Node server serves Socket.IO on this address. Must be reachable from the browser. | `http://demo.example.com` |
+| `NEXT_PUBLIC_URL` | `http://localhost:3011` | Public base URL of this app. Used for OAuth redirect URIs and absolute URL construction. Change this when running behind a reverse proxy or on a non-default port. | `http://demo.example.com` |
+| `NEXT_PUBLIC_WS_URL` | `http://localhost:3011` | WebSocket server URL. The custom Node server serves Socket.IO on this address. Must be reachable from the browser. | `http://demo.example.com` |
 
 **Authentication (disabled by default):**
 
@@ -117,7 +117,7 @@ cp .env.template .env
 |---|---|---|---|
 | `AUTHENTICATED` | `false` | Set to `true` to require login via the Tazama auth-service (which federates to Keycloak). When `false`, all other auth variables are ignored. | `true` |
 | `AUTH_SERVICE_URL` | _(none)_ | Base URL of the Tazama [auth-service](https://github.com/tazama-lf/auth-service). The demo POSTs credentials to `${AUTH_SERVICE_URL}/v1/auth/login` and receives a Tazama JWT - this is **not** a direct Keycloak realm URL. Required when `AUTHENTICATED=true`. | `http://auth-service.example.com:3020` |
-| `AUTH_URL` | _(none)_ | Canonical public URL of this app. Auth.js v5 uses this to build absolute post-login redirect URLs. **Strongly recommended when `AUTHENTICATED=true`:** this app listens on port `3001`, not Auth.js's default port `3000`, so without `AUTH_URL` (or `NEXTAUTH_URL`) Auth.js's host-header fallback can redirect the user to `http://localhost:3000` after login. Set to the same value as `NEXT_PUBLIC_URL`. | `http://localhost:3001` |
+| `AUTH_URL` | _(none)_ | Canonical public URL of this app. Auth.js v5 uses this to build absolute post-login redirect URLs. **Strongly recommended when `AUTHENTICATED=true`:** this app listens on port `3011`, not Auth.js's default port `3000`, so without `AUTH_URL` (or `NEXTAUTH_URL`) Auth.js's host-header fallback can redirect the user to `http://localhost:3000` after login. Set to the same value as `NEXT_PUBLIC_URL`. | `http://localhost:3011` |
 | `NEXTAUTH_SECRET` | _(none)_ | Secret used by Auth.js v5 to encrypt the browser session cookie that wraps the Tazama JWT. Local to this app - never sent to auth-service or downstream Tazama services. Required when `AUTHENTICATED=true`. Generate with: `openssl rand -base64 32` | _(generated value)_ |
 
 **Condition type dropdowns (optional overrides):**
@@ -134,7 +134,7 @@ cp .env.template .env
 npm run dev
 ```
 
-6. Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
+6. Open [http://localhost:3011](http://localhost:3011) with your browser to see the result.
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
 
@@ -276,7 +276,7 @@ If the build fails run the following script to revert changes made to the `docke
             - /app/node_modules
             - /app/.next
         ports:
-          - "3001:3001"
+          - "3011:3011"
         restart: always
         networks:
           - network1
@@ -337,7 +337,7 @@ services:
   tazama-demo:
     image: tazamaorg/tazama-demo:${TAZAMA_VERSION}
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3011/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3

@@ -55,7 +55,7 @@ function mkRequest({
   search = "",
   auth = null as unknown,
 }: { path?: string; search?: string; auth?: unknown } = {}) {
-  const url = `http://localhost:3001${path}${search}`
+  const url = `http://localhost:3011${path}${search}`
   return { auth, url, nextUrl: new URL(url) }
 }
 
@@ -92,7 +92,7 @@ describe("middleware - AUTHENTICATED=true", () => {
     const middleware = loadMiddleware()
     const res = middleware(mkRequest({ path: "/dashboard" })) as { kind: string; url: string }
     expect(res.kind).toBe("redirect")
-    expect(res.url).toBe("http://localhost:3001/login?callbackUrl=%2Fdashboard")
+    expect(res.url).toBe("http://localhost:3011/login?callbackUrl=%2Fdashboard")
   })
 
   it("preserves the query string when propagating callbackUrl", () => {
@@ -102,7 +102,7 @@ describe("middleware - AUTHENTICATED=true", () => {
       url: string
     }
     expect(res.kind).toBe("redirect")
-    expect(res.url).toBe("http://localhost:3001/login?callbackUrl=%2Freports%2Fxyz%3Ftab%3Dsummary%26page%3D2")
+    expect(res.url).toBe("http://localhost:3011/login?callbackUrl=%2Freports%2Fxyz%3Ftab%3Dsummary%26page%3D2")
   })
 
   it("lets /login through without a redirect (prevents infinite loop)", () => {

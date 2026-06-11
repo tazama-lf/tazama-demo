@@ -3,7 +3,7 @@
 FROM node:22-bookworm-slim AS base
 WORKDIR /app
 COPY package*.json ./
-EXPOSE 3001
+EXPOSE 3011
 
 FROM base AS builder
 WORKDIR /app
@@ -30,9 +30,9 @@ ENV GIT_SHA=${GIT_SHA}
 ENV BUILD_TIME=${BUILD_TIME}
 
 ENV NODE_ENV=production
-ENV PORT="3001"
-ENV NEXT_PUBLIC_URL="http://localhost:3001"
-ENV NEXT_PUBLIC_WS_URL="http://localhost:3001"
+ENV PORT="3011"
+ENV NEXT_PUBLIC_URL="http://localhost:3011"
+ENV NEXT_PUBLIC_WS_URL="http://localhost:3011"
 
 # Server-side configuration (never exposed to browser).
 # Required vars (NATS_SERVER_URL, ADMIN_SERVICE_URL, TMS_SERVER_URL) must be
@@ -65,6 +65,6 @@ COPY --from=builder /app/lib ./lib
 # trigger restart loops. Orchestrators (k8s, docker swarm) should additionally
 # probe /api/ready for traffic-readiness; see deployment.yaml.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://localhost:'+ (process.env.PORT||3001) +'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD node -e "fetch('http://localhost:'+ (process.env.PORT||3011) +'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "server.js"]
