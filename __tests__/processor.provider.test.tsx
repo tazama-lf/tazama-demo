@@ -3,7 +3,7 @@
  */
 // SPDX-License-Identifier: Apache-2.0
 process.env.SKIP_ENV_VALIDATION = "1"
-process.env.NEXT_PUBLIC_WS_URL = "http://localhost:3001"
+process.env.NEXT_PUBLIC_WS_URL = "http://localhost:3011"
 
 // ─── Mocks (hoisted by Jest before imports) ──────────────────────────────────
 

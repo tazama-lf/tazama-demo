@@ -25,7 +25,7 @@
 //     without removing pre-existing entries (G1a, §6.2, scope-out #123)
 
 process.env.SKIP_ENV_VALIDATION = "1"
-process.env.NEXT_PUBLIC_WS_URL = "http://localhost:3001"
+process.env.NEXT_PUBLIC_WS_URL = "http://localhost:3011"
 
 // ─── Mocks (hoisted by Jest before imports) ──────────────────────────────────
 //
