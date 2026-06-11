@@ -8,6 +8,14 @@ import { auth } from "lib/auth"
 import EntityProvider from "store/entities/entity.provider"
 import ProcessorProvider from "store/processors/processor.provider"
 
+// Opt this segment out of static prerendering. The Dockerfile builds the image
+// with AUTHENTICATED unset, so at build time the only dynamic API (auth(),
+// guarded by `if (AUTHENTICATED)` below) is never invoked and Next.js would
+// otherwise statically pre-render the layout with the unauthenticated header
+// baked in. Forcing dynamic rendering ensures auth() runs per request against
+// the runtime AUTHENTICATED value, so the user/tenant/logout controls appear.
+export const dynamic = "force-dynamic"
+
 const AUTHENTICATED = process.env.AUTHENTICATED === "true"
 
 export default async function DemoLayout({ children }: { children: React.ReactNode }) {
