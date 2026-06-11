@@ -12,6 +12,7 @@ const { Server } = require("socket.io")
 const { createServer } = require("http")
 const { parse } = require("url")
 const { extractTenant } = require("@tazama-lf/auth-lib")
+const healthState = require("./lib/healthState")
 const { fetchNetworkMapWithRetry } = require("./lib/network-map")
 const { deriveSubjectsFromNetworkMap } = require("./lib/network-map-subjects")
 const { RetryAbortedError } = require("./lib/retry")
@@ -133,14 +134,23 @@ async function fetchNetworkMap(jwt, socket) {
         attempts,
       })
     }
+    // Record the cold-start handshake success for /api/ready. The admin
+    // service invariant is one active network-map config per tenant, so
+    // `data.length` is normally 1 on success - the count is surfaced so
+    // operators can spot upstream breaches (0 = no config returned, >1 =
+    // invariant violation already logged in deriveSubjectsFromNetworkMap).
+    const loaded = networkMap && Array.isArray(networkMap.data) ? networkMap.data.length : networkMap ? 1 : 0
+    healthState.recordAdminHandshake({ networkMapsLoaded: loaded })
     return networkMap
   } catch (err) {
     if (err instanceof RetryAbortedError) {
       if (socket) socket.emit("connection:status", { state: "failed", service: "admin" })
+      healthState.recordAdminHandshakeFailure(err)
       return null
     }
     console.error("Failed to fetch network map:", err && err.message ? err.message : err)
     if (socket) socket.emit("connection:status", { state: "failed", service: "admin" })
+    healthState.recordAdminHandshakeFailure(err)
     return null
   }
 }
@@ -490,11 +500,25 @@ app.prepare().then(() => {
   ;(async () => {
     if (!NATS_SERVER_URL) {
       console.warn("NATS_SERVER_URL not set - NATS subscriptions disabled")
+      healthState.recordNatsDisconnected("NATS_SERVER_URL not set")
       return
     }
     try {
       nc = await NATS.connect({ servers: NATS_SERVER_URL })
       console.log("NATS connected:", nc.info?.server_id)
+      healthState.recordNatsConnected()
+
+      // Track unexpected close so /api/ready reports the connection as down
+      // for the rest of the process lifetime (matching observed behaviour:
+      // the demo does not auto-reconnect).
+      ;(async () => {
+        try {
+          await nc.closed()
+          healthState.recordNatsDisconnected("connection closed")
+        } catch (err) {
+          healthState.recordNatsDisconnected(err)
+        }
+      })()
 
       // Subscribe to global terminal subjects immediately
       if (ALERT_DESTINATION !== "tenant") {
@@ -507,6 +531,7 @@ app.prepare().then(() => {
       }
     } catch (err) {
       console.error("NATS connection failed:", err.message)
+      healthState.recordNatsDisconnected(err)
     }
   })()
 
@@ -517,6 +542,7 @@ app.prepare().then(() => {
     const tenantId = socket.data.tenantId
     const jwt = socket.data.jwt
     console.log("Client connected", socket.id, "tenantId:", tenantId)
+    healthState.recordSocketConnected()
     socket.emit("welcome", { message: "NATS Connected" })
 
     // Register socket event listeners up-front so they are active during the
@@ -536,6 +562,7 @@ app.prepare().then(() => {
 
     socket.on("disconnect", () => {
       console.log("Client disconnected", socket.id)
+      healthState.recordSocketDisconnected()
       if (nc && tenantId != null) {
         if (ALERT_DESTINATION === "tenant") releaseTenantSub(ALERT_PRODUCER, tenantId)
         if (TP_INTERDICTION_DESTINATION === "tenant") releaseTenantSub(TP_INTERDICTION_PRODUCER, tenantId)

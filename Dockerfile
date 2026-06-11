@@ -20,6 +20,15 @@ RUN npm run build
 FROM base AS production
 WORKDIR /app
 
+# Build provenance - surfaced by /api/version (/api/health/version) for
+# operators and support. These are intentionally promoted to ENV so they
+# remain visible inside the running container; when unset (local builds)
+# the /api/version handler falls back to "unknown".
+ARG GIT_SHA="unknown"
+ARG BUILD_TIME="unknown"
+ENV GIT_SHA=${GIT_SHA}
+ENV BUILD_TIME=${BUILD_TIME}
+
 ENV NODE_ENV=production
 ENV PORT="3001"
 ENV NEXT_PUBLIC_URL="http://localhost:3001"
@@ -50,5 +59,12 @@ COPY --from=builder /app/env.mjs ./env.mjs
 # Without this, the container crashes on startup with
 # "Cannot find module './lib/network-map'".
 COPY --from=builder /app/lib ./lib
+
+# Container-level liveness probe. Uses the cheap /api/health endpoint - no
+# dependency I/O is performed, so a flaky NATS / admin / TMS will not
+# trigger restart loops. Orchestrators (k8s, docker swarm) should additionally
+# probe /api/ready for traffic-readiness; see deployment.yaml.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://localhost:'+ (process.env.PORT||3001) +'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "server.js"]

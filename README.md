@@ -39,6 +39,11 @@ What you need:
     - [Tag, Build and Push to Docker Hub](#tag-build-and-push-to-docker-hub)
     - [Reverting version changes if the build fails](#reverting-version-changes-if-the-build-fails)
     - [Create Docker Image for Dev Testing](#create-docker-image-for-dev-testing)
+  - [Health and Observability](#health-and-observability)
+    - [Endpoints](#endpoints)
+    - [Readiness payload](#readiness-payload)
+    - [Docker and Kubernetes wiring](#docker-and-kubernetes-wiring)
+    - [Build provenance](#build-provenance)
   - [Application Structure \& Documentation Links](#application-structure--documentation-links)
     - [Overview](#overview)
     - [Chart](#chart)
@@ -283,6 +288,87 @@ If the build fails run the following script to revert changes made to the `docke
     ```
 
     > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.2.0*
+
+<a><div align="right">[Top](#table-of-contents)</div></a>
+
+## Health and Observability
+
+The demo exposes three operational endpoints intended for orchestrators (Docker, Kubernetes) and on-call operators. None of them require authentication.
+
+### Endpoints
+
+| Path | Aliases | Purpose | HTTP codes |
+| --- | --- | --- | --- |
+| `/api/health` | `/health`, `/healthz`, `/api/healthz`, `/ping` | **Liveness** - is the Node process alive? Dependency-free, returns immediately. Use this for orchestrator liveness probes and Docker `HEALTHCHECK`. | `200` always |
+| `/api/ready` | `/ready`, `/readyz`, `/api/readyz` | **Readiness** - can the demo serve traffic? Aggregates NATS, admin-service handshake, and TMS status from an in-memory `healthState` module - no I/O per request. Use this for orchestrator readiness probes. | `200` ready / degraded; `503` not_ready |
+| `/api/version` | `/version`, `/api/health/version` | **Build info** - package name and version, git SHA, build time, Node version, uptime. Useful for support and incident triage. | `200` always |
+
+### Readiness payload
+
+`/api/ready` returns an aggregated verdict and a per-dependency breakdown:
+
+```json
+{
+  "status": "ready",
+  "checks": {
+    "nats":  { "ok": true, "lastError": null },
+    "admin": { "ok": true, "networkMapsLoaded": 1, "lastError": null },
+    "tms":   { "ok": true, "lastError": null, "lastSuccessAt": "2026-06-11T08:00:00.000Z" }
+  },
+  "uptimeSec": 1234,
+  "socketClients": 2
+}
+```
+
+Status values:
+
+- `ready` - all critical (NATS, admin handshake) and non-critical (TMS) dependencies OK. HTTP `200`.
+- `degraded` - critical OK but TMS is failing. The UI loads; transaction submission may fail. HTTP `200`.
+- `not_ready` - any critical dependency is failing. HTTP `503`.
+
+When `TEST_MODE=true` is set, `/api/ready` returns a synthetic `ready` payload without consulting `healthState`, so Playwright e2e runs do not require a live Tazama stack.
+
+### Docker and Kubernetes wiring
+
+The production image already ships with a `HEALTHCHECK` that hits `/api/health` every 30 s. Compose deployments that need to override the interval, or that want to gate dependent services on the demo, can add an explicit `healthcheck` block:
+
+```yaml
+services:
+  tazama-demo:
+    image: tazamaorg/tazama-demo:${TAZAMA_VERSION}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+```
+
+For Kubernetes, `deployment.yaml` declares both probes:
+
+```yaml
+livenessProbe:
+  httpGet: { path: /api/health, port: http }
+  initialDelaySeconds: 20
+  periodSeconds: 30
+readinessProbe:
+  httpGet: { path: /api/ready, port: http }
+  initialDelaySeconds: 5
+  periodSeconds: 10
+```
+
+Rule of thumb: **liveness on `/api/health`, readiness on `/api/ready`**. Pointing liveness at `/api/ready` will cause a flaky downstream (e.g. a NATS blip) to trigger pod restart loops.
+
+### Build provenance
+
+`/api/version` reads `GIT_SHA` and `BUILD_TIME` from the process environment, falling back to `"unknown"` when unset. The `Dockerfile` declares these as `ARG` so they can be injected at image build time:
+
+```bash
+docker build \
+  --build-arg GIT_SHA=$(git rev-parse --short HEAD) \
+  --build-arg BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+  -t tazamaorg/tazama-demo:rc .
+```
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
 
