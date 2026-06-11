@@ -16,6 +16,7 @@ const healthState = require("./lib/healthState")
 const { fetchNetworkMapWithRetry } = require("./lib/network-map")
 const { deriveSubjectsFromNetworkMap } = require("./lib/network-map-subjects")
 const { RetryAbortedError } = require("./lib/retry")
+const { resolveUseSecureCookies } = require("./lib/socket-auth")
 
 // ---------------------------------------------------------------------------
 // Config
@@ -31,6 +32,12 @@ const TP_INTERDICTION_DESTINATION = process.env.TP_INTERDICTION_DESTINATION || "
 const ADMIN_SERVICE_URL = process.env.ADMIN_SERVICE_URL
 const NATS_SERVER_URL = process.env.NATS_SERVER_URL
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET
+// Over HTTPS, Auth.js issues the session cookie as `__Secure-authjs.session-token`.
+// getToken() defaults secureCookie to false and would look for the unprefixed
+// `authjs.session-token`, never finding it and rejecting every socket. Derive the
+// flag from AUTH_URL so the verifying side matches the issuing side.
+const AUTH_URL = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? ""
+const USE_SECURE_COOKIES = resolveUseSecureCookies(AUTH_URL)
 
 // ---------------------------------------------------------------------------
 // Inline filter helpers (mirrors lib/nats-helpers.ts)
@@ -475,7 +482,7 @@ app.prepare().then(() => {
       // getToken reads the encrypted NextAuth session cookie from the request
       const { getToken } = await import("next-auth/jwt")
       const req = socket.request
-      const token = await getToken({ req, secret: NEXTAUTH_SECRET })
+      const token = await getToken({ req, secret: NEXTAUTH_SECRET, secureCookie: USE_SECURE_COOKIES })
       if (!token) {
         return next(new Error("Unauthorized"))
       }
