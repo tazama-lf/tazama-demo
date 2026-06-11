@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "lib/auth"
-import { tmsPost, TazamaClientError } from "lib/tazama-client"
 import type { Session } from "next-auth"
+import { auth } from "lib/auth"
+import { recordTmsFailure, recordTmsSuccess } from "lib/healthState"
+import { TazamaClientError, tmsPost } from "lib/tazama-client"
 
 const AUTHENTICATED = process.env.AUTHENTICATED === "true"
 
@@ -43,7 +44,12 @@ export async function POST(request: NextRequest) {
     // pacs.002 handler reads. The sequential await guarantees ordering.
     await tmsPost("/v1/evaluate/iso20022/pacs.008.001.10", body.pacs008, jwt)
     await tmsPost("/v1/evaluate/iso20022/pacs.002.001.12", body.pacs002, jwt)
+    // Record the successful TMS round-trip for /api/ready. TMS is a
+    // non-critical dependency: a failure here flips readiness to "degraded"
+    // (HTTP 200) rather than "not_ready" (HTTP 503).
+    recordTmsSuccess()
   } catch (err) {
+    recordTmsFailure(err)
     if (err instanceof TazamaClientError) {
       return NextResponse.json({ error: err.message }, { status: err.status })
     }
