@@ -22,6 +22,28 @@ import { adminGet, TazamaClientError } from "lib/tazama-client"
 
 const mockAdminGet = adminGet as jest.Mock
 
+// A network map that references one rule and one typology, so the route's
+// batch-fetch actually issues the rule and typology calls (an empty/absent map
+// yields no keys and those calls are skipped).
+const REFERENCING_MAP = {
+  data: [
+    {
+      active: true,
+      messages: [
+        {
+          typologies: [
+            {
+              id: "typology-processor@1.0.0",
+              cfg: "999@1.0.0",
+              rules: [{ id: "901@1.0.0", cfg: "1.0.0" }],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
+
 beforeEach(() => {
   mockAdminGet.mockReset()
 })
@@ -75,8 +97,11 @@ describe("GET /api/network-map", () => {
     expect(body.typologiesEFRuP).toEqual([{ typology: "999", efrupResult: undefined }])
   })
 
-  it("calls all three admin endpoints in parallel with the JWT", async () => {
-    mockAdminGet.mockResolvedValue({ data: [] })
+  it("fetches network_map first, then batch-fetches rule and typology with the JWT", async () => {
+    mockAdminGet.mockImplementation((path: string) => {
+      if (path.includes("/network_map")) return Promise.resolve(REFERENCING_MAP)
+      return Promise.resolve({ data: [] })
+    })
 
     await GET()
 
@@ -115,10 +140,11 @@ describe("GET /api/network-map", () => {
   })
 
   it("returns 504 for a DOMException TimeoutError on the rule call and identifies the source", async () => {
-    mockAdminGet
-      .mockResolvedValueOnce({ data: [] })
-      .mockRejectedValueOnce(new DOMException("timed out", "TimeoutError"))
-      .mockResolvedValueOnce({ data: [] })
+    mockAdminGet.mockImplementation((path: string) => {
+      if (path.includes("/network_map")) return Promise.resolve(REFERENCING_MAP)
+      if (path.includes("/rule")) return Promise.reject(new DOMException("timed out", "TimeoutError"))
+      return Promise.resolve({ data: [] })
+    })
 
     const response = await GET()
     const body = await response.json()
@@ -130,10 +156,11 @@ describe("GET /api/network-map", () => {
   })
 
   it("returns 502 for an unexpected error on the typology call and identifies the source", async () => {
-    mockAdminGet
-      .mockResolvedValueOnce({ data: [] })
-      .mockResolvedValueOnce({ data: [] })
-      .mockRejectedValueOnce(new Error("connection refused"))
+    mockAdminGet.mockImplementation((path: string) => {
+      if (path.includes("/network_map")) return Promise.resolve(REFERENCING_MAP)
+      if (path.includes("/typology")) return Promise.reject(new Error("connection refused"))
+      return Promise.resolve({ data: [] })
+    })
 
     const response = await GET()
     const body = await response.json()
@@ -143,11 +170,13 @@ describe("GET /api/network-map", () => {
     expect(body.failures[0]).toMatchObject({ source: "typology", status: 502 })
   })
 
-  it("reports every failed source and uses the worst status when multiple calls fail", async () => {
-    mockAdminGet
-      .mockRejectedValueOnce(new TazamaClientError(503, "nm down"))
-      .mockRejectedValueOnce(new DOMException("timed out", "TimeoutError"))
-      .mockResolvedValueOnce({ data: [] })
+  it("reports every failed source and uses the worst status when both batch calls fail", async () => {
+    mockAdminGet.mockImplementation((path: string) => {
+      if (path.includes("/network_map")) return Promise.resolve(REFERENCING_MAP)
+      if (path.includes("/rule")) return Promise.reject(new TazamaClientError(503, "rule down"))
+      if (path.includes("/typology")) return Promise.reject(new DOMException("timed out", "TimeoutError"))
+      return Promise.resolve({ data: [] })
+    })
 
     const response = await GET()
     const body = await response.json()
@@ -155,7 +184,7 @@ describe("GET /api/network-map", () => {
     // 504 (timeout) > 503 (service unavailable) -> worst status wins.
     expect(response.status).toBe(504)
     expect(body.failures).toHaveLength(2)
-    expect(body.failures.map((f: { source: string }) => f.source).sort()).toEqual(["network_map", "rule"])
+    expect(body.failures.map((f: { source: string }) => f.source).sort()).toEqual(["rule", "typology"])
   })
 
   it("succeeds when admin-service calls succeed even if one of them returns an empty list", async () => {

@@ -222,6 +222,38 @@ describe("transformNetworkMap", () => {
     expect(out.typologies[0].workflow).toEqual({ interdictionThreshold: null, alertThreshold: null })
   })
 
+  it("matches a typology doc by the full (id, cfg) tuple, not cfg alone", () => {
+    // A typology's `cfg` (e.g. "030@1.0.0") combines the typology number and a
+    // config version, but it is the (id, cfg) tuple that uniquely keys a
+    // typology config in admin-service. When two docs share a cfg, the doc whose
+    // `id` also matches the network-map reference must win.
+    const networkMap = {
+      data: [{ messages: [{ typologies: [{ id: "typology-processor@1.0.0", cfg: "030@1.0.0", rules: [] }] }] }],
+    }
+    const typologies = {
+      data: [
+        // Same cfg, different id - cfg-only matching would wrongly pick this first.
+        {
+          id: "other-processor@1.0.0",
+          cfg: "030@1.0.0",
+          desc: "WRONG",
+          workflow: { interdictionThreshold: 1, alertThreshold: 2 },
+        },
+        {
+          id: "typology-processor@1.0.0",
+          cfg: "030@1.0.0",
+          desc: "RIGHT",
+          workflow: { interdictionThreshold: 250, alertThreshold: 100 },
+        },
+      ],
+    }
+
+    const out = transformNetworkMap(networkMap, { data: [] }, typologies)
+
+    expect(out.typologies[0].typoDescription).toBe("RIGHT")
+    expect(out.typologies[0].workflow).toEqual({ interdictionThreshold: 250, alertThreshold: 100 })
+  })
+
   it("builds the rule-to-linked-typologies display map", () => {
     const networkMap = {
       data: [
