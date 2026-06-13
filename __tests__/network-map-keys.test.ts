@@ -132,4 +132,67 @@ describe("collectConfigKeys", () => {
       { id: "018@1.0.0", cfg: "1.0.0" },
     ])
   })
+
+  it("skips a typology ref missing id or cfg and warns, keeping well-formed siblings", () => {
+    // The network map is an external admin-service payload; a corrupt ref must
+    // never reach the wire as `keys[i][id]=undefined`. Drop it, warn, and let
+    // the rest of the map resolve.
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {})
+
+    const networkMap = {
+      messages: [
+        {
+          typologies: [
+            // missing id
+            { cfg: "030@1.0.0", rules: [{ id: "003@1.0.0", cfg: "1.0.0" }] },
+            // empty cfg
+            { id: "typology-processor@1.0.0", cfg: "", rules: [{ id: "028@1.0.0", cfg: "1.0.0" }] },
+            // well-formed sibling, still collected
+            { id: "typology-processor@1.0.0", cfg: "031@1.0.0", rules: [{ id: "018@1.0.0", cfg: "1.0.0" }] },
+          ],
+        },
+      ],
+    } as unknown as Parameters<typeof collectConfigKeys>[0]
+
+    const { ruleKeys, typologyKeys } = collectConfigKeys(networkMap)
+
+    expect(typologyKeys).toEqual([{ id: "typology-processor@1.0.0", cfg: "031@1.0.0" }])
+    // rules under the dropped typologies are dropped with them
+    expect(ruleKeys).toEqual([{ id: "018@1.0.0", cfg: "1.0.0" }])
+    expect(warn).toHaveBeenCalledTimes(2)
+
+    warn.mockRestore()
+  })
+
+  it("skips a rule ref missing id or cfg and warns, keeping well-formed siblings", () => {
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {})
+
+    const networkMap = {
+      messages: [
+        {
+          typologies: [
+            {
+              id: "typology-processor@1.0.0",
+              cfg: "030@1.0.0",
+              rules: [
+                { id: "003@1.0.0", cfg: "1.0.0" },
+                // missing cfg
+                { id: "028@1.0.0" },
+                // empty id
+                { id: "", cfg: "1.0.0" },
+              ],
+            },
+          ],
+        },
+      ],
+    } as unknown as Parameters<typeof collectConfigKeys>[0]
+
+    const { ruleKeys, typologyKeys } = collectConfigKeys(networkMap)
+
+    expect(typologyKeys).toEqual([{ id: "typology-processor@1.0.0", cfg: "030@1.0.0" }])
+    expect(ruleKeys).toEqual([{ id: "003@1.0.0", cfg: "1.0.0" }])
+    expect(warn).toHaveBeenCalledTimes(2)
+
+    warn.mockRestore()
+  })
 })

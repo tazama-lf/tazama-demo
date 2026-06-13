@@ -24,13 +24,13 @@ export interface NetworkMapConfigKeys {
 }
 
 interface NetworkMapRuleRef {
-  id: string
-  cfg: string
+  id?: string
+  cfg?: string
 }
 
 interface NetworkMapTypologyRef {
-  id: string
-  cfg: string
+  id?: string
+  cfg?: string
   rules?: NetworkMapRuleRef[]
 }
 
@@ -53,8 +53,25 @@ export function collectConfigKeys(activeNetworkMap: NetworkMapConfig | null | un
   // config id/cfg, so it is a safe key delimiter.
   const tupleKey = (id: string, cfg: string): string => `${id}\u0000${cfg}`
 
+  // The active network map is an external admin-service payload, so a ref may
+  // be missing its id or cfg. Such a tuple would serialise to
+  // `keys[i][id]=undefined` and silently match nothing at admin-service, so
+  // drop it here and warn rather than letting it reach the wire.
+  const isWellFormed = <T extends NetworkMapRuleRef | NetworkMapTypologyRef>(
+    kind: string,
+    ref: T
+  ): ref is T & { id: string; cfg: string } => {
+    if (!ref.id || !ref.cfg) {
+      console.warn(`collectConfigKeys: skipping malformed ${kind} ref with missing id/cfg`, ref)
+      return false
+    }
+    return true
+  }
+
   for (const message of activeNetworkMap?.messages ?? []) {
     for (const typology of message.typologies ?? []) {
+      if (!isWellFormed("typology", typology)) continue
+
       const tKey = tupleKey(typology.id, typology.cfg)
       if (!typologySeen.has(tKey)) {
         typologySeen.add(tKey)
@@ -62,6 +79,8 @@ export function collectConfigKeys(activeNetworkMap: NetworkMapConfig | null | un
       }
 
       for (const rule of typology.rules ?? []) {
+        if (!isWellFormed("rule", rule)) continue
+
         const rKey = tupleKey(rule.id, rule.cfg)
         if (!ruleSeen.has(rKey)) {
           ruleSeen.add(rKey)

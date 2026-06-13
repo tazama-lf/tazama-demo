@@ -60,8 +60,12 @@ describe("GET /api/network-map", () => {
               {
                 typologies: [
                   {
+                    id: "typology-processor@1.0.0",
                     cfg: "999@1.0.0",
-                    rules: [{ id: "901@1.0.0" }, { id: "EFRuP@1.0.0" }],
+                    rules: [
+                      { id: "901@1.0.0", cfg: "1.0.0" },
+                      { id: "EFRuP@1.0.0", cfg: "none" },
+                    ],
                   },
                 ],
               },
@@ -74,7 +78,12 @@ describe("GET /api/network-map", () => {
       })
       .mockResolvedValueOnce({
         data: [
-          { cfg: "999@1.0.0", desc: "Typology 999", workflow: { interdictionThreshold: 100, alertThreshold: 50 } },
+          {
+            id: "typology-processor@1.0.0",
+            cfg: "999@1.0.0",
+            desc: "Typology 999",
+            workflow: { interdictionThreshold: 100, alertThreshold: 50 },
+          },
         ],
       })
 
