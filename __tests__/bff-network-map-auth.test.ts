@@ -50,7 +50,27 @@ beforeEach(() => {
 describe("GET /api/network-map - authenticated branch", () => {
   it("forwards the session JWT to all three admin-service calls", async () => {
     auth.mockResolvedValue({ accessToken: "test-jwt" })
-    adminGet.mockResolvedValue({ data: [] })
+    // A referencing map is required for the route to issue the rule/typology
+    // batch calls (an empty map yields no keys and those calls are skipped).
+    adminGet.mockImplementation((path: string) => {
+      if (path.includes("/network_map")) {
+        return Promise.resolve({
+          data: [
+            {
+              active: true,
+              messages: [
+                {
+                  typologies: [
+                    { id: "typology-processor@1.0.0", cfg: "999@1.0.0", rules: [{ id: "901@1.0.0", cfg: "1.0.0" }] },
+                  ],
+                },
+              ],
+            },
+          ],
+        })
+      }
+      return Promise.resolve({ data: [] })
+    })
 
     const response = await GET()
     expect(response.status).toBe(200)
