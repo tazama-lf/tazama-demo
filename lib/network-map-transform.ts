@@ -22,9 +22,14 @@ import type { Rule, RuleBand, TypoEFRuP, Typology } from "store/processors/proce
 
 interface NetworkMapRuleRef {
   id: string | number
+  cfg?: string
 }
 
 interface NetworkMapTypology {
+  // The network map references a typology config by its full (id, cfg) tuple.
+  // `id` is the (generic) processor identifier and `cfg` (e.g. "030@1.0.0")
+  // combines the typology number and its config version.
+  id?: string
   cfg: string
   rules?: NetworkMapRuleRef[]
 }
@@ -64,6 +69,7 @@ interface RuleConfigDoc {
 }
 
 interface TypologyConfigDoc {
+  id?: string
   cfg?: string
   desc?: string
   workflow?: {
@@ -111,6 +117,20 @@ export function transformNetworkMap(
           typoDescription: "",
           workflow: { interdictionThreshold: null, alertThreshold: null },
           linkedRules: [],
+        }
+
+        // Hydrate description / workflow by the full (id, cfg) tuple. The network
+        // map references the typology config by both, so a cfg-only match would
+        // pick the wrong doc when two configs share a cfg. When the ref carries
+        // no `id` (legacy maps), the cfg comparison alone still resolves it.
+        const typoDoc = typologyDocs.find(
+          (t) => t.cfg === typology.cfg && (typology.id === undefined || t.id === typology.id)
+        )
+        if (typoDoc) {
+          newTypology.typoDescription = typoDoc.desc ?? ""
+          const wf = typoDoc.workflow ?? {}
+          newTypology.workflow.interdictionThreshold = wf.interdictionThreshold ?? null
+          newTypology.workflow.alertThreshold = wf.alertThreshold ?? null
         }
 
         if (typology.rules) {
@@ -216,15 +236,7 @@ export function transformNetworkMap(
   }
 
   // Hydrate typologies with description and workflow thresholds.
-  for (const typology of typologiesRes) {
-    const typoDoc = typologyDocs.find((t) => t.cfg === (typology.id as unknown as string))
-    if (!typoDoc) continue
-
-    typology.typoDescription = typoDoc.desc ?? ""
-    const wf = typoDoc.workflow ?? {}
-    typology.workflow.interdictionThreshold = wf.interdictionThreshold ?? null
-    typology.workflow.alertThreshold = wf.alertThreshold ?? null
-  }
+  // (Done inline in the walk above, by the full (id, cfg) tuple.)
 
   // Sort alphabetically by title.
   finalRules.sort((a, b) => a.title.localeCompare(b.title))
