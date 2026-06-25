@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { extractTenant } from "@tazama-lf/auth-lib"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 import type { Session } from "next-auth"
 import { ClearAllButton } from "components/Header/ClearAllButton"
 import { HeaderUserInfo } from "components/Header/HeaderUserInfo"
@@ -27,8 +28,24 @@ export default async function DemoLayout({ children }: { children: React.ReactNo
     if (session) {
       displayName = session.user?.name ?? session.user?.email ?? "User"
       const jwt = session.accessToken
-      const result = extractTenant(true, jwt ? `Bearer ${jwt}` : undefined)
-      tenantId = result.success ? result.tenantId : undefined
+      try {
+        const result = extractTenant(true, jwt ? `Bearer ${jwt}` : undefined)
+        tenantId = result.success ? result.tenantId : undefined
+      } catch {
+        // extractTenant -> verifyToken THROWS on a token that fails
+        // verification (expired signature, bad signature, etc.). The NextAuth
+        // session cookie (default 30-day maxAge) outlives the auth-service JWT,
+        // and that JWT is never refreshed (the jwt callback only sets it at
+        // initial sign-in), so on a later visit auth() still returns a session
+        // while the embedded token is stale - extractTenant then throws. A
+        // thrown error here would escape this Server Component and surface as
+        // Next.js's "Application error: a server-side exception has occurred".
+        // Instead, treat a stale/invalid token as "logged out": send the user
+        // to /login to re-authenticate and mint a fresh token. redirect()
+        // itself signals via a thrown control-flow error, which is the intended
+        // mechanism and is re-thrown out of this catch by design.
+        redirect("/login")
+      }
     }
   }
 
