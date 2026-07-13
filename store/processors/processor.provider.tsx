@@ -757,6 +757,7 @@ const ProcessorProvider = ({ children }: Props) => {
 
   const handleEntityAccountConditions = async (resData: any) => {
     let filteredResData: ListCondition[] = []
+    if (!resData?.conditions) return filteredResData
     resData.conditions.map((item: any) => {
       let perspective: string = ""
       if (item.prsptvs.length === 1) {
@@ -792,6 +793,7 @@ const ProcessorProvider = ({ children }: Props) => {
   }
   const handleEntityConditions = async (resData: any) => {
     let filteredResData: ListCondition[] = []
+    if (!resData?.conditions) return filteredResData
     resData.conditions.map((item: any) => {
       let perspective: string = ""
       if (item.prsptvs.length === 1) {
@@ -1000,7 +1002,7 @@ const ProcessorProvider = ({ children }: Props) => {
 
     await entityResponses.map(async (response) => {
       if (response !== null) {
-        if (response.statusText !== "No Content") {
+        if (response.status !== 204) {
           const nttyConditions: ListCondition[] = await handleEntityConditions(response.data)
           nttyConditions.map((item) => {
             finalResponse.push(item)
@@ -1013,7 +1015,7 @@ const ProcessorProvider = ({ children }: Props) => {
       .filter((el) => el !== null)
       .map(async (response) => {
         if (response !== null) {
-          if (response.statusText !== "No Content") {
+          if (response.status !== 204) {
             const accountConditions: ListCondition[] = await handleEntityAccountConditions(response.data)
             accountConditions.map((item) => {
               finalResponse.push(item)
@@ -1094,7 +1096,7 @@ const ProcessorProvider = ({ children }: Props) => {
 
     await entityResponses.map(async (response) => {
       if (response !== null) {
-        if (response.statusText !== "No Content") {
+        if (response.status !== 204) {
           const nttyConditions: ListCondition[] = await handleEntityConditions(response.data)
           nttyConditions.map((item) => {
             finalResponse.push(item)
@@ -1107,7 +1109,7 @@ const ProcessorProvider = ({ children }: Props) => {
       .filter((el) => el !== null)
       .map(async (response) => {
         if (response !== null && response !== undefined) {
-          if (response.statusText !== "No Content") {
+          if (response.status !== 204) {
             const accountConditions: ListCondition[] = await handleEntityAccountConditions(response.data)
             accountConditions.map((item) => {
               finalResponse.push(item)

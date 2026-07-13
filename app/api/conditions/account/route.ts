@@ -45,6 +45,13 @@ export async function GET(request: NextRequest) {
     }
     return NextResponse.json(data)
   } catch (err) {
+    // A brand-new account that has not yet been submitted to the admin service
+    // returns 404 ("Entity does not exist in the database"). For the demo this
+    // is a normal empty state ("no conditions yet"), not an error, so surface it
+    // as 204 rather than letting the browser log a 404. See tazama-demo#158.
+    if (err instanceof TazamaClientError && err.status === 404) {
+      return new NextResponse(null, { status: 204 })
+    }
     return errorResponse(err)
   }
 }
