@@ -83,13 +83,22 @@ describe("GET /api/conditions/entity", () => {
     expect(response.status).toBe(400)
   })
 
-  it("mirrors TazamaClientError status", async () => {
+  it("maps upstream 404 to 204 (entity not yet in admin DB = no conditions yet)", async () => {
     mockAdminGet.mockRejectedValueOnce(new TazamaClientError(404, "Entity not found"))
 
     const req = getRequest({ id: "entity-001", schmenm: "MSISDN" })
     const response = await GET(req)
 
-    expect(response.status).toBe(404)
+    expect(response.status).toBe(204)
+  })
+
+  it("mirrors non-404 TazamaClientError status", async () => {
+    mockAdminGet.mockRejectedValueOnce(new TazamaClientError(503, "Service unavailable"))
+
+    const req = getRequest({ id: "entity-001", schmenm: "MSISDN" })
+    const response = await GET(req)
+
+    expect(response.status).toBe(503)
   })
 
   it("returns 504 on TimeoutError", async () => {
