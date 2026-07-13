@@ -169,7 +169,7 @@ const ProcessorProvider = ({ children }: Props) => {
 
   useEffect(() => {
     const newSocket: any = io(wsAddress!, {
-      reconnectionAttempts: 5,
+      reconnectionAttempts: Infinity,
       reconnectionDelay: 3000,
     })
 
