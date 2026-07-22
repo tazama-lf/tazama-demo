@@ -38,7 +38,7 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@t3-oss/env-nextjs": "^0.10.1",
     "@tazama-lf/frms-coe-lib": "8.2.0-rc.6",
-    "axios": "^1.7.3",
+    "axios": "^1.18.1",
     "class-variance-authority": "^0.7.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
