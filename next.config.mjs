@@ -1,34 +1,33 @@
 import withBundleAnalyzer from "@next/bundle-analyzer"
-import withPlugins from "next-compose-plugins"
-import { createRequire } from "module"
-
-const require = createRequire(import.meta.url)
-const json = require("./package.json")
 import { env } from "./env.mjs"
 
 /**
  * @type {import('next').NextConfig}
  */
-const config = withPlugins([[withBundleAnalyzer({ enabled: env.ANALYZE })]], {
+const config = withBundleAnalyzer({ enabled: env.ANALYZE ?? false })({
   reactStrictMode: true,
-  publicRuntimeConfig: {
-    version: json.version,
-  },
   logging: {
     fetches: {
       fullUrl: true,
     },
   },
-  experimental: { instrumentationHook: true },
   sassOptions: {
     implementation: "sass-embedded",
   },
   rewrites() {
     return [
+      // Liveness aliases - all point at the cheap /api/health probe.
       { source: "/healthz", destination: "/api/health" },
       { source: "/api/healthz", destination: "/api/health" },
       { source: "/health", destination: "/api/health" },
       { source: "/ping", destination: "/api/health" },
+      // Readiness aliases - dependency-aware /api/ready probe.
+      { source: "/ready", destination: "/api/ready" },
+      { source: "/readyz", destination: "/api/ready" },
+      { source: "/api/readyz", destination: "/api/ready" },
+      // Build-info aliases.
+      { source: "/version", destination: "/api/version" },
+      { source: "/api/health/version", destination: "/api/version" },
     ]
   },
   async headers() {

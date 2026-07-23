@@ -1,3 +1,25 @@
+// SPDX-License-Identifier: Apache-2.0
+import type { RuleResult as LibRuleResult } from "@tazama-lf/frms-coe-lib"
+
+/** RuleResult without the server-side tenantId field */
+export type RuleResult = Omit<LibRuleResult, "tenantId">
+
+// ─── ALERTS panel state (spec: temp-files/alerts-result.md §5.1) ────────────
+// Per-sub-panel outcome enums. `color` is intentionally derived in the
+// selector / component layer per §5.3 ("may be computed in the selector /
+// component rather than persisted - implementation choice") and is therefore
+// not part of AlertsState.
+
+export type EventFlowOutcome = "none" | "block" | "override"
+export type TypologyOutcome = "none" | "interdict"
+export type AdjudicatorOutcome = "none" | "alrt" | "nalt"
+
+export interface AlertsState {
+  eventFlow: { outcome: EventFlowOutcome }
+  typology: { outcome: TypologyOutcome }
+  adjudicator: { outcome: AdjudicatorOutcome }
+}
+
 export interface RuleBand {
   subRuleRef: string
   lowerLimit: number | null
@@ -34,6 +56,7 @@ export interface Rule {
 
 export interface Typology {
   id: number
+  cfg?: string
   title: string
   color: "r" | "g" | "y" | "n"
   result: any
@@ -42,15 +65,8 @@ export interface Typology {
     interdictionThreshold: number | null
     alertThreshold: number | null
   }
+  rules?: Rule[]
   linkedRules: string[]
-}
-
-export interface RuleResult {
-  id: string
-  cfg: string
-  subRuleRef: string
-  prcgTm: number
-  wght: number
 }
 
 export interface TADPROC_RESULT {
@@ -89,25 +105,30 @@ export interface RuleConfig {
   bands: RuleBand[]
 }
 
+// Updated UI_CONFIG for PostgreSQL
 export interface UI_CONFIG {
   tmsServerUrl: string
   tmsKey: string
   cmsNatsHosting: string
   natsUsername: string
   natsPassword: string
-  arangoDBHosting: string
-  dbUser: string
-  dbPassword: string
-  dbName: string
+  pgHost: string
+  pgPort: string
+  pgUser: string
+  pgPassword: string
+  pgDatabase: string
   conditionTypes: string
   eventTypes: string
   adminServiceUrl: string
 }
 
+// Updated DBConfig for PostgreSQL
 export interface DBConfig {
-  url: string
-  databaseName: string
-  auth: { username: string; password: string }
+  host: string
+  port: string
+  user: string
+  password: string
+  database: string
 }
 
 interface Ntty {

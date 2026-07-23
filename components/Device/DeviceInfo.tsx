@@ -1,12 +1,12 @@
 import { useContext, useEffect, useState } from "react"
-import EntityContext from "store/entities/entity.context"
-import TransactionModal from "./TransactionModal"
-import EditModal from "./EditModal"
 import { StatusIndicator } from "components/StatusIndicator/StatusIndicator"
-import ProcessorContext from "store/processors/processor.context"
+import EntityContext from "store/entities/entity.context"
 import { CreditorEntity, DebtorAccount, Entity } from "store/entities/entity.interface"
-import { checkIsActiveCreditorAccount, checkIsActiveDebtorAccount } from "utils/helpers"
+import ProcessorContext from "store/processors/processor.context"
 import { Conditions } from "store/processors/processor.interface"
+import { checkIsActiveCreditorAccount, checkIsActiveDebtorAccount } from "utils/helpers"
+import EditModal from "./EditModal"
+import TransactionModal from "./TransactionModal"
 
 interface DeviceProps {
   selectedEntity: number
@@ -40,6 +40,15 @@ export function DeviceInfo(props: DeviceProps) {
   const entity: Entity | undefined = entityCtx.entities[props.selectedEntity]
   const creditorAccountIndex = entityCtx.selectedCreditorEntity.creditorAccountSelectedIndex
   const creditorEntity = entityCtx.creditorEntities[props.selectedEntity]
+  // Stable identity of the entity displayed in this slot. Used to clear the
+  // local "transaction created" panel when the slot's entity is swapped or
+  // emptied (issue #132). Keying off props.selectedEntity alone is not
+  // sufficient because the slot index does not change when Clear All wipes
+  // entities or a debtor is removed and a different one is added in the
+  // same slot.
+  const deviceEntityId = props.isDebtor
+    ? entity?.Entity.Dbtr.Id.PrvtId.Othr[0]?.Id
+    : creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0]?.Id
   const [nttyDebColor, setNttyDebColor] = useState<"n" | "b">("n")
   const [nttyCredColor, setNttyCredColor] = useState<"n" | "b">("n")
   const [acctDebColor, setAcctDebColor] = useState<"n" | "b">("n")
@@ -56,7 +65,7 @@ export function DeviceInfo(props: DeviceProps) {
       let test = processCtx.conditionsDataDebtor.conditions.find((con: Conditions) => {
         let startDate = new Date(con.incptnDtTm).getTime()
         let now = new Date().getTime()
-        return startDate <= now && con.ntty?.id === entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id
+        return startDate <= now && con.ntty?.id === entity?.Entity.Dbtr.Id.PrvtId.Othr[0]!.Id
       })
       if (test) {
         setNttyDebColor("b")
@@ -71,7 +80,7 @@ export function DeviceInfo(props: DeviceProps) {
       let test = processCtx.conditionsDataCreditor.conditions.find((con: Conditions) => {
         let startDate = new Date(con.incptnDtTm).getTime()
         let now = new Date().getTime()
-        return startDate <= now && con.ntty?.id === creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id
+        return startDate <= now && con.ntty?.id === creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0]!.Id
       })
       if (test) {
         setNttyCredColor("b")
@@ -86,7 +95,7 @@ export function DeviceInfo(props: DeviceProps) {
       let test = processCtx.conditionsDataDebtor.conditions.find((con: Conditions) => {
         let startDate = new Date(con.incptnDtTm).getTime()
         let now = new Date().getTime()
-        return startDate <= now && con.acct?.id === entity?.Accounts[accountIndex || 0]?.DbtrAcct.Id.Othr[0].Id
+        return startDate <= now && con.acct?.id === entity?.Accounts[accountIndex || 0]?.DbtrAcct.Id.Othr[0]!.Id
       })
       if (test) {
         setAcctDebColor("b")
@@ -103,7 +112,7 @@ export function DeviceInfo(props: DeviceProps) {
         let now = new Date().getTime()
         return (
           startDate <= now &&
-          con.acct?.id === creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0].Id
+          con.acct?.id === creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0]!.Id
         )
       })
       if (test) {
@@ -118,6 +127,7 @@ export function DeviceInfo(props: DeviceProps) {
 
   useEffect(() => {
     setIsTransaction(false)
+    setGetPacs008(undefined)
     if (props.isDebtor) {
       checkIsActiveDebtorAccount(
         entityCtx.selectedDebtorEntity.debtorAccountSelectedIndex
@@ -135,7 +145,11 @@ export function DeviceInfo(props: DeviceProps) {
         creditorEntity
       )
     }
-  }, [props.selectedEntity])
+    // Reset on slot change and, critically, on entity identity change within
+    // the same slot. Without deviceEntityId in the dep array the panel
+    // persists across Clear All and across debtor swaps (issue #132).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.selectedEntity, deviceEntityId])
 
   const handleEditClick = () => {
     setFormValues({
@@ -227,7 +241,7 @@ export function DeviceInfo(props: DeviceProps) {
                   if (
                     "activeConditions" in processCtx.conditionsDataDebtor &&
                     processCtx.conditionsDataDebtor.activeConditions &&
-                    processCtx.conditionsDataDebtor.activeConditions.includes(entity?.Entity.Dbtr.Id.PrvtId.Othr[0].Id)
+                    processCtx.conditionsDataDebtor.activeConditions.includes(entity?.Entity.Dbtr.Id.PrvtId.Othr[0]!.Id)
                   ) {
                     processCtx.setShowDebtorConditions(true)
                     props.setCreateModalVisible(false)
@@ -246,7 +260,7 @@ export function DeviceInfo(props: DeviceProps) {
             </div>
 
             <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
-              <p className="truncate">ID: {entity.Entity?.Dbtr.Id.PrvtId.Othr[0].Id} </p>
+              <p className="truncate">ID: {entity.Entity?.Dbtr.Id.PrvtId.Othr[0]!.Id} </p>
               <p>Date of birth: {entity?.Entity?.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt}</p>
             </div>
 
@@ -379,7 +393,7 @@ export function DeviceInfo(props: DeviceProps) {
                     "activeConditions" in processCtx.conditionsDataCreditor &&
                     processCtx.conditionsDataCreditor.activeConditions &&
                     processCtx.conditionsDataCreditor.activeConditions.includes(
-                      creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id
+                      creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.Othr[0]!.Id
                     )
                   ) {
                     processCtx.setShowCreditorConditions(true)
@@ -399,7 +413,7 @@ export function DeviceInfo(props: DeviceProps) {
             </div>
 
             <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
-              <p className="truncate">ID: {creditorEntity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0].Id} </p>
+              <p className="truncate">ID: {creditorEntity.CreditorEntity.Cdtr.Id.PrvtId.Othr[0]!.Id} </p>
               <p>Date of birth: {creditorEntity?.CreditorEntity.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt}</p>
             </div>
             <div className="relative m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">
@@ -440,7 +454,7 @@ export function DeviceInfo(props: DeviceProps) {
                 </p>
               </button>
               <p className="truncate">
-                ID: {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0].Id}
+                ID: {creditorEntity?.CreditorAccounts[creditorAccountIndex || 0]?.CdtrAcct.Id.Othr[0]!.Id}
               </p>
             </div>
             <div className="m-2 rounded-md border bg-gray-100 p-2 text-sm shadow-sm">

@@ -26,6 +26,27 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          # Liveness uses the cheap /api/health endpoint - no dependency I/O,
+          # so a flaky NATS / admin / TMS will not trigger restart loops.
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # Readiness uses /api/ready which projects the in-memory healthState.
+          # Returns 503 when NATS or the admin handshake have failed (critical),
+          # 200 ("degraded") when only TMS is down (non-critical).
+          readinessProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources: {}
           imagePullPolicy: Always
       restartPolicy: Always

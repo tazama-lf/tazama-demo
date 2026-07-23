@@ -1,12 +1,11 @@
 "use client"
-import React, { useEffect, useContext } from "react"
+import React, { useContext, useEffect } from "react"
+import { v4 as uuidv4 } from "uuid"
 import ProcessorContext from "store/processors/processor.context"
 import { LinkedTypo, Rule } from "store/processors/processor.interface"
 import { getRuleDescriptions } from "utils/rules"
-import { v4 as uuidv4 } from "uuid"
 
 interface RuleProps {
-  started?: boolean
   hoveredRule: Rule
   setHoveredRule: (rule: Rule | null) => void
   selectedRule: Rule
@@ -18,15 +17,12 @@ interface RuleProps {
 }
 
 const RuleResult = ({ ...props }: RuleProps) => {
-  const EFRuPComponent = () => {
-    return (
-      <div className="align-center mb-2 grid w-full grid-cols-4 justify-center gap-4 text-center">
-        <p className="align-center col-span-4 flex size-full flex-row justify-center rounded-b-[15px] border-2 border-black px-4 py-2 text-center text-xs">
-          {props.hoveredRule ? props.hoveredRule.result : props.selectedRule && props.selectedRule.result}
-        </p>
-      </div>
-    )
-  }
+  // Call useContext exactly once per render at the top level - Rules of Hooks.
+  // The lookup was previously done inside getRuleDescriptions which was invoked
+  // from within a .map() callback below; the hook count then varied with
+  // linkedTypologies.length and React would error on re-render. See issue #120.
+  const procCtx = useContext(ProcessorContext)
+
   let ruleTPS: any
   if (props.hoveredRule) {
     ruleTPS = props.hoveredRule?.linkedTypologies.map((tp) => {
@@ -43,7 +39,7 @@ const RuleResult = ({ ...props }: RuleProps) => {
           </div>
           <div className="align-center flex w-full grow items-center border-black text-center text-xs">
             <p className="w-full text-center text-xs">
-              {getRuleDescriptions(tp.subRuleRef, parseFloat(tp.rule)) || "None"}
+              {getRuleDescriptions(procCtx.rules, tp.subRuleRef, parseFloat(tp.rule)) || "None"}
             </p>
           </div>
         </div>
@@ -64,7 +60,7 @@ const RuleResult = ({ ...props }: RuleProps) => {
           </div>
           <div className="align-center flex w-full grow items-center border-black text-center text-xs">
             <p className="w-full text-center text-xs">
-              {getRuleDescriptions(tp.subRuleRef, parseFloat(tp.rule)) || "None"}
+              {getRuleDescriptions(procCtx.rules, tp.subRuleRef, parseFloat(tp.rule)) || "None"}
             </p>
           </div>
         </div>
@@ -102,15 +98,7 @@ const RuleResult = ({ ...props }: RuleProps) => {
           </p>
         </div>
         <hr className="border-black-100 mb-2" />
-        {props.hoveredRule ? (
-          props.hoveredRule.rule === "EFRuP@1.0.0" ? (
-            <EFRuPComponent />
-          ) : (
-            <RuleComponent />
-          )
-        ) : (
-          props.selectedRule && (props.selectedRule.rule === "EFRuP@1.0.0" ? <EFRuPComponent /> : <RuleComponent />)
-        )}
+        {props.hoveredRule ? <RuleComponent /> : props.selectedRule && <RuleComponent />}
       </div>
     </div>
   )

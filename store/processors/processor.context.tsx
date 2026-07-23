@@ -1,12 +1,14 @@
 import { createContext } from "react"
 import {
+  defaultAdjudicatorLights,
+  defaultAlerts,
   defaultConditionsData,
   defaultEDLights,
   defaultEntityEventType,
-  defaultTadProcLights,
   ruleInitialState,
 } from "./processor.initialState"
 import {
+  AlertsState,
   ConditionStructure,
   EDLightsManager,
   ExpireProps,
@@ -19,18 +21,18 @@ import {
   TypoEFRuP,
   Typology,
 } from "./processor.interface"
-
 interface Context {
   rulesLoading: boolean
-  tadprocLoading: boolean
+  adjudicatorLoading: boolean
   edLightsLoading: boolean
   typologyLoading: boolean
   typologies: Typology[]
   edLights: EDLightsManager
   rules: Rule[]
-  tadpLights: TADPROC
-  tadProcResults: TADPROC
+  adjudicatorLights: TADPROC
+  adjudicatorResults: TADPROC
   msgId: string | undefined
+  activeMsgId: string | undefined
   entityEventType: string[]
   entityAllChecked: boolean
   expireConError: string | undefined
@@ -51,6 +53,8 @@ interface Context {
   eventTypes: any[]
   conditionReasons: any[]
   createConError: any
+  // ALERTS panel slice (spec: temp-files/alerts-result.md §5.1, §6.5)
+  alerts: AlertsState
   updateEntityEventType: (data: string[]) => void
   updateEntityAllChecked: (value: boolean) => void
   createRules: () => void
@@ -61,8 +65,7 @@ interface Context {
   updateEDLights: (data: EDLightsManager) => void
   resetAllLights: () => void
   clearResults: () => void
-  getUIConfig: () => void
-  handleTadProcLive: (msg: any) => void
+  handleAdjudicatorLive: (msg: any) => void
   ruleLightsGreen: () => void
   ruleLightsNeutral: () => void
   getConditions: ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => void
@@ -78,19 +81,28 @@ interface Context {
   setShowCreditorConditionsCreate: (option: boolean) => void
   setLinkedTypologies: (linkedTypos: LinkedTypo[]) => void
   clearLinkedTypologies: () => void
+  // Counter incremented every time the user clicks the header "Clear All"
+  // button. The page-level component (app/(demo)/page.tsx) subscribes via
+  // useEffect to flush its local selection / hover state alongside the
+  // context-side clears. This keeps the button decoupled from page.tsx so
+  // it can live in the layout header instead of being absolutely positioned
+  // on top of it.
+  clearAllSignal: number
+  triggerClearAll: () => void
 }
 
 const ProcessorContext = createContext<Context>({
   rulesLoading: false,
-  tadprocLoading: false,
+  adjudicatorLoading: false,
   edLightsLoading: false,
   typologyLoading: false,
   edLights: defaultEDLights,
   rules: ruleInitialState,
   typologies: [],
-  tadpLights: defaultTadProcLights,
-  tadProcResults: defaultTadProcLights,
+  adjudicatorLights: defaultAdjudicatorLights,
+  adjudicatorResults: defaultAdjudicatorLights,
   msgId: "",
+  activeMsgId: undefined,
   entityEventType: defaultEntityEventType,
   entityAllChecked: false,
   conditionsList: [],
@@ -111,6 +123,7 @@ const ProcessorContext = createContext<Context>({
   eventTypes: [],
   conditionReasons: [],
   createConError: undefined,
+  alerts: defaultAlerts,
   updateEntityEventType: (data: string[]) => {},
   updateEntityAllChecked: (value: boolean) => {},
   createRules: () => {},
@@ -121,8 +134,7 @@ const ProcessorContext = createContext<Context>({
   updateTadpLights: () => {},
   resetAllLights: () => {},
   clearResults: () => {},
-  getUIConfig: () => {},
-  handleTadProcLive: (msg: any) => {},
+  handleAdjudicatorLive: (msg: any) => {},
   ruleLightsGreen: () => {},
   ruleLightsNeutral: () => {},
   getConditions: async ({ entityType, type, accountId, entityId, agt, schmeNm }: GetConditionsProps) => {},
@@ -138,6 +150,8 @@ const ProcessorContext = createContext<Context>({
   setShowCreditorConditionsCreate: (option: boolean) => {},
   setLinkedTypologies: (linkedTypos: LinkedTypo[]) => {},
   clearLinkedTypologies: () => {},
+  clearAllSignal: 0,
+  triggerClearAll: () => {},
 })
 
 export default ProcessorContext

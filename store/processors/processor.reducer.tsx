@@ -1,11 +1,5 @@
 import { ACTIONS } from "./processor.actions"
-import {
-  defaultConditionsData,
-  defaultEDLights,
-  defaultTadProcLights,
-  ruleInitialState,
-  typologiesInitialState,
-} from "./processor.initialState"
+import { defaultAdjudicatorLights, defaultAlerts, defaultEDLights } from "./processor.initialState"
 
 const ProcessorReducer = (state: any, action: any) => {
   switch (action.type) {
@@ -257,32 +251,32 @@ const ProcessorReducer = (state: any, action: any) => {
       return {
         ...state,
         typologyLoading: false,
-        typology: action.payload,
+        typologies: action.payload,
       }
     case ACTIONS.UPDATE_TYPO_FAIL:
       return {
         ...state,
         typologyLoading: false,
-        typology: [],
+        typologies: [],
       }
 
-    case ACTIONS.UPDATE_TADPROC_LOADING:
+    case ACTIONS.UPDATE_ADJUDICATOR_LOADING:
       return {
         ...state,
         tadprocLoading: true,
-        tadpLights: defaultTadProcLights,
+        tadpLights: defaultAdjudicatorLights,
       }
-    case ACTIONS.UPDATE_TADPROC_SUCCESS:
+    case ACTIONS.UPDATE_ADJUDICATOR_SUCCESS:
       return {
         ...state,
         tadprocLoading: false,
         tadpLights: action.payload,
       }
-    case ACTIONS.UPDATE_TADPROC_FAIL:
+    case ACTIONS.UPDATE_ADJUDICATOR_FAIL:
       return {
         ...state,
         tadprocLoading: false,
-        tadpLights: defaultTadProcLights,
+        tadpLights: defaultAdjudicatorLights,
       }
 
     case ACTIONS.UPDATE_ED_LOADING:
@@ -319,19 +313,57 @@ const ProcessorReducer = (state: any, action: any) => {
         ...state,
       }
 
-    case ACTIONS.RESET_TADPROC_RESULTS:
+    case ACTIONS.RESET_ADJUDICATOR_RESULTS:
       return {
         ...state,
-        tadProcResults: defaultTadProcLights,
+        tadProcResults: defaultAdjudicatorLights,
         typologiesEFRuP: [],
       }
     case ACTIONS.CLEAR_RESULTS:
       return {
         ...state,
-        tadProcResults: defaultTadProcLights,
+        tadProcResults: defaultAdjudicatorLights,
         typologiesEFRuP: [],
+        alerts: defaultAlerts,
       }
-    case ACTIONS.SET_TADPROC_RESULTS:
+
+    // ─── ALERTS panel slice (spec §5.2, §6.5) ──────────────────────────────
+    case ACTIONS.SET_EVENT_FLOW:
+      return {
+        ...state,
+        alerts: {
+          ...state.alerts,
+          eventFlow: { outcome: action.payload },
+        },
+      }
+    case ACTIONS.SET_TYPOLOGY_INTERDICTION:
+      // Terminal state: any message arrival -> "interdict". Repeated
+      // dispatches are idempotent because the slice already holds the
+      // terminal value (no flicker, no count).
+      return {
+        ...state,
+        alerts: {
+          ...state.alerts,
+          typology: { outcome: "interdict" },
+        },
+      }
+    case ACTIONS.SET_ADJUDICATOR_STATUS:
+      return {
+        ...state,
+        alerts: {
+          ...state.alerts,
+          adjudicator: { outcome: action.payload },
+        },
+      }
+    case ACTIONS.RESET_ALERTS:
+      // Atomic three-slice reset (spec §6.5 transaction boundary). All
+      // sibling state must be preserved so the rest of the demo (rules,
+      // typologies, EDLights, etc.) is untouched.
+      return {
+        ...state,
+        alerts: defaultAlerts,
+      }
+    case ACTIONS.SET_ADJUDICATOR_RESULTS:
       return {
         ...state,
         tadProcResults: action.payload,
@@ -365,11 +397,11 @@ const ProcessorReducer = (state: any, action: any) => {
     case ACTIONS.RESET_ALL_LIGHTS:
       return {
         ...state,
-        tadpLights: defaultTadProcLights,
+        tadpLights: defaultAdjudicatorLights,
         rules: state.rules.map((rule: any) => ({ ...rule, color: "n" })),
         typologies: state.typologies.map((typo: any) => ({ ...typo, color: "n" })),
         edLights: defaultEDLights,
-        tadProcResults: defaultTadProcLights,
+        tadProcResults: defaultAdjudicatorLights,
       }
 
     case ACTIONS.UPDATE_DEBTOR_ACTIVE_SECTION:
@@ -451,6 +483,8 @@ const ProcessorReducer = (state: any, action: any) => {
         conditionReasons: action.payload,
       }
     }
+    default:
+      return state
   }
 }
 

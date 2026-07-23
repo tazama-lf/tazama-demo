@@ -28,5 +28,5 @@ export function ConditionIndicator({ ...props }: ConditionIndicatorProps) {
     size = 40
   }
 
-  return <Image src={src} height={size} width={size} className={`mt-1`} alt="" />
+  return <Image src={src} height={size} width={size} className={`mt-1`} alt="" unoptimized />
 }

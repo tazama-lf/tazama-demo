@@ -15,6 +15,8 @@
 >
 Welcome to the Tazama Demo Application. This demo app is used to demo the Tazama Open Source Real-Time Transaction Monitoring System built to support any Financial Services Provider (FSP) that requires Transaction Monitoring for Fraud and Money Laundering detection. Whether that FSP is a small provider running one or 2 transactions per day or a national payment switch running at over 3,000 Transactions per second. With Tazama they can implement simple or complex rules, implement Fraud Detection controls or support Anti-Money Laundering activities. 🌍
 
+[Usage Docs](https://github.com/tazama-lf/docs/blob/dev/Guides/demo-ui-guide.md)
+
 ## Requirements
 
 What you need:
@@ -31,12 +33,17 @@ What you need:
     - [Local Setup](#local-setup)
     - [Network Setup](#network-setup)
     - [Setup UI](#setup-ui)
-    - [Settings Screen](#settings-screen)
+    - [End-to-End Tests](#end-to-end-tests)
   - [Tag and Release](#tag-and-release)
     - [Versioning](#versioning)
     - [Tag, Build and Push to Docker Hub](#tag-build-and-push-to-docker-hub)
     - [Reverting version changes if the build fails](#reverting-version-changes-if-the-build-fails)
     - [Create Docker Image for Dev Testing](#create-docker-image-for-dev-testing)
+  - [Health and Observability](#health-and-observability)
+    - [Endpoints](#endpoints)
+    - [Readiness payload](#readiness-payload)
+    - [Docker and Kubernetes wiring](#docker-and-kubernetes-wiring)
+    - [Build provenance](#build-provenance)
   - [Application Structure \& Documentation Links](#application-structure--documentation-links)
     - [Overview](#overview)
     - [Chart](#chart)
@@ -78,41 +85,56 @@ add your GH_TOKEN to the .npmrc file ${GH_TOKEN}
 3. Install the dependencies:
 
 ```bash
-yarn install --frozen-lockfile
+npm install
 ```
 
-4. Create a new .env file and copy the contents of the `env_sample` file to the newly created .env
+4. Create a `.env` file from the template:
 
-```text
-NODE_ENV=development
-NEXT_PUBLIC_URL="http://{server_ip_address}:3001"
-PORT="3001"
-NEXT_PUBLIC_TMS_SERVER_URL="http://{server_ip_address}:5000"
-NEXT_PUBLIC_TMS_KEY=""
-NEXT_PUBLIC_CMS_NATS_HOSTING="nats://nats:4222"
-NEXT_PUBLIC_NATS_USERNAME=""
-NEXT_PUBLIC_NATS_PASSWORD=""
-NEXT_PUBLIC_ARANGO_DB_HOSTING="http://{server_ip_address}:18529"
-NEXT_PUBLIC_DB_USER="root"
-NEXT_PUBLIC_DB_PASSWORD=""
-NEXT_PUBLIC_WS_URL="http://{your_machines_ip_address}:3001"
-
-NEXT_PUBLIC_NATS_SUBSCRIPTIONS="['connection', '>', 'typology-999@1.0.0']"
-
-NEXT_PUBLIC_ADMIN_SERVICE_HOSTING="http://{server_ip_address}:5100"
-NEXT_PUBLIC_CONDITION_TYPES="['non-overridable-block', 'overridable-block', 'override']"
-NEXT_PUBLIC_EVENT_TYPES="['pacs.008.001.10', 'pacs.002.001.12', 'pain.001.001.11', 'pain.013.001.09']"
-NEXT_PUBLIC_CONDITION_REASONS="['Suspicion of Money Laundering', 'Violation of KYC/AML Requirements', 'Suspicion of Terrorist Financing', 'Tax Evasion Concerns', 'Regulatory Reporting Thresholds', 'Unusual Transaction Patterns', 'High-Risk Countries', 'Multiple Failed Login Attempts', 'Fraudulent Activity', 'Phishing or Account Takeover', 'Suspicious Beneficiaries', 'System Errors', 'Exceeding Limits', 'Legal Holds or Court Orders', 'Adverse media reports', 'Dormant or Inactive Accounts', 'Internal Bank Policies']"
-
+```bash
+cp .env.template .env
 ```
+
+`.env.template` is the committed reference for all supported environment variables with inline comments. Copy it to `.env` and fill in the values for your environment. The `.env` file itself is git-ignored and must never be committed.
+
+**Required - server-to-server service URLs (never exposed to the browser):**
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `NATS_SERVER_URL` | NATS messaging server used by the custom Node server for real-time transaction streaming. Must be reachable from the server process - not the browser. | `nats://192.168.1.10:4222` |
+| `ADMIN_SERVICE_URL` | Tazama admin service. Used server-side by the BFF API routes (`/api/conditions/*`) to read and write conditions. Must not be a `NEXT_PUBLIC_` variable - it is a Docker-internal address unreachable from the browser. | `http://192.168.1.10:5100` |
+| `TMS_SERVER_URL` | Tazama Transaction Monitoring Service. Used server-side to submit transactions. | `http://192.168.1.10:5000` |
+
+**Optional - client-visible config (no credentials, safe to expose):**
+
+| Variable | Default | Purpose | Example |
+|---|---|---|---|
+| `NEXT_PUBLIC_URL` | `http://localhost:3011` | Public base URL of this app. Used for OAuth redirect URIs and absolute URL construction. Change this when running behind a reverse proxy or on a non-default port. | `http://demo.example.com` |
+| `NEXT_PUBLIC_WS_URL` | `http://localhost:3011` | WebSocket server URL. The custom Node server serves Socket.IO on this address. Must be reachable from the browser. | `http://demo.example.com` |
+
+**Authentication (disabled by default):**
+
+| Variable | Default | Purpose | Example |
+|---|---|---|---|
+| `AUTHENTICATED` | `false` | Set to `true` to require login via the Tazama auth-service (which federates to Keycloak). When `false`, all other auth variables are ignored. | `true` |
+| `AUTH_SERVICE_URL` | _(none)_ | Base URL of the Tazama [auth-service](https://github.com/tazama-lf/auth-service). The demo POSTs credentials to `${AUTH_SERVICE_URL}/v1/auth/login` and receives a Tazama JWT - this is **not** a direct Keycloak realm URL. Required when `AUTHENTICATED=true`. | `http://auth-service.example.com:3020` |
+| `AUTH_URL` | _(none)_ | Canonical public URL of this app. Auth.js v5 uses this to build absolute post-login redirect URLs. **Strongly recommended when `AUTHENTICATED=true`:** this app listens on port `3011`, not Auth.js's default port `3000`, so without `AUTH_URL` (or `NEXTAUTH_URL`) Auth.js's host-header fallback can redirect the user to `http://localhost:3000` after login. Set to the same value as `NEXT_PUBLIC_URL`. | `http://localhost:3011` |
+| `NEXTAUTH_SECRET` | _(none)_ | Secret used by Auth.js v5 to encrypt the browser session cookie that wraps the Tazama JWT. Local to this app - never sent to auth-service or downstream Tazama services. Required when `AUTHENTICATED=true`. Generate with: `openssl rand -base64 32` | _(generated value)_ |
+
+**Condition type dropdowns (optional overrides):**
+
+| Variable | Default | Purpose | Example |
+|---|---|---|---|
+| `CONDITION_TYPES` | built-in list of 3 | JSON array of condition type strings shown in the condition creation dropdown. Leave commented to use the built-in defaults. | `["non-overridable-block","overridable-block","override"]` |
+| `EVENT_TYPES` | built-in list of 4 | JSON array of event type strings for the condition event type filter. | `["pacs.008.001.10","pacs.002.001.12"]` |
+| `CONDITION_REASONS` | built-in list of 18 | JSON array of reason strings shown in the condition reason dropdown. | `["Fraudulent Activity","Sanction Screening Exception"]` |
 
 5. Run the development server:
 
 ```bash
-yarn dev
+npm run dev
 ```
 
-6. Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
+6. Open [http://localhost:3011](http://localhost:3011) with your browser to see the result.
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
 
@@ -128,25 +150,37 @@ yarn dev
 
 >  <img width="60%" height="full" src="./public/first_load.png" alt="main"><br/>
 
-2. Click the gear icon on the top right for Settings
+<a><div align="right">[Top](#table-of-contents)</div></a>
 
-> <img width="60%" height="full" src="./public/settings.png" alt="settings"><br/>
+### End-to-End Tests
 
-### Settings Screen
+The e2e tests use [Playwright](https://playwright.dev/) and run entirely without a live Tazama stack. The server starts automatically in `TEST_MODE`, intercepting transaction submissions and emitting deterministic fixtures over Socket.IO.
 
-- TMS API Host URL: `http://localhost:5000`
+1. Install Playwright browsers (one-time, after `npm install`):
 
-  > **Check what port number is being used by the TMS server on the docker instance **(Default Port: 5000)***
+```bash
+npx playwright install chromium
+```
 
-- CMS NATS Hosting: `http://localhost:14222` if run outside of docker-compose else `nats://nats:4222`
-  
-  > **Check what port number is being used by the NATS server on the docker instance **(Default Port: 4222)***
+2. Run headless (CI-style):
 
-- Arango DB Hosting: `http://localhost:18529`
-  > **Check what port number is being used by the TMS server on the docker instance **(Default Port: 8529)***
+```bash
+npm run e2e:headless
+```
 
-- Websocket IP Address: `http://localhost:3001`
-  > **If run locally use `http://localhost:3001` else if run on a network or hosted use `http://{your_ip_address}:3001` **(Default Port: 3001)***
+To view the HTML report after a headless run:
+
+```bash
+npx playwright show-report
+```
+
+3. Run in UI mode (interactive, with step-by-step timeline and live browser):
+
+```bash
+npm run e2e:ui
+```
+
+No `.env` file is needed to run the tests - all required environment variables are injected by `playwright.config.ts`.
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
 
@@ -242,7 +276,7 @@ If the build fails run the following script to revert changes made to the `docke
             - /app/node_modules
             - /app/.next
         ports:
-          - "3001:3001"
+          - "3011:3011"
         restart: always
         networks:
           - network1
@@ -254,6 +288,87 @@ If the build fails run the following script to revert changes made to the `docke
     ```
 
     > **Note: Check The `docker-compose.dev.yml` file to see what the version will be and update above command by replacing {version} with eg. v2.2.0*
+
+<a><div align="right">[Top](#table-of-contents)</div></a>
+
+## Health and Observability
+
+The demo exposes three operational endpoints intended for orchestrators (Docker, Kubernetes) and on-call operators. None of them require authentication.
+
+### Endpoints
+
+| Path | Aliases | Purpose | HTTP codes |
+| --- | --- | --- | --- |
+| `/api/health` | `/health`, `/healthz`, `/api/healthz`, `/ping` | **Liveness** - is the Node process alive? Dependency-free, returns immediately. Use this for orchestrator liveness probes and Docker `HEALTHCHECK`. | `200` always |
+| `/api/ready` | `/ready`, `/readyz`, `/api/readyz` | **Readiness** - can the demo serve traffic? Aggregates NATS, admin-service handshake, and TMS status from an in-memory `healthState` module - no I/O per request. Use this for orchestrator readiness probes. | `200` ready / degraded; `503` not_ready |
+| `/api/version` | `/version`, `/api/health/version` | **Build info** - package name and version, git SHA, build time, Node version, uptime. Useful for support and incident triage. | `200` always |
+
+### Readiness payload
+
+`/api/ready` returns an aggregated verdict and a per-dependency breakdown:
+
+```json
+{
+  "status": "ready",
+  "checks": {
+    "nats":  { "ok": true, "lastError": null },
+    "admin": { "ok": true, "networkMapsLoaded": 1, "lastError": null },
+    "tms":   { "ok": true, "lastError": null, "lastSuccessAt": "2026-06-11T08:00:00.000Z" }
+  },
+  "uptimeSec": 1234,
+  "socketClients": 2
+}
+```
+
+Status values:
+
+- `ready` - all critical (NATS, admin handshake) and non-critical (TMS) dependencies OK. HTTP `200`.
+- `degraded` - critical OK but TMS is failing. The UI loads; transaction submission may fail. HTTP `200`.
+- `not_ready` - any critical dependency is failing. HTTP `503`.
+
+When `TEST_MODE=true` is set, `/api/ready` returns a synthetic `ready` payload without consulting `healthState`, so Playwright e2e runs do not require a live Tazama stack.
+
+### Docker and Kubernetes wiring
+
+The production image already ships with a `HEALTHCHECK` that hits `/api/health` every 30 s. Compose deployments that need to override the interval, or that want to gate dependent services on the demo, can add an explicit `healthcheck` block:
+
+```yaml
+services:
+  tazama-demo:
+    image: tazamaorg/tazama-demo:${TAZAMA_VERSION}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3011/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+```
+
+For Kubernetes, `deployment.yaml` declares both probes:
+
+```yaml
+livenessProbe:
+  httpGet: { path: /api/health, port: http }
+  initialDelaySeconds: 20
+  periodSeconds: 30
+readinessProbe:
+  httpGet: { path: /api/ready, port: http }
+  initialDelaySeconds: 5
+  periodSeconds: 10
+```
+
+Rule of thumb: **liveness on `/api/health`, readiness on `/api/ready`**. Pointing liveness at `/api/ready` will cause a flaky downstream (e.g. a NATS blip) to trigger pod restart loops.
+
+### Build provenance
+
+`/api/version` reads `GIT_SHA` and `BUILD_TIME` from the process environment, falling back to `"unknown"` when unset. The `Dockerfile` declares these as `ARG` so they can be injected at image build time:
+
+```bash
+docker build \
+  --build-arg GIT_SHA=$(git rev-parse --short HEAD) \
+  --build-arg BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+  -t tazamaorg/tazama-demo:rc .
+```
 
 <a><div align="right">[Top](#table-of-contents)</div></a>
 
@@ -296,7 +411,6 @@ flowchart TD
   ```text
   Custom Server - Contains WebSocket and NATS Connections
   Package Management - Package.json
-  Application Settings and configurations
   ```
 
 - App Folder:
@@ -304,7 +418,6 @@ flowchart TD
   ```text
   Application Layout
   Main Page
-  Settings Page
   Handles navigation
   ```
 
