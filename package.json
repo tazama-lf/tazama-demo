@@ -123,6 +123,7 @@
   "overrides": {
     "uuid": "^11.1.1",
     "@opentelemetry/core": "^2.8.0",
-    "postcss": "^8.5.10"
+    "postcss": "^8.5.10",
+    "fast-uri": "3.1.5"
   }
 }
