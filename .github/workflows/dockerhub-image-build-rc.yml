@@ -24,7 +24,7 @@ jobs:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     permissions:
-      packages: write
+      packages: read  # npm install of @tazama-lf packages from GitHub Packages (images are pushed to Docker Hub, not GHCR)
       contents: read
       attestations: write
       id-token: write
@@ -65,8 +65,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Short-lived job token; the Dockerfile mounts it as GH_TOKEN for .npmrc. No PAT required.
           secrets: |
-            GH_TOKEN=${{ secrets.GH_TOKEN_LIB }}
+            GH_TOKEN=${{ github.token }}
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32
