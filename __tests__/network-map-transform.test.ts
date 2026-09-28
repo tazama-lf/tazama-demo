@@ -51,8 +51,9 @@ describe("transformNetworkMap", () => {
           messages: [
             {
               typologies: [
-                { cfg: "999@1.0.0", rules: [{ id: "EFRuP@1.0.0" }, { id: "901@1.0.0" }] },
-                { cfg: "998@1.0.0", rules: [{ id: "EFRuP@1.0.0" }, { id: "902@1.0.0" }] },
+                { cfg: "999@4.0.0", rules: [{ id: "EFRuP@4.0.0", cfg: "none" }, { id: "901@4.0.0" }] },
+                { cfg: "998@4.0.0", rules: [{ id: "EFRuP@4.0.0", cfg: "none" }, { id: "902@4.0.0" }] },
+                { cfg: "997@4.0.0", rules: [{ id: "EFRuP@4.0.0", cfg: "none" }, { id: "901@4.0.0" }] },
               ],
             },
           ],
@@ -62,10 +63,12 @@ describe("transformNetworkMap", () => {
 
     const out = transformNetworkMap(networkMap, { data: [] }, { data: [] })
 
-    const efrupCount = out.rules.filter((r) => r.title === "EFRuP").length
-    expect(efrupCount).toBe(1)
-    expect(out.typologiesEFRuP).toHaveLength(2)
-    expect(out.typologiesEFRuP.map((t) => t.typology).sort()).toEqual(["998", "999"])
+    const efrupRules = out.rules.filter((r) => r.title === "EFRuP")
+    expect(efrupRules).toHaveLength(1)
+    expect(efrupRules[0]?.rule).toBe("EFRuP@4.0.0")
+    expect(efrupRules[0]?.id).toBe("EFRuP@4.0.0")
+    expect(out.typologiesEFRuP).toHaveLength(3)
+    expect(out.typologiesEFRuP.map((t) => t.typology).sort()).toEqual(["997", "998", "999"])
   })
 
   it("places the EFRuP rule at the end of the rules list and forces its description", () => {
@@ -75,7 +78,7 @@ describe("transformNetworkMap", () => {
           messages: [
             {
               typologies: [
-                { cfg: "999@1.0.0", rules: [{ id: "EFRuP@1.0.0" }, { id: "901@1.0.0" }, { id: "902@1.0.0" }] },
+                { cfg: "999@4.0.0", rules: [{ id: "EFRuP@4.0.0" }, { id: "901@4.0.0" }, { id: "902@4.0.0" }] },
               ],
             },
           ],
@@ -87,6 +90,34 @@ describe("transformNetworkMap", () => {
 
     expect(out.rules[out.rules.length - 1].title).toBe("EFRuP")
     expect(out.rules[out.rules.length - 1].ruleDescription).toBe("Event Flow Rule Processor")
+  })
+
+  it("hydrates the EFRuP rule description and exitConditions from its rule config", () => {
+    const networkMap = {
+      data: [{ messages: [{ typologies: [{ cfg: "999@4.0.0", rules: [{ id: "EFRuP@4.0.0", cfg: "none" }] }] }] }],
+    }
+    const rules = {
+      data: [
+        {
+          id: "EFRuP@4.0.0",
+          cfg: "none",
+          desc: "Event-Flow Rule Processor",
+          config: {
+            exitConditions: [
+              { subRuleRef: "none", reason: "No entity or account condition in effect" },
+              { subRuleRef: "override", reason: "An entity or account override condition is in effect" },
+              { subRuleRef: "block", reason: "An entity or account block condition is in effect" },
+            ],
+          },
+        },
+      ],
+    }
+
+    const out = transformNetworkMap(networkMap, rules as never, { data: [] })
+
+    expect(out.rules).toHaveLength(1)
+    expect(out.rules[0]?.ruleDescription).toBe("Event-Flow Rule Processor")
+    expect(out.rules[0]?.ruleBands.map((b) => b.subRuleRef)).toEqual(["none", "override", "block"])
   })
 
   it("hydrates rules with description and bands from the rule list", () => {

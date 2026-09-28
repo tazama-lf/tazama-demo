@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { transformNetworkMap } from "lib/network-map-transform"
 import { findEfrupId, handleAdjudicatorResults } from "utils/adjudicatorUtils"
 
 // Shared fixture: a minimal but realistic NATS message from the event adjudicator.
@@ -152,49 +153,47 @@ describe("handleAdjudicatorResults - color and stop flag", () => {
 // findEfrupId
 // ---------------------------------------------------------------------------
 describe("findEfrupId", () => {
-  function buildNetworkMap(rules: { id: string; cfg: string }[]) {
-    return {
-      data: [{ messages: [{ typologies: [{ rules }] }] }],
-    }
+  // Shape returned by the /api/network-map BFF route (see lib/network-map-transform.ts).
+  function buildTransformed(rules: { title: string; rule: string }[]) {
+    return { rules, typologies: [], typologiesEFRuP: [] }
   }
 
-  it("returns the EFRuP rule id when the network map contains one", () => {
-    const map = buildNetworkMap([
-      { id: "Rule-001@1.0.0", cfg: "1.0.0" },
-      { id: "EFRuP@1.0.0", cfg: "none" },
+  it("returns the EFRuP rule id when the transformed network map contains one", () => {
+    const map = buildTransformed([
+      { title: "001", rule: "001@4.0.0" },
+      { title: "EFRuP", rule: "EFRuP@4.0.0" },
     ])
-    expect(findEfrupId(map)).toBe("EFRuP@1.0.0")
+    expect(findEfrupId(map)).toBe("EFRuP@4.0.0")
   })
 
   it("returns undefined when no EFRuP rule exists", () => {
-    const map = buildNetworkMap([
-      { id: "Rule-001@1.0.0", cfg: "1.0.0" },
-      { id: "Rule-002@1.0.0", cfg: "1.0.0" },
+    const map = buildTransformed([
+      { title: "001", rule: "001@4.0.0" },
+      { title: "002", rule: "002@4.0.0" },
     ])
     expect(findEfrupId(map)).toBeUndefined()
   })
 
-  it("returns the correct id when EFRuP appears in a later message's typology", () => {
-    const map = {
-      data: [
-        {
-          messages: [
-            { typologies: [{ rules: [{ id: "Rule-001@1.0.0", cfg: "1.0.0" }] }] },
-            {
-              typologies: [
-                {
-                  rules: [
-                    { id: "Rule-002@1.0.0", cfg: "1.0.0" },
-                    { id: "EFRuP@2.0.0", cfg: "none" },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    }
-    expect(findEfrupId(map)).toBe("EFRuP@2.0.0")
+  it("resolves the id end-to-end from transformNetworkMap output", () => {
+    const out = transformNetworkMap(
+      {
+        data: [
+          {
+            messages: [
+              {
+                typologies: [
+                  { cfg: "999@2.0.0", rules: [{ id: "001@2.0.0" }, { id: "EFRuP@2.0.0", cfg: "none" }] },
+                  { cfg: "998@2.0.0", rules: [{ id: "EFRuP@2.0.0", cfg: "none" }] },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      { data: [] },
+      { data: [] }
+    )
+    expect(findEfrupId(out)).toBe("EFRuP@2.0.0")
   })
 
   it("returns undefined for null input", () => {

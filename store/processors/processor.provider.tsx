@@ -537,7 +537,7 @@ const ProcessorProvider = ({ children }: Props) => {
       let index: number = 0
       const updatedRules: any[] = [...state.rules]
       if (efrupIdRef.current !== undefined && msg.ruleResult.id === efrupIdRef.current) {
-        index = await state.rules.findIndex((r: Rule) => r.title === msg.ruleResult.id)
+        index = await state.rules.findIndex((r: Rule) => r.rule === msg.ruleResult.id)
         if (msg.ruleResult.subRuleRef === "override") {
           updatedRules[index].color = "g"
         } else if (msg.ruleResult.subRuleRef === "block") {
