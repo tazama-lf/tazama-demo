@@ -84,9 +84,11 @@ export interface TransformedNetworkMap {
   typologiesEFRuP: TypoEFRuP[]
 }
 
-const EFRUP_RULE_ID = "EFRuP@1.0.0"
 const EFRUP_TITLE = "EFRuP"
 const EFRUP_DESCRIPTION = "Event Flow Rule Processor"
+
+// Match on the rule name only; the version (e.g. "EFRuP@4.0.0") comes from the network map.
+export const isEfrupRuleId = (ruleId: string | undefined): boolean => ruleId?.split("@")[0] === EFRUP_TITLE
 
 export function transformNetworkMap(
   networkMapResponse: AdminListEnvelope<NetworkMapConfig> | null | undefined,
@@ -150,7 +152,7 @@ export function transformNetworkMap(
               displayLinkedTypo: [],
             }
 
-            if (ruleIdRaw === EFRUP_RULE_ID) {
+            if (isEfrupRuleId(ruleIdRaw)) {
               typologiesEFRuP.push({ typology: typologyTitle, efrupResult: undefined })
               const alreadyHaveEfrup = rulesRes.some((r) => r.title === EFRUP_TITLE)
               if (!alreadyHaveEfrup) rulesRes.push(newRule)
@@ -167,26 +169,25 @@ export function transformNetworkMap(
     }
   }
 
-  // De-duplicate rules by numeric id (preserves first occurrence).
+  // De-duplicate rules by title (preserves first occurrence). Keying on the
+  // numeric id fails for non-numeric rules such as EFRuP (NaN !== NaN).
   const finalRules: Rule[] = []
   for (const rule of rulesRes) {
-    if (!finalRules.some((r) => r.id === rule.id)) finalRules.push(rule)
+    if (!finalRules.some((r) => r.title === rule.title)) finalRules.push(rule)
   }
 
   // Hydrate rules with description and band/case/exitCondition data.
   for (const rule of finalRules) {
-    if (rule.rule === EFRUP_RULE_ID) {
-      // v3 reassigned id to the cfg string and forced the description.
-      rule.id = EFRUP_RULE_ID as unknown as number
-      rule.title = EFRUP_TITLE
+    if (isEfrupRuleId(rule.rule)) {
+      // v3 reassigned id to the full rule id string (e.g. "EFRuP@4.0.0").
+      rule.id = rule.rule as unknown as number
       rule.ruleDescription = EFRUP_DESCRIPTION
-      continue
     }
 
     const ruleDoc = ruleDocs.find((r) => r.id === rule.rule)
     if (!ruleDoc) continue
 
-    rule.ruleDescription = ruleDoc.desc ?? ""
+    rule.ruleDescription = ruleDoc.desc ?? rule.ruleDescription
 
     const cfg = ruleDoc.config
     if (!cfg) continue
@@ -243,7 +244,7 @@ export function transformNetworkMap(
   typologiesRes.sort((a, b) => a.title.localeCompare(b.title))
 
   // Move EFRuP to the end of the rule list (v3 behaviour).
-  const efrupIdx = finalRules.findIndex((r) => (r.id as unknown as string) === EFRUP_RULE_ID)
+  const efrupIdx = finalRules.findIndex((r) => isEfrupRuleId(r.rule))
   if (efrupIdx !== -1) {
     const efrup = finalRules[efrupIdx]!
     finalRules.splice(efrupIdx, 1)
