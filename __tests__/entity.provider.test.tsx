@@ -613,6 +613,59 @@ describe("EntityProvider - selectDebtorEntity", () => {
   })
 })
 
+describe("EntityProvider - pacs008 BirthDt format", () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    localStorage.clear()
+    jest.spyOn(console, "log").mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  it("serialises debtor and initiating party BirthDt as YYYY-MM-DD", async () => {
+    mockCreateAnEntity.mockResolvedValueOnce(DEBTOR_FIXTURE)
+
+    const { getCtx } = setup()
+
+    await waitFor(() => expect(getCtx()).not.toBeNull())
+
+    await act(async () => {
+      await getCtx().createEntity()
+    })
+
+    await waitFor(() => expect(getCtx().entities).toHaveLength(1))
+
+    await act(async () => {
+      await getCtx().setDebtorPacs008(0)
+    })
+
+    const sent: any = JSON.parse(JSON.stringify(getCtx().pacs008))
+    expect(sent.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt).toBe("1990-01-01")
+    expect(sent.FIToFICstmrCdtTrf.CdtTrfTxInf.InitgPty.Id.PrvtId.DtAndPlcOfBirth.BirthDt).toBe("1990-01-01")
+  })
+
+  it("serialises creditor BirthDt as YYYY-MM-DD", async () => {
+    const { getCtx } = setup()
+
+    await waitFor(() => expect(getCtx()).not.toBeNull())
+
+    await act(async () => {
+      await getCtx().createCreditorEntity()
+    })
+
+    await waitFor(() => expect(getCtx().creditorEntities).toHaveLength(1))
+
+    await act(async () => {
+      await getCtx().setCreditorPacs008(0)
+    })
+
+    const sent: any = JSON.parse(JSON.stringify(getCtx().pacs008))
+    expect(sent.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt).toBe("1990-01-01")
+  })
+})
+
 describe("EntityProvider - selectCreditorEntity", () => {
   beforeEach(() => {
     jest.clearAllMocks()
