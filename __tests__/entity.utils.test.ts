@@ -10,11 +10,13 @@ import {
   cloneDebtorToCreditor,
   createAnCreditorEntity,
   createAnEntity,
+  fromDateOnlyString,
   GenerateBirthDate,
   RandomCellNumber,
   RandomName,
   RandomNumbers,
   RandomSurname,
+  toDateOnlyString,
 } from "store/entities/entity.utils"
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
@@ -279,5 +281,32 @@ describe("cloneCreditorAccountToDebtorAccount", () => {
   it("handles an empty array", () => {
     const result = cloneCreditorAccountToDebtorAccount([])
     expect(result).toEqual([])
+  })
+})
+
+// ─── toDateOnlyString / fromDateOnlyString ───────────────────────────────────
+
+describe("toDateOnlyString", () => {
+  it("formats a local date as YYYY-MM-DD with zero padding", () => {
+    expect(toDateOnlyString(new Date(1974, 2, 5))).toBe("1974-03-05")
+  })
+
+  it("uses the local calendar day, not the UTC day", () => {
+    expect(toDateOnlyString(new Date(1974, 2, 12, 0, 0, 0))).toBe("1974-03-12")
+    expect(toDateOnlyString(new Date(1974, 2, 12, 23, 59, 59))).toBe("1974-03-12")
+  })
+})
+
+describe("fromDateOnlyString", () => {
+  it("parses YYYY-MM-DD as local midnight", () => {
+    const date = fromDateOnlyString("1974-03-12")
+    expect(date.getFullYear()).toBe(1974)
+    expect(date.getMonth()).toBe(2)
+    expect(date.getDate()).toBe(12)
+    expect(date.getHours()).toBe(0)
+  })
+
+  it("round-trips with toDateOnlyString", () => {
+    expect(toDateOnlyString(fromDateOnlyString("2000-12-31"))).toBe("2000-12-31")
   })
 })

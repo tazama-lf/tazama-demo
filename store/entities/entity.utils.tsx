@@ -1,9 +1,18 @@
+import { v4 as uuidv4 } from "uuid"
 import { CdtrEntity, CreditorAccount, CreditorEntity, DebtorAccount, DebtorEntity, Entity } from "./entity.interface"
 import { countries, namesList, surnamesList } from "./mock.data"
-import { v4 as uuidv4 } from "uuid"
 
 const randomDate = (start: Date, end: Date) => {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString().split("T")[0]
+}
+
+// Local calendar date as YYYY-MM-DD; toISOString() would shift the day in non-UTC timezones
+export const toDateOnlyString = (date: Date): string =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+
+export const fromDateOnlyString = (value: string): Date => {
+  const [year = NaN, month = NaN, day = NaN] = value.split("-").map(Number)
+  return new Date(year, month - 1, day)
 }
 
 export const RandomNumbers = () => {

@@ -63,7 +63,7 @@ export const pacs008InitialState: PACS008 = {
         Id: {
           PrvtId: {
             DtAndPlcOfBirth: {
-              BirthDt: new Date(),
+              BirthDt: "",
               CityOfBirth: "Unknown",
               CtryOfBirth: "ZZ",
             },
@@ -86,7 +86,7 @@ export const pacs008InitialState: PACS008 = {
         Id: {
           PrvtId: {
             DtAndPlcOfBirth: {
-              BirthDt: new Date(),
+              BirthDt: "",
               CityOfBirth: "Unknown",
               CtryOfBirth: "ZZ",
             },
@@ -137,7 +137,7 @@ export const pacs008InitialState: PACS008 = {
         Id: {
           PrvtId: {
             DtAndPlcOfBirth: {
-              BirthDt: new Date(),
+              BirthDt: "",
               CityOfBirth: "Unknown",
               CtryOfBirth: "ZZ",
             },

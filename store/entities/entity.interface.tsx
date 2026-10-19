@@ -88,7 +88,7 @@ export interface CreditorEntity {
   }
 }
 
-import type { Pacs008 as LibPacs008, Pacs002 as LibPacs002 } from "@tazama-lf/frms-coe-lib"
+import type { Pacs002 as LibPacs002, Pacs008 as LibPacs008 } from "@tazama-lf/frms-coe-lib"
 
 export interface Country {
   name: string
@@ -97,7 +97,22 @@ export interface Country {
   code: string
 }
 
-export type PACS008 = Omit<LibPacs008, "TenantId">
+// frms-coe-lib types BirthDt as Date, but the TMS contract expects a YYYY-MM-DD string
+type LibCdtTrfTxInf = LibPacs008["FIToFICstmrCdtTrf"]["CdtTrfTxInf"]
+type LibPrvtId = LibCdtTrfTxInf["Dbtr"]["Id"]["PrvtId"]
+type Party = Omit<LibCdtTrfTxInf["Dbtr"], "Id"> & {
+  Id: {
+    PrvtId: Omit<LibPrvtId, "DtAndPlcOfBirth"> & {
+      DtAndPlcOfBirth: Omit<LibPrvtId["DtAndPlcOfBirth"], "BirthDt"> & { BirthDt: string }
+    }
+  }
+}
+
+export type PACS008 = Omit<LibPacs008, "TenantId" | "FIToFICstmrCdtTrf"> & {
+  FIToFICstmrCdtTrf: Omit<LibPacs008["FIToFICstmrCdtTrf"], "CdtTrfTxInf"> & {
+    CdtTrfTxInf: Omit<LibCdtTrfTxInf, "InitgPty" | "Dbtr" | "Cdtr"> & { InitgPty: Party; Dbtr: Party; Cdtr: Party }
+  }
+}
 
 export type PACS002 = Omit<LibPacs002, "TenantId">
 

@@ -1,5 +1,6 @@
 "use client"
 import React, { ReactNode, useEffect, useReducer } from "react"
+import { v4 as uuidv4 } from "uuid"
 import { ACTIONS } from "./entity.actions"
 import EntityContext from "./entity.context"
 import {
@@ -38,7 +39,6 @@ import {
   RandomNumbers,
   RandomSurname,
 } from "./entity.utils"
-import { v4 as uuidv4 } from "uuid"
 
 interface Props {
   children: ReactNode
@@ -96,20 +96,8 @@ const EntityProvider = ({ children }: Props) => {
 
     if (pacs008 !== "") {
       const parsedPacs008: any = JSON.parse(pacs008)
-      const txInfo = parsedPacs008.FIToFICstmrCdtTrf?.CdtTrfTxInf
       const doc = parsedPacs008.FIToFICstmrCdtTrf?.SplmtryData?.Envlp?.Doc
       if (doc?.Xprtn) doc.Xprtn = new Date(doc.Xprtn)
-      if (txInfo) {
-        if (txInfo.InitgPty?.Id?.PrvtId?.DtAndPlcOfBirth?.BirthDt) {
-          txInfo.InitgPty.Id.PrvtId.DtAndPlcOfBirth.BirthDt = new Date(txInfo.InitgPty.Id.PrvtId.DtAndPlcOfBirth.BirthDt)
-        }
-        if (txInfo.Dbtr?.Id?.PrvtId?.DtAndPlcOfBirth?.BirthDt) {
-          txInfo.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt = new Date(txInfo.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt)
-        }
-        if (txInfo.Cdtr?.Id?.PrvtId?.DtAndPlcOfBirth?.BirthDt) {
-          txInfo.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt = new Date(txInfo.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt)
-        }
-      }
       dispatch({ type: ACTIONS.SET_DEBTOR_PACS008_SUCCESS, payload: parsedPacs008 })
 
       if (JSON.parse(creditorEntities) !== "") {
@@ -597,20 +585,14 @@ const EntityProvider = ({ children }: Props) => {
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.InitgPty.Nm = debtor.Entity.Dbtr.Nm
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.InitgPty.Id.PrvtId = {
         ...debtor.Entity.Dbtr.Id.PrvtId,
-        DtAndPlcOfBirth: {
-          ...debtor.Entity.Dbtr.Id.PrvtId.DtAndPlcOfBirth,
-          BirthDt: new Date(debtor.Entity.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt),
-        },
+        DtAndPlcOfBirth: { ...debtor.Entity.Dbtr.Id.PrvtId.DtAndPlcOfBirth },
       }
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.InitgPty.CtctDtls = { ...debtor.Entity.Dbtr.CtctDtls }
 
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Nm = debtor.Entity.Dbtr.Nm
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.Id.PrvtId = {
         ...debtor.Entity.Dbtr.Id.PrvtId,
-        DtAndPlcOfBirth: {
-          ...debtor.Entity.Dbtr.Id.PrvtId.DtAndPlcOfBirth,
-          BirthDt: new Date(debtor.Entity.Dbtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt),
-        },
+        DtAndPlcOfBirth: { ...debtor.Entity.Dbtr.Id.PrvtId.DtAndPlcOfBirth },
       }
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Dbtr.CtctDtls = { ...debtor.Entity.Dbtr.CtctDtls }
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.PmtId.InstrId = uuidv4().replaceAll("-", "")
@@ -675,10 +657,7 @@ const EntityProvider = ({ children }: Props) => {
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Nm = creditor.CreditorEntity.Cdtr.Nm
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.Id.PrvtId = {
         ...creditor.CreditorEntity.Cdtr.Id.PrvtId,
-        DtAndPlcOfBirth: {
-          ...creditor.CreditorEntity.Cdtr.Id.PrvtId.DtAndPlcOfBirth,
-          BirthDt: new Date(creditor.CreditorEntity.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt),
-        },
+        DtAndPlcOfBirth: { ...creditor.CreditorEntity.Cdtr.Id.PrvtId.DtAndPlcOfBirth },
       }
       setPacs008.FIToFICstmrCdtTrf.CdtTrfTxInf.Cdtr.CtctDtls = { ...creditor.CreditorEntity.Cdtr.CtctDtls }
 
