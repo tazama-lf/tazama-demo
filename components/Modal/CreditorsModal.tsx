@@ -2,13 +2,14 @@ import React, { useContext, useEffect, useState } from "react"
 import DatePicker from "react-datepicker"
 import EntityContext from "store/entities/entity.context"
 import { CreditorAccount, CreditorEntity } from "store/entities/entity.interface"
+import { fromDateOnlyString, toDateOnlyString } from "store/entities/entity.utils"
 import "react-datepicker/dist/react-datepicker.css"
-import ConditionsList from "./ConditionsList"
-import ConditionsCreate from "./ConditionsCreate"
-import { ListCondition, NewCondition } from "store/processors/processor.interface"
-import { StarIcon } from "@radix-ui/react-icons"
 import ProcessorContext from "store/processors/processor.context"
 import { newAccountConditionState, newEntityConditionState } from "store/processors/processor.initialState"
+import { ListCondition, NewCondition } from "store/processors/processor.interface"
+import ConditionsCreate from "./ConditionsCreate"
+import ConditionsList from "./ConditionsList"
+import { StarIcon } from "@radix-ui/react-icons"
 
 interface Props {
   color?: string
@@ -368,7 +369,7 @@ const CreditorModal = ({ ...props }: Props) => {
                           showIcon
                           selected={
                             customEntity?.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt
-                              ? new Date(customEntity?.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt)
+                              ? fromDateOnlyString(customEntity.Cdtr.Id.PrvtId.DtAndPlcOfBirth.BirthDt)
                               : null
                           }
                           onKeyDown={() => {
@@ -381,7 +382,7 @@ const CreditorModal = ({ ...props }: Props) => {
                           }}
                           onChange={(date) => {
                             if (customEntity !== undefined) {
-                              const formattedDate = date?.toISOString().split("T")[0] || "" // Format the date as YYYY-MM-DD
+                              const formattedDate = date ? toDateOnlyString(date) : ""
                               setCustomEntity({
                                 ...customEntity,
                                 Cdtr: {
@@ -769,4 +770,3 @@ const CreditorModal = ({ ...props }: Props) => {
 }
 
 export default CreditorModal
-
